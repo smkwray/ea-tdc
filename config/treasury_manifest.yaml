@@ -1,0 +1,16 @@
+datasets:
+  auctions_query:
+    endpoint: v1/accounting/od/auctions_query
+    params:
+      sort: -issue_date
+      page[size]: "1000"
+  buybacks_operations:
+    endpoint: v1/accounting/od/buybacks_operations
+    params:
+      sort: -operation_date
+      page[size]: "1000"
+  operating_cash_balance:
+    endpoint: v1/accounting/dts/operating_cash_balance
+    params:
+      sort: -record_date
+      page[size]: "1000"

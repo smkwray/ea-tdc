@@ -1,0 +1,169 @@
+version: 0.1
+
+outcome_families:
+  deposits_money:
+    default_horizons: [0, 1, 2, 4, 8]
+    preferred_scale: qoq_pct_of_gdp_or_logdiff
+    examples:
+      - total_bank_deposits
+      - matched_total_deposits
+      - matched_total_deposits_pct_gdp
+      - large_time_deposits_qoq
+      - large_time_deposits_qoq_pct_gdp
+      - retail_mmf_assets_qoq
+      - retail_mmf_assets_qoq_pct_gdp
+      - institutional_mmf_assets_qoq
+      - institutional_mmf_assets_qoq_pct_gdp
+      - deposit_substitution_block_qoq
+      - deposit_substitution_block_qoq_pct_gdp
+      - accounting_deposit_substitution_qoq
+      - accounting_deposit_substitution_qoq_pct_gdp
+      - accounting_identity_total_qoq
+      - accounting_identity_total_qoq_pct_gdp
+      - accounting_identity_gap_qoq
+      - accounting_identity_gap_qoq_pct_gdp
+      - m2
+      - demand_deposits
+      - savings_deposits
+      - small_time_deposits
+      - retail_money_funds_if_used
+    comments: First priority family because it sits closest to the TDC concept.
+
+  funding_liquidity:
+    default_horizons: [0, 1, 2, 4]
+    preferred_scale: level_change_or_spread_change
+    examples:
+      - sofr
+      - fed_funds
+      - repo_spread
+      - ioer_or_iob_spread_if_available
+      - on_rrp_usage
+      - on_rrp_balance_qoq
+      - on_rrp_balance_qoq_pct_gdp
+      - reserve_balances
+      - tga_balance_qoq
+      - tga_balance_qoq_pct_gdp
+      - dealer_repo_conditions
+    comments: Good family for CoordWatch interaction work.
+
+  treasury_market:
+    default_horizons: [0, 1, 2, 4]
+    preferred_scale: bp_change
+    examples:
+      - dgs2
+      - dgs5
+      - dgs10
+      - dgs30
+      - term_spread_10y_3m
+      - term_premium_proxy
+      - bill_yield_spread
+    comments: Be careful with IV exclusion because QRA has direct duration effects here.
+
+  credit_spreads:
+    default_horizons: [0, 1, 2, 4, 8]
+    preferred_scale: bp_change
+    examples:
+      - baa_aaa
+      - aaa_treasury_spread
+      - investment_grade_oas
+      - high_yield_oas
+      - mortgage_spread_if_kept
+    comments: Strong thesis-relevant family for financial-conditions effects.
+
+  prices_and_nominal_activity:
+    default_horizons: [1, 2, 4, 8]
+    preferred_scale: inflation_rate_or_logdiff
+    examples:
+      - cpi_headline
+      - cpi_core
+      - pce_headline
+      - pce_core
+      - gdp_deflator
+      - nominal_gdp
+      - retail_sales_nominal
+    comments: Slow-moving; use longer horizons and narrower claims.
+
+  real_activity:
+    default_horizons: [1, 2, 4, 8]
+    preferred_scale: logdiff_or_level_change
+    examples:
+      - real_gdp
+      - industrial_production
+      - payrolls
+      - unemployment_rate
+      - housing_starts
+    comments: Lower priority than money/funding outcomes for the first release.
+
+  bank_balance_sheet:
+    default_horizons: [0, 1, 2, 4]
+    preferred_scale: qoq_flow_or_share_change
+    examples:
+      - bank_treasury_holdings
+      - total_loans
+      - bank_credit_qoq_pct_gdp
+      - c_i_loans
+      - bank_business_loans_qoq
+      - bank_ci_loans_h8_qoq
+      - bank_ci_loans_h8_qoq_pct_gdp
+      - bank_short_term_loans_z1_qoq
+      - bank_short_term_loans_z1_qoq_pct_gdp
+      - bank_balance_sheet_proxy_block_qoq
+      - bank_balance_sheet_proxy_block_qoq_pct_gdp
+      - accounting_bank_balance_sheet_qoq
+      - accounting_bank_balance_sheet_qoq_pct_gdp
+      - public_liquidity_proxy_block_qoq
+      - public_liquidity_proxy_block_qoq_pct_gdp
+      - accounting_public_liquidity_qoq
+      - accounting_public_liquidity_qoq_pct_gdp
+      - bank_business_loans_qoq_pct_gdp
+      - securities_holdings
+      - reserve_assets
+      - deposit_mix
+    comments: Use for mechanism rather than as the final public headline.
+
+  external_balance:
+    default_horizons: [0, 1, 2, 4]
+    preferred_scale: level_change_or_share_of_gdp
+    examples:
+      - current_account
+      - current_account_balance
+      - current_account_balance_pct_gdp
+      - row_corp_bonds_flow
+      - row_corp_bonds_flow_pct_gdp
+      - row_private_flow_block
+      - row_private_flow_block_pct_gdp
+      - external_flow_proxy_block_qoq
+      - external_flow_proxy_block_qoq_pct_gdp
+      - accounting_external_flow_qoq
+      - accounting_external_flow_qoq_pct_gdp
+      - exports_qoq
+      - exports_qoq_pct_gdp
+      - imports_qoq
+      - net_exports_qoq
+      - net_exports_qoq_pct_gdp
+      - net_foreign_private_flows
+      - row_treasury_holdings
+      - dollar_index_if_kept
+    comments: Good for testing whether foreign channels offset domestic deposit effects.
+
+  mechanism_only:
+    default_horizons: [0, 1, 2]
+    preferred_scale: custom
+    examples:
+      - other_component_qoq
+      - other_component_qoq_pct_gdp
+      - proxy_accounting_total_qoq
+      - proxy_accounting_total_qoq_pct_gdp
+      - proxy_unexplained_gap_qoq
+      - proxy_unexplained_gap_qoq_pct_gdp
+      - creator_channel_score
+      - escape_channel_score
+      - external_pressure_score
+    comments: Mostly from repo-derived bundles rather than pure FRED.
+
+outcome_rules:
+  - Keep a smaller, theory-driven headline family first; expand later.
+  - Do not mix stocks, flows, and rates in the same visual summary without explicit units.
+  - Use family-wise multiple-testing correction.
+  - For market outcomes around QRA events, prefer event-panel jobs over quarterly LP when the
+    target clearly moves at daily or weekly frequency.

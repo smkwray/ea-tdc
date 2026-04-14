@@ -1,0 +1,32 @@
+{
+  "candidate_control_branch": null,
+  "generated_at": "2026-04-12T12:25:15+00:00",
+  "job_id": "baseline_tdc_lp_inflation",
+  "lead_placebos": [
+    {
+      "avg_abs_z": 0.864936,
+      "job_id": "baseline_tdc_lp_inflation",
+      "lead": 1,
+      "max_abs_z": 1.737273,
+      "rows_written": 6
+    },
+    {
+      "avg_abs_z": 0.930324,
+      "job_id": "baseline_tdc_lp_inflation",
+      "lead": 2,
+      "max_abs_z": 1.263312,
+      "rows_written": 6
+    },
+    {
+      "avg_abs_z": 1.073769,
+      "job_id": "baseline_tdc_lp_inflation",
+      "lead": 4,
+      "max_abs_z": 1.859826,
+      "rows_written": 6
+    }
+  ],
+  "most_responsive_candidates": [],
+  "notes": "Negative-control mining here means lead-placebo checks plus candidate placebo-outcome screening over numeric bundle columns that are not treatment, instrument, or primary outcome fields. If the recommended screened-factor branch yields no usable placebo-outcome fits, the miner falls back to the baseline core controls.",
+  "recommended_k": 200,
+  "top_clean_candidates": []
+}

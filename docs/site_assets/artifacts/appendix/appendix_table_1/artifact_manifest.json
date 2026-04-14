@@ -1,0 +1,26 @@
+{
+  "artifact_id": "appendix_table_1",
+  "artifact_kind": "table",
+  "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+  "display_spec": "supporting_table",
+  "generated_at": "2026-04-14T11:17:30+00:00",
+  "html_path": "output/artifacts/appendix/appendix_table_1/appendix_table_1.html",
+  "job_id": "baseline_tdc_lp_credit_spreads",
+  "notes": [
+    "Treatment: Baseline TDC estimate",
+    "Response: Direct response at horizon h",
+    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves",
+    "Covariance: Newey-West HAC",
+    "Sample span: 1946Q4 to 2026Q2",
+    "Observations: 86 to 93",
+    "Displayed branch: K=100 screened branch",
+    "Artifact source: Credit-spread responses to the baseline TDC estimate"
+  ],
+  "primary_path": "output/artifacts/appendix/appendix_table_1/appendix_table_1.md",
+  "release_channel": "appendix",
+  "secondary_path": "output/artifacts/appendix/appendix_table_1/appendix_table_1.csv",
+  "slot_label": "Appendix Table 1",
+  "source_estimates_path": "output/models/baseline_tdc_lp_credit_spreads__robustness_k100_estimates.csv",
+  "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
+  "title": "Credit-spread responses to the baseline TDC estimate estimates"
+}

@@ -1,0 +1,37 @@
+# Private workspace files
+do/
+do/**
+tasks/
+tasks/**
+SOURCES.md
+
+# Environment
+.env
+
+# Private notes
+*.plan.md
+plan.md
+plans/
+
+# Generated project data
+data/raw/
+data/seed/
+data/bundles/
+output/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+src/ea_tdc.egg-info/
+dist/
+build/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,679 @@
+{
+  "factors": [
+    {
+      "explained_eigenvalue": 41.858087,
+      "factor_id": "dflmx_k100_f1",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag004",
+          "loading": 0.008155
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag003",
+          "loading": 0.008136
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag002",
+          "loading": 0.008111
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag001",
+          "loading": -0.007804
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag001",
+          "loading": 0.007785
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gse_tsy__lag001",
+          "loading": 0.007785
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag002",
+          "loading": -0.007774
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag002",
+          "loading": 0.007765
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gse_tsy__lag002",
+          "loading": 0.007765
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag009",
+          "loading": 0.007632
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag008",
+          "loading": 0.007632
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag003",
+          "loading": -0.007597
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 16.045744,
+      "factor_id": "dflmx_k100_f2",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.009168
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.00879
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.008587
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag012",
+          "loading": 0.00855
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag012",
+          "loading": -0.008485
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.00839
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": -0.008196
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag011",
+          "loading": -0.008164
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": -0.008073
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": -0.00793
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": -0.007819
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": -0.007745
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 11.745011,
+      "factor_id": "dflmx_k100_f3",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.012756
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.012716
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag010",
+          "loading": 0.012539
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.012461
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.012403
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.01235
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.012291
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag011",
+          "loading": 0.012078
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.011974
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.01196
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.0118
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag012",
+          "loading": 0.011418
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 7.356852,
+      "factor_id": "dflmx_k100_f4",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__usgood_usgood__lag001",
+          "loading": 0.015267
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag002",
+          "loading": 0.015188
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag003",
+          "loading": 0.01509
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag004",
+          "loading": 0.015063
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag005",
+          "loading": 0.014866
+        },
+        {
+          "feature_id": "m__manemp_manemp__lag003",
+          "loading": 0.013447
+        },
+        {
+          "feature_id": "m__manemp_manemp__lag002",
+          "loading": 0.013433
+        },
+        {
+          "feature_id": "m__manemp_manemp__lag001",
+          "loading": 0.013432
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": 0.010856
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag012",
+          "loading": 0.010779
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": 0.010386
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag011",
+          "loading": 0.010137
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 97.213336,
+      "factor_id": "dflmx_k200_f1",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag036",
+          "loading": -0.005347
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.005346
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.005346
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.005344
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.005344
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.005343
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.005342
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag034",
+          "loading": -0.005341
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.005341
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag033",
+          "loading": -0.005341
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag035",
+          "loading": -0.005339
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.005338
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 32.140399,
+      "factor_id": "dflmx_k200_f2",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag002",
+          "loading": 0.007529
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag003",
+          "loading": 0.007524
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag007",
+          "loading": 0.007514
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.007505
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag010",
+          "loading": 0.007504
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.007494
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag012",
+          "loading": 0.007483
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag009",
+          "loading": 0.00714
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag008",
+          "loading": 0.00713
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag006",
+          "loading": 0.007112
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag004",
+          "loading": 0.007102
+        },
+        {
+          "feature_id": "m__usgood_usgood__lag005",
+          "loading": 0.007096
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 19.162754,
+      "factor_id": "dflmx_k200_f3",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.008291
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": -0.00801
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.007955
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": -0.007835
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag012",
+          "loading": -0.007811
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": -0.007728
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.007594
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": -0.007584
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.007555
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": -0.007519
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.007511
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": -0.007355
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 11.356799,
+      "factor_id": "dflmx_k200_f4",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.011969
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.01194
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.011739
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.011643
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.011639
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag010",
+          "loading": 0.011525
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.011481
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.011402
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.011224
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag011",
+          "loading": 0.010904
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.01088
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag012",
+          "loading": 0.010083
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 172.327817,
+      "factor_id": "dflmx_k300_f1",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.004182
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.004181
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.004181
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.004181
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag036",
+          "loading": -0.004181
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.004181
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.004181
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.004181
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag046",
+          "loading": -0.00418
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag042",
+          "loading": -0.00418
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.00418
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.004179
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 41.304301,
+      "factor_id": "dflmx_k300_f2",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag002",
+          "loading": 0.006757
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag003",
+          "loading": 0.006753
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag007",
+          "loading": 0.00675
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag010",
+          "loading": 0.006746
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.006741
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.006731
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag012",
+          "loading": 0.006727
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag001",
+          "loading": 0.006511
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag002",
+          "loading": 0.006504
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag003",
+          "loading": 0.006499
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag004",
+          "loading": 0.006496
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag005",
+          "loading": 0.006481
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 22.232447,
+      "factor_id": "dflmx_k300_f3",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.007805
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.007573
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag012",
+          "loading": -0.007503
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.007247
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.007177
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.007146
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag011",
+          "loading": -0.006996
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag012",
+          "loading": 0.006954
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag010",
+          "loading": -0.006935
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag005",
+          "loading": -0.006871
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag009",
+          "loading": 0.006799
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag003",
+          "loading": -0.006621
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 13.339617,
+      "factor_id": "dflmx_k300_f4",
+      "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.012131
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.012075
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.011872
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.011822
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.011725
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.0117
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.011568
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.011553
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag010",
+          "loading": 0.011474
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.011224
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag011",
+          "loading": 0.010929
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag012",
+          "loading": 0.010254
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-04-12T11:45:46+00:00",
+  "job_id": "tdc_lpiv_deposits_qra_slr_bank_leverage_pressure",
+  "recommended_k": 200
+}

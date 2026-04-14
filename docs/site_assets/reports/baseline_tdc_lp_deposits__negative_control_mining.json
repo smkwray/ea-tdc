@@ -1,0 +1,228 @@
+{
+  "baseline_branch_candidate_count": 31,
+  "candidate_control_branch": "baseline_core",
+  "generated_at": "2026-04-12T13:01:53+00:00",
+  "job_id": "baseline_tdc_lp_deposits",
+  "lead_placebos": [
+    {
+      "avg_abs_z": 2.771063,
+      "job_id": "baseline_tdc_lp_deposits",
+      "lead": 1,
+      "max_abs_z": 3.995571,
+      "rows_written": 4
+    },
+    {
+      "avg_abs_z": 1.139518,
+      "job_id": "baseline_tdc_lp_deposits",
+      "lead": 2,
+      "max_abs_z": 2.268303,
+      "rows_written": 4
+    },
+    {
+      "avg_abs_z": 1.883115,
+      "job_id": "baseline_tdc_lp_deposits",
+      "lead": 4,
+      "max_abs_z": 2.226422,
+      "rows_written": 4
+    }
+  ],
+  "most_responsive_candidates": [
+    {
+      "avg_abs_z": 4.527241,
+      "candidate_outcome": "bank_agency_securities_qoq",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 1e-06,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 4.246044,
+      "candidate_outcome": "BOGZ1FL264035005Q",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 2e-06,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 4.191963,
+      "candidate_outcome": "WRESBAL",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.0,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 3.682032,
+      "candidate_outcome": "TASACBW027SBOG",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 2.8e-05,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 3.580562,
+      "candidate_outcome": "fed_treasury_holdings_qoq",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 2.7e-05,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.924273,
+      "candidate_outcome": "fed_total_assets_qoq",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.000861,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.866117,
+      "candidate_outcome": "M2SL",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.000839,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.363935,
+      "candidate_outcome": "bank_real_estate_loans_qoq",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.009024,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.150694,
+      "candidate_outcome": "DTWEXBGS",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.006024,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.050793,
+      "candidate_outcome": "broad_dollar_change",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.016389,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.028083,
+      "candidate_outcome": "core_pce_inflation_qoq_ann",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.037936,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.001786,
+      "candidate_outcome": "TOTBKCR",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.033138,
+      "tested_horizons": "0,1"
+    }
+  ],
+  "notes": "Negative-control mining here means lead-placebo checks plus candidate placebo-outcome screening over numeric bundle columns that are not treatment, instrument, or primary outcome fields. Candidate outcomes need enough coverage to support quarterly horizons, and the miner now compares the screened-factor branch against the baseline core controls rather than returning an empty panel immediately.",
+  "recommended_branch_candidate_count": 31,
+  "recommended_k": 200,
+  "top_clean_candidates": [
+    {
+      "avg_abs_z": 0.234608,
+      "candidate_outcome": "BAMLH0A0HYM2",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.697087,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.234608,
+      "candidate_outcome": "high_yield_oas",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.697087,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.307495,
+      "candidate_outcome": "baa_aaa",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.743377,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.371191,
+      "candidate_outcome": "CPILFESL",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.555656,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.532308,
+      "candidate_outcome": "BAMLC0A0CM",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.492923,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.532308,
+      "candidate_outcome": "investment_grade_oas",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.492923,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.576948,
+      "candidate_outcome": "BAA",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.397009,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.602762,
+      "candidate_outcome": "AAA",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.502671,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.81417,
+      "candidate_outcome": "PCEPILFE",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.379827,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.848019,
+      "candidate_outcome": "core_cpi_inflation_qoq_ann",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.341307,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.881641,
+      "candidate_outcome": "CPIAUCSL",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.231504,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 1.139248,
+      "candidate_outcome": "bank_credit_qoq",
+      "control_branch": "baseline_core",
+      "job_id": "baseline_tdc_lp_deposits",
+      "min_p_value": 0.164938,
+      "tested_horizons": "0,1"
+    }
+  ]
+}

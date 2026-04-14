@@ -1,0 +1,32 @@
+{
+  "candidate_control_branch": null,
+  "generated_at": "2026-04-12T12:27:07+00:00",
+  "job_id": "tdc_state_dep_bank_foreign_private_corr",
+  "lead_placebos": [
+    {
+      "avg_abs_z": 2.626811,
+      "job_id": "tdc_state_dep_bank_foreign_private_corr",
+      "lead": 1,
+      "max_abs_z": 3.158061,
+      "rows_written": 4
+    },
+    {
+      "avg_abs_z": 2.194091,
+      "job_id": "tdc_state_dep_bank_foreign_private_corr",
+      "lead": 2,
+      "max_abs_z": 3.06093,
+      "rows_written": 4
+    },
+    {
+      "avg_abs_z": 2.974026,
+      "job_id": "tdc_state_dep_bank_foreign_private_corr",
+      "lead": 4,
+      "max_abs_z": 4.01283,
+      "rows_written": 4
+    }
+  ],
+  "most_responsive_candidates": [],
+  "notes": "Negative-control mining here means lead-placebo checks plus candidate placebo-outcome screening over numeric bundle columns that are not treatment, instrument, or primary outcome fields. If the recommended screened-factor branch yields no usable placebo-outcome fits, the miner falls back to the baseline core controls.",
+  "recommended_k": 200,
+  "top_clean_candidates": []
+}

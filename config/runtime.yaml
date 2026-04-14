@@ -1,0 +1,21 @@
+project:
+  name: ea-tdc
+  package_name: ea_tdc
+  active_release: release_1
+
+paths:
+  data_root: data
+  output_root: output
+
+fetch:
+  fred_series_manifest: config/fred_manifest_seed.csv
+  treasury_dataset_manifest: config/treasury_manifest.yaml
+  fred_api_key_env: FRED_API_KEY
+  default_start_date: 1980-01-01
+  default_end_date:
+  allow_graph_csv_fallback: true
+
+remote:
+  ssh_host:
+  run_heavy_jobs_remotely: false
+  path_parity_note: Optional remote execution target. Set locally if you use a separate compute host.

@@ -1,0 +1,1433 @@
+{
+  "control_universe": {
+    "columns_path": "/output/reports/control_universe_columns.csv",
+    "feature_count": 9438,
+    "lag_structure": {
+      "daily_lags": 90,
+      "monthly_lags": 12,
+      "quarterly_lags": 8
+    },
+    "panel_path": "/output/reports/control_universe_quarterly.csv",
+    "quarter_count": 319,
+    "series_count": 394,
+    "series_count_by_frequency": {
+      "d": 73,
+      "m": 75,
+      "q": 246
+    }
+  },
+  "generated_at": "2026-04-14T11:17:30+00:00",
+  "jobs_summarized": 6,
+  "rows": [
+    {
+      "baseline_avg_abs_beta": 0.275864,
+      "control_universe_feature_count": 9438,
+      "dml": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.163377,
+        "rows_written": 10
+      },
+      "estimator": "lp",
+      "forest": {
+        "avg_nuisance_r2_outcome": 0.021247,
+        "avg_nuisance_r2_treatment": null,
+        "rows_written": 10
+      },
+      "job_id": "baseline_tdc_lp_deposits",
+      "ladder_rows": [
+        {
+          "avg_abs_beta": 0.275864,
+          "factor_count": 0,
+          "k_screened": 0,
+          "label": "Baseline macro block",
+          "rows_written": 10,
+          "run_type": "baseline_core",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.245351,
+          "factor_count": 4,
+          "k_screened": 100,
+          "label": "K=100 -> 4 factors",
+          "rows_written": 10,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.264495,
+          "factor_count": 4,
+          "k_screened": 200,
+          "label": "K=200 -> 4 factors",
+          "rows_written": 10,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.278542,
+          "factor_count": 4,
+          "k_screened": 300,
+          "label": "K=300 -> 4 factors",
+          "rows_written": 10,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        }
+      ],
+      "links": {
+        "control_screen_path": "output/reports/baseline_tdc_lp_deposits__control_screen.csv",
+        "dml_estimates_path": "/output/models/baseline_tdc_lp_deposits__dml_estimates.csv",
+        "dml_summary_path": "output/manifests/baseline_tdc_lp_deposits__dml_summary.json",
+        "factor_loadings_path": "output/reports/baseline_tdc_lp_deposits__dflmx_top_loadings.csv",
+        "factor_meta_path": "output/reports/baseline_tdc_lp_deposits__dflmx_factor_meta.json",
+        "forest_estimates_path": "/output/models/baseline_tdc_lp_deposits__forest_estimates.csv",
+        "forest_summary_path": "output/manifests/baseline_tdc_lp_deposits__forest_summary.json",
+        "ladder_path": "output/reports/baseline_tdc_lp_deposits__robustness_ladder.csv",
+        "negative_control_csv_path": "output/reports/baseline_tdc_lp_deposits__negative_control_mining.csv",
+        "negative_control_path": "output/reports/baseline_tdc_lp_deposits__negative_control_mining.json",
+        "regime_path": "output/reports/baseline_tdc_lp_deposits__regime_sensitivity.csv",
+        "summary_path": "output/manifests/baseline_tdc_lp_deposits__robustness_summary.json",
+        "tmle_estimates_path": "/output/models/baseline_tdc_lp_deposits__tmle_estimates.csv",
+        "tmle_summary_path": "output/manifests/baseline_tdc_lp_deposits__tmle_summary.json",
+        "treatment_path": "output/reports/baseline_tdc_lp_deposits__treatment_sensitivity.csv"
+      },
+      "ml_public_branch": "dml",
+      "ml_public_branch_label": "DML",
+      "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
+      "negative_controls": {
+        "candidate_control_branch": "baseline_core",
+        "candidate_count": 12,
+        "lead_placebo_count": 3,
+        "max_lead_placebo_abs_z": 3.995571,
+        "signal": "cautionary",
+        "signal_label": "Placebo leads are still cautionary"
+      },
+      "output_family": "headline_identified",
+      "recommended_avg_abs_beta": 0.264495,
+      "recommended_factor_count": 4,
+      "recommended_k": 200,
+      "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response.",
+      "regime_filter_count": 11,
+      "regime_rows": [
+        {
+          "avg_abs_beta": 0.286988,
+          "regime_id": "exclude_2008_2009",
+          "rows_in_regime": 311,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 0.226722,
+          "regime_id": "exclude_2020",
+          "rows_in_regime": 315,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 1.095078,
+          "regime_id": "coord_low_reserve_state_l1",
+          "rows_in_regime": 15,
+          "rows_written": 8
+        },
+        {
+          "avg_abs_beta": 0.28691,
+          "regime_id": "coord_on_rrp_drain_state_l1__low",
+          "rows_in_regime": 36,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 0.385909,
+          "regime_id": "coord_on_rrp_drain_state_l1__high",
+          "rows_in_regime": 38,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 0.255765,
+          "regime_id": "tsyparty_bank_absorption_share_l1__low",
+          "rows_in_regime": 145,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 0.344722,
+          "regime_id": "tsyparty_bank_absorption_share_l1__high",
+          "rows_in_regime": 145,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 0.411768,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__low",
+          "rows_in_regime": 42,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 0.215208,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__high",
+          "rows_in_regime": 42,
+          "rows_written": 10
+        },
+        {
+          "avg_abs_beta": 0.377472,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__low",
+          "rows_in_regime": 13,
+          "rows_written": 6
+        },
+        {
+          "avg_abs_beta": 1.055099,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__high",
+          "rows_in_regime": 14,
+          "rows_written": 6
+        }
+      ],
+      "release1_scope": "committed",
+      "screened_feature_count": 6436,
+      "tmle": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.163377,
+        "avg_tmle_epsilon": 0.03244482,
+        "avg_tmle_theta_init": 0.58171146,
+        "epsilon_clip_rate": null,
+        "rows_written": 10
+      },
+      "top_loadings": [
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag004",
+          "loading_abs": 0.008155
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag003",
+          "loading_abs": 0.008136
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag002",
+          "loading_abs": 0.008111
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__tgdef_net_gov_sav__lag001",
+          "loading_abs": -0.007804
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag001",
+          "loading_abs": 0.007785
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1lm403061105q_gse_tsy__lag001",
+          "loading_abs": 0.007785
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__tgdef_net_gov_sav__lag002",
+          "loading_abs": -0.007774
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag002",
+          "loading_abs": 0.007765
+        }
+      ],
+      "treatment_rows": [
+        {
+          "avg_abs_beta": 0.263213,
+          "rows_written": 10,
+          "treatment_variant": "tdc_base_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.262526,
+          "rows_written": 10,
+          "treatment_variant": "tdc_no_remit_bank_only",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.241125,
+          "rows_written": 10,
+          "treatment_variant": "tdc_domestic_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.258586,
+          "rows_written": 10,
+          "treatment_variant": "tdc_bank_only_extended_1990",
+          "warning_rows": 0
+        }
+      ],
+      "treatment_variant_count": 4
+    },
+    {
+      "baseline_avg_abs_beta": 6e-06,
+      "control_universe_feature_count": 9438,
+      "dml": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.176572,
+        "rows_written": 15
+      },
+      "estimator": "lp",
+      "forest": {
+        "avg_nuisance_r2_outcome": 0.002025,
+        "avg_nuisance_r2_treatment": null,
+        "rows_written": 15
+      },
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "ladder_rows": [
+        {
+          "avg_abs_beta": 6e-06,
+          "factor_count": 0,
+          "k_screened": 0,
+          "label": "Baseline macro block",
+          "rows_written": 15,
+          "run_type": "baseline_core",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 9e-06,
+          "factor_count": 4,
+          "k_screened": 100,
+          "label": "K=100 -> 4 factors",
+          "rows_written": 15,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 8e-06,
+          "factor_count": 4,
+          "k_screened": 200,
+          "label": "K=200 -> 4 factors",
+          "rows_written": 15,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 7e-06,
+          "factor_count": 4,
+          "k_screened": 300,
+          "label": "K=300 -> 4 factors",
+          "rows_written": 15,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        }
+      ],
+      "links": {
+        "control_screen_path": "output/reports/baseline_tdc_lp_credit_spreads__control_screen.csv",
+        "dml_estimates_path": "/output/models/baseline_tdc_lp_credit_spreads__dml_estimates.csv",
+        "dml_summary_path": "output/manifests/baseline_tdc_lp_credit_spreads__dml_summary.json",
+        "factor_loadings_path": "output/reports/baseline_tdc_lp_credit_spreads__dflmx_top_loadings.csv",
+        "factor_meta_path": "output/reports/baseline_tdc_lp_credit_spreads__dflmx_factor_meta.json",
+        "forest_estimates_path": "/output/models/baseline_tdc_lp_credit_spreads__forest_estimates.csv",
+        "forest_summary_path": "output/manifests/baseline_tdc_lp_credit_spreads__forest_summary.json",
+        "ladder_path": "output/reports/baseline_tdc_lp_credit_spreads__robustness_ladder.csv",
+        "negative_control_csv_path": "output/reports/baseline_tdc_lp_credit_spreads__negative_control_mining.csv",
+        "negative_control_path": "output/reports/baseline_tdc_lp_credit_spreads__negative_control_mining.json",
+        "regime_path": "output/reports/baseline_tdc_lp_credit_spreads__regime_sensitivity.csv",
+        "summary_path": "output/manifests/baseline_tdc_lp_credit_spreads__robustness_summary.json",
+        "tmle_estimates_path": "/output/models/baseline_tdc_lp_credit_spreads__tmle_estimates.csv",
+        "tmle_summary_path": "output/manifests/baseline_tdc_lp_credit_spreads__tmle_summary.json",
+        "treatment_path": "output/reports/baseline_tdc_lp_credit_spreads__treatment_sensitivity.csv"
+      },
+      "ml_public_branch": "dml",
+      "ml_public_branch_label": "DML",
+      "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
+      "negative_controls": {
+        "candidate_control_branch": "None",
+        "candidate_count": 0,
+        "lead_placebo_count": 3,
+        "max_lead_placebo_abs_z": 2.826858,
+        "signal": "mixed",
+        "signal_label": "Placebo leads are mixed"
+      },
+      "output_family": "supporting_reduced_form",
+      "recommended_avg_abs_beta": 9e-06,
+      "recommended_factor_count": 4,
+      "recommended_k": 100,
+      "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response.",
+      "regime_filter_count": 11,
+      "regime_rows": [
+        {
+          "avg_abs_beta": 6e-06,
+          "regime_id": "exclude_2008_2009",
+          "rows_in_regime": 311,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1.8e-05,
+          "regime_id": "exclude_2020",
+          "rows_in_regime": 315,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 3e-05,
+          "regime_id": "coord_low_reserve_state_l1",
+          "rows_in_regime": 15,
+          "rows_written": 12
+        },
+        {
+          "avg_abs_beta": 1.9e-05,
+          "regime_id": "coord_on_rrp_drain_state_l1__low",
+          "rows_in_regime": 36,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 6e-06,
+          "regime_id": "coord_on_rrp_drain_state_l1__high",
+          "rows_in_regime": 38,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1.3e-05,
+          "regime_id": "tsyparty_bank_absorption_share_l1__low",
+          "rows_in_regime": 145,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 5e-06,
+          "regime_id": "tsyparty_bank_absorption_share_l1__high",
+          "rows_in_regime": 145,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 6e-06,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__low",
+          "rows_in_regime": 42,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 2.2e-05,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__high",
+          "rows_in_regime": 42,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 3e-06,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__low",
+          "rows_in_regime": 13,
+          "rows_written": 9
+        },
+        {
+          "avg_abs_beta": 7e-06,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__high",
+          "rows_in_regime": 14,
+          "rows_written": 9
+        }
+      ],
+      "release1_scope": "committed",
+      "screened_feature_count": 6436,
+      "tmle": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.176572,
+        "avg_tmle_epsilon": 449130.68306111,
+        "avg_tmle_theta_init": null,
+        "epsilon_clip_rate": null,
+        "rows_written": 15
+      },
+      "top_loadings": [
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl704135005q_usb_loan_l__lag001",
+          "loading_abs": 0.007167
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl704141005q_usb_stloan_l__lag001",
+          "loading_abs": 0.007151
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipdcongd_ipdcongd__lag008",
+          "loading_abs": 0.007144
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipdcongd_ipdcongd__lag009",
+          "loading_abs": 0.007125
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipfinal_ipfinal__lag010",
+          "loading_abs": 0.007064
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipfinal_ipfinal__lag011",
+          "loading_abs": 0.007063
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipfinal_ipfinal__lag007",
+          "loading_abs": 0.007059
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipfinal_ipfinal__lag012",
+          "loading_abs": 0.007059
+        }
+      ],
+      "treatment_rows": [
+        {
+          "avg_abs_beta": 9e-06,
+          "rows_written": 15,
+          "treatment_variant": "tdc_base_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 9e-06,
+          "rows_written": 15,
+          "treatment_variant": "tdc_no_remit_bank_only",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-05,
+          "rows_written": 15,
+          "treatment_variant": "tdc_domestic_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-05,
+          "rows_written": 15,
+          "treatment_variant": "tdc_bank_only_extended_1990",
+          "warning_rows": 0
+        }
+      ],
+      "treatment_variant_count": 4
+    },
+    {
+      "baseline_avg_abs_beta": 2e-06,
+      "control_universe_feature_count": 9438,
+      "dml": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": null,
+        "rows_written": 15
+      },
+      "estimator": "lp",
+      "forest": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": null,
+        "rows_written": 15
+      },
+      "job_id": "baseline_tdc_lp_inflation",
+      "ladder_rows": [
+        {
+          "avg_abs_beta": 2e-06,
+          "factor_count": 0,
+          "k_screened": 0,
+          "label": "Baseline macro block",
+          "rows_written": 15,
+          "run_type": "baseline_core",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "factor_count": 4,
+          "k_screened": 100,
+          "label": "K=100 -> 4 factors",
+          "rows_written": 15,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "factor_count": 4,
+          "k_screened": 200,
+          "label": "K=200 -> 4 factors",
+          "rows_written": 15,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "factor_count": 4,
+          "k_screened": 300,
+          "label": "K=300 -> 4 factors",
+          "rows_written": 15,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        }
+      ],
+      "links": {
+        "control_screen_path": "output/reports/baseline_tdc_lp_inflation__control_screen.csv",
+        "dml_estimates_path": "/output/models/baseline_tdc_lp_inflation__dml_estimates.csv",
+        "dml_summary_path": "output/manifests/baseline_tdc_lp_inflation__dml_summary.json",
+        "factor_loadings_path": "output/reports/baseline_tdc_lp_inflation__dflmx_top_loadings.csv",
+        "factor_meta_path": "output/reports/baseline_tdc_lp_inflation__dflmx_factor_meta.json",
+        "forest_estimates_path": "/output/models/baseline_tdc_lp_inflation__forest_estimates.csv",
+        "forest_summary_path": "output/manifests/baseline_tdc_lp_inflation__forest_summary.json",
+        "ladder_path": "output/reports/baseline_tdc_lp_inflation__robustness_ladder.csv",
+        "negative_control_csv_path": "output/reports/baseline_tdc_lp_inflation__negative_control_mining.csv",
+        "negative_control_path": "output/reports/baseline_tdc_lp_inflation__negative_control_mining.json",
+        "regime_path": "output/reports/baseline_tdc_lp_inflation__regime_sensitivity.csv",
+        "summary_path": "output/manifests/baseline_tdc_lp_inflation__robustness_summary.json",
+        "tmle_estimates_path": "/output/models/baseline_tdc_lp_inflation__tmle_estimates.csv",
+        "tmle_summary_path": "output/manifests/baseline_tdc_lp_inflation__tmle_summary.json",
+        "treatment_path": "output/reports/baseline_tdc_lp_inflation__treatment_sensitivity.csv"
+      },
+      "ml_public_branch": "dml",
+      "ml_public_branch_label": "DML",
+      "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
+      "negative_controls": {
+        "candidate_control_branch": "None",
+        "candidate_count": 0,
+        "lead_placebo_count": 3,
+        "max_lead_placebo_abs_z": 1.859826,
+        "signal": "quiet",
+        "signal_label": "Placebo leads are quiet"
+      },
+      "output_family": "supporting_descriptive",
+      "recommended_avg_abs_beta": 1e-06,
+      "recommended_factor_count": 4,
+      "recommended_k": 100,
+      "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response.",
+      "regime_filter_count": 11,
+      "regime_rows": [
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "exclude_2008_2009",
+          "rows_in_regime": 311,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "exclude_2020",
+          "rows_in_regime": 315,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 4e-06,
+          "regime_id": "coord_low_reserve_state_l1",
+          "rows_in_regime": 15,
+          "rows_written": 12
+        },
+        {
+          "avg_abs_beta": 2e-06,
+          "regime_id": "coord_on_rrp_drain_state_l1__low",
+          "rows_in_regime": 36,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "coord_on_rrp_drain_state_l1__high",
+          "rows_in_regime": 38,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "tsyparty_bank_absorption_share_l1__low",
+          "rows_in_regime": 145,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "tsyparty_bank_absorption_share_l1__high",
+          "rows_in_regime": 145,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__low",
+          "rows_in_regime": 42,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__high",
+          "rows_in_regime": 42,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 2e-06,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__low",
+          "rows_in_regime": 13,
+          "rows_written": 9
+        },
+        {
+          "avg_abs_beta": 5e-06,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__high",
+          "rows_in_regime": 14,
+          "rows_written": 9
+        }
+      ],
+      "release1_scope": "committed",
+      "screened_feature_count": 6436,
+      "tmle": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": null,
+        "avg_tmle_epsilon": 235427.90828214,
+        "avg_tmle_theta_init": null,
+        "epsilon_clip_rate": null,
+        "rows_written": 15
+      },
+      "top_loadings": [
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag028",
+          "loading_abs": -0.006492
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag026",
+          "loading_abs": -0.006492
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag031",
+          "loading_abs": -0.006492
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag015",
+          "loading_abs": -0.006492
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag019",
+          "loading_abs": -0.006491
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag016",
+          "loading_abs": -0.006491
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag027",
+          "loading_abs": -0.006491
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs3_dgs3__lag014",
+          "loading_abs": -0.00649
+        }
+      ],
+      "treatment_rows": [
+        {
+          "avg_abs_beta": 1e-06,
+          "rows_written": 15,
+          "treatment_variant": "tdc_base_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "rows_written": 15,
+          "treatment_variant": "tdc_no_remit_bank_only",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "rows_written": 15,
+          "treatment_variant": "tdc_domestic_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "rows_written": 15,
+          "treatment_variant": "tdc_bank_only_extended_1990",
+          "warning_rows": 0
+        }
+      ],
+      "treatment_variant_count": 4
+    },
+    {
+      "baseline_avg_abs_beta": 2e-06,
+      "control_universe_feature_count": 9438,
+      "dml": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.392365,
+        "rows_written": 5
+      },
+      "estimator": "lp",
+      "forest": {
+        "avg_nuisance_r2_outcome": 0.006319,
+        "avg_nuisance_r2_treatment": null,
+        "rows_written": 5
+      },
+      "job_id": "baseline_tdc_lp_fx",
+      "ladder_rows": [
+        {
+          "avg_abs_beta": 2e-06,
+          "factor_count": 0,
+          "k_screened": 0,
+          "label": "Baseline macro block",
+          "rows_written": 5,
+          "run_type": "baseline_core",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 3e-06,
+          "factor_count": 4,
+          "k_screened": 100,
+          "label": "K=100 -> 4 factors",
+          "rows_written": 5,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 3e-06,
+          "factor_count": 4,
+          "k_screened": 200,
+          "label": "K=200 -> 4 factors",
+          "rows_written": 5,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 2e-06,
+          "factor_count": 4,
+          "k_screened": 300,
+          "label": "K=300 -> 4 factors",
+          "rows_written": 5,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        }
+      ],
+      "links": {
+        "control_screen_path": "output/reports/baseline_tdc_lp_fx__control_screen.csv",
+        "dml_estimates_path": "/output/models/baseline_tdc_lp_fx__dml_estimates.csv",
+        "dml_summary_path": "output/manifests/baseline_tdc_lp_fx__dml_summary.json",
+        "factor_loadings_path": "output/reports/baseline_tdc_lp_fx__dflmx_top_loadings.csv",
+        "factor_meta_path": "output/reports/baseline_tdc_lp_fx__dflmx_factor_meta.json",
+        "forest_estimates_path": "/output/models/baseline_tdc_lp_fx__forest_estimates.csv",
+        "forest_summary_path": "output/manifests/baseline_tdc_lp_fx__forest_summary.json",
+        "ladder_path": "output/reports/baseline_tdc_lp_fx__robustness_ladder.csv",
+        "negative_control_csv_path": "output/reports/baseline_tdc_lp_fx__negative_control_mining.csv",
+        "negative_control_path": "output/reports/baseline_tdc_lp_fx__negative_control_mining.json",
+        "regime_path": "output/reports/baseline_tdc_lp_fx__regime_sensitivity.csv",
+        "summary_path": "output/manifests/baseline_tdc_lp_fx__robustness_summary.json",
+        "tmle_estimates_path": "/output/models/baseline_tdc_lp_fx__tmle_estimates.csv",
+        "tmle_summary_path": "output/manifests/baseline_tdc_lp_fx__tmle_summary.json",
+        "treatment_path": "output/reports/baseline_tdc_lp_fx__treatment_sensitivity.csv"
+      },
+      "ml_public_branch": "dml",
+      "ml_public_branch_label": "DML",
+      "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
+      "negative_controls": {
+        "candidate_control_branch": "None",
+        "candidate_count": 0,
+        "lead_placebo_count": 3,
+        "max_lead_placebo_abs_z": 1.9356,
+        "signal": "quiet",
+        "signal_label": "Placebo leads are quiet"
+      },
+      "output_family": "supporting_descriptive",
+      "recommended_avg_abs_beta": 3e-06,
+      "recommended_factor_count": 4,
+      "recommended_k": 100,
+      "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response.",
+      "regime_filter_count": 11,
+      "regime_rows": [
+        {
+          "avg_abs_beta": 2e-06,
+          "regime_id": "exclude_2008_2009",
+          "rows_in_regime": 311,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 4e-06,
+          "regime_id": "exclude_2020",
+          "rows_in_regime": 315,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 9e-06,
+          "regime_id": "coord_low_reserve_state_l1",
+          "rows_in_regime": 15,
+          "rows_written": 4
+        },
+        {
+          "avg_abs_beta": 6e-06,
+          "regime_id": "coord_on_rrp_drain_state_l1__low",
+          "rows_in_regime": 36,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 3e-06,
+          "regime_id": "coord_on_rrp_drain_state_l1__high",
+          "rows_in_regime": 38,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 1e-06,
+          "regime_id": "tsyparty_bank_absorption_share_l1__low",
+          "rows_in_regime": 145,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 2e-06,
+          "regime_id": "tsyparty_bank_absorption_share_l1__high",
+          "rows_in_regime": 145,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 2e-06,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__low",
+          "rows_in_regime": 42,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 5e-06,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__high",
+          "rows_in_regime": 42,
+          "rows_written": 5
+        },
+        {
+          "avg_abs_beta": 1e-05,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__low",
+          "rows_in_regime": 13,
+          "rows_written": 3
+        },
+        {
+          "avg_abs_beta": 6e-06,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__high",
+          "rows_in_regime": 14,
+          "rows_written": 3
+        }
+      ],
+      "release1_scope": "committed",
+      "screened_feature_count": 6436,
+      "tmle": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.392365,
+        "avg_tmle_epsilon": -78145.4012154,
+        "avg_tmle_theta_init": null,
+        "epsilon_clip_rate": null,
+        "rows_written": 5
+      },
+      "top_loadings": [
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipbuseq_ipbuseq__lag002",
+          "loading_abs": 0.009317
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipbuseq_ipbuseq__lag003",
+          "loading_abs": 0.009313
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipbuseq_ipbuseq__lag004",
+          "loading_abs": 0.009309
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipbuseq_ipbuseq__lag005",
+          "loading_abs": 0.009296
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipbuseq_ipbuseq__lag006",
+          "loading_abs": 0.009284
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__ipbuseq_ipbuseq__lag009",
+          "loading_abs": 0.009265
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__indpro_indpro__lag003",
+          "loading_abs": 0.009184
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "m__indpro_indpro__lag002",
+          "loading_abs": 0.009181
+        }
+      ],
+      "treatment_rows": [
+        {
+          "avg_abs_beta": 3e-06,
+          "rows_written": 5,
+          "treatment_variant": "tdc_base_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 3e-06,
+          "rows_written": 5,
+          "treatment_variant": "tdc_no_remit_bank_only",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 2e-06,
+          "rows_written": 5,
+          "treatment_variant": "tdc_domestic_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 3e-06,
+          "rows_written": 5,
+          "treatment_variant": "tdc_bank_only_extended_1990",
+          "warning_rows": 0
+        }
+      ],
+      "treatment_variant_count": 4
+    },
+    {
+      "baseline_avg_abs_beta": 0.006373,
+      "control_universe_feature_count": 9438,
+      "dml": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.320328,
+        "rows_written": 25
+      },
+      "estimator": "lp",
+      "forest": {
+        "avg_nuisance_r2_outcome": 0.003764,
+        "avg_nuisance_r2_treatment": 0.013611,
+        "rows_written": 25
+      },
+      "job_id": "baseline_tdc_lp_private_assets",
+      "ladder_rows": [
+        {
+          "avg_abs_beta": 0.006373,
+          "factor_count": 0,
+          "k_screened": 0,
+          "label": "Baseline macro block",
+          "rows_written": 25,
+          "run_type": "baseline_core",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.010379,
+          "factor_count": 4,
+          "k_screened": 100,
+          "label": "K=100 -> 4 factors",
+          "rows_written": 25,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.008807,
+          "factor_count": 4,
+          "k_screened": 200,
+          "label": "K=200 -> 4 factors",
+          "rows_written": 25,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.008058,
+          "factor_count": 4,
+          "k_screened": 300,
+          "label": "K=300 -> 4 factors",
+          "rows_written": 25,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        }
+      ],
+      "links": {
+        "control_screen_path": "output/reports/baseline_tdc_lp_private_assets__control_screen.csv",
+        "dml_estimates_path": "/output/models/baseline_tdc_lp_private_assets__dml_estimates.csv",
+        "dml_summary_path": "output/manifests/baseline_tdc_lp_private_assets__dml_summary.json",
+        "factor_loadings_path": "output/reports/baseline_tdc_lp_private_assets__dflmx_top_loadings.csv",
+        "factor_meta_path": "output/reports/baseline_tdc_lp_private_assets__dflmx_factor_meta.json",
+        "forest_estimates_path": "/output/models/baseline_tdc_lp_private_assets__forest_estimates.csv",
+        "forest_summary_path": "output/manifests/baseline_tdc_lp_private_assets__forest_summary.json",
+        "ladder_path": "output/reports/baseline_tdc_lp_private_assets__robustness_ladder.csv",
+        "negative_control_csv_path": "output/reports/baseline_tdc_lp_private_assets__negative_control_mining.csv",
+        "negative_control_path": "output/reports/baseline_tdc_lp_private_assets__negative_control_mining.json",
+        "regime_path": "output/reports/baseline_tdc_lp_private_assets__regime_sensitivity.csv",
+        "summary_path": "output/manifests/baseline_tdc_lp_private_assets__robustness_summary.json",
+        "tmle_estimates_path": "/output/models/baseline_tdc_lp_private_assets__tmle_estimates.csv",
+        "tmle_summary_path": "output/manifests/baseline_tdc_lp_private_assets__tmle_summary.json",
+        "treatment_path": "output/reports/baseline_tdc_lp_private_assets__treatment_sensitivity.csv"
+      },
+      "ml_public_branch": "dml",
+      "ml_public_branch_label": "DML",
+      "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
+      "negative_controls": {
+        "candidate_control_branch": "baseline_core",
+        "candidate_count": 12,
+        "lead_placebo_count": 3,
+        "max_lead_placebo_abs_z": 3.010463,
+        "signal": "cautionary",
+        "signal_label": "Placebo leads are still cautionary"
+      },
+      "output_family": "supporting_descriptive",
+      "recommended_avg_abs_beta": 0.010379,
+      "recommended_factor_count": 4,
+      "recommended_k": 100,
+      "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response.",
+      "regime_filter_count": 11,
+      "regime_rows": [
+        {
+          "avg_abs_beta": 0.011144,
+          "regime_id": "exclude_2008_2009",
+          "rows_in_regime": 311,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.011923,
+          "regime_id": "exclude_2020",
+          "rows_in_regime": 315,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.051679,
+          "regime_id": "coord_low_reserve_state_l1",
+          "rows_in_regime": 15,
+          "rows_written": 20
+        },
+        {
+          "avg_abs_beta": 0.01477,
+          "regime_id": "coord_on_rrp_drain_state_l1__low",
+          "rows_in_regime": 36,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.008431,
+          "regime_id": "coord_on_rrp_drain_state_l1__high",
+          "rows_in_regime": 38,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.011869,
+          "regime_id": "tsyparty_bank_absorption_share_l1__low",
+          "rows_in_regime": 145,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.015954,
+          "regime_id": "tsyparty_bank_absorption_share_l1__high",
+          "rows_in_regime": 145,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.013592,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__low",
+          "rows_in_regime": 42,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.013939,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__high",
+          "rows_in_regime": 42,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.042008,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__low",
+          "rows_in_regime": 13,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 0.028686,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__high",
+          "rows_in_regime": 14,
+          "rows_written": 15
+        }
+      ],
+      "release1_scope": "committed",
+      "screened_feature_count": 6436,
+      "tmle": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.320328,
+        "avg_tmle_epsilon": 1848.97839672,
+        "avg_tmle_theta_init": -0.01137325,
+        "epsilon_clip_rate": null,
+        "rows_written": 25
+      },
+      "top_loadings": [
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__fgexpnd_fgexpnd__lag001",
+          "loading_abs": 0.007303
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__na000283q_gov_current_exp__lag001",
+          "loading_abs": 0.007302
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__fgexpnd_fgexpnd__lag002",
+          "loading_abs": 0.007294
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__na000283q_gov_current_exp__lag002",
+          "loading_abs": 0.007294
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag004",
+          "loading_abs": 0.006976
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag003",
+          "loading_abs": 0.006961
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag002",
+          "loading_abs": 0.006935
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag002",
+          "loading_abs": 0.006806
+        }
+      ],
+      "treatment_rows": [
+        {
+          "avg_abs_beta": 0.010504,
+          "rows_written": 25,
+          "treatment_variant": "tdc_base_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.01006,
+          "rows_written": 25,
+          "treatment_variant": "tdc_no_remit_bank_only",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.009342,
+          "rows_written": 25,
+          "treatment_variant": "tdc_domestic_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.011193,
+          "rows_written": 25,
+          "treatment_variant": "tdc_bank_only_extended_1990",
+          "warning_rows": 0
+        }
+      ],
+      "treatment_variant_count": 4
+    },
+    {
+      "baseline_avg_abs_beta": 0.23314,
+      "control_universe_feature_count": 9438,
+      "dml": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.011032,
+        "rows_written": 25
+      },
+      "estimator": "lp",
+      "forest": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": null,
+        "rows_written": 25
+      },
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "ladder_rows": [
+        {
+          "avg_abs_beta": 0.23314,
+          "factor_count": 0,
+          "k_screened": 0,
+          "label": "Baseline macro block",
+          "rows_written": 25,
+          "run_type": "baseline_core",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.247036,
+          "factor_count": 4,
+          "k_screened": 100,
+          "label": "K=100 -> 4 factors",
+          "rows_written": 25,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.244305,
+          "factor_count": 4,
+          "k_screened": 200,
+          "label": "K=200 -> 4 factors",
+          "rows_written": 25,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.274659,
+          "factor_count": 4,
+          "k_screened": 300,
+          "label": "K=300 -> 4 factors",
+          "rows_written": 25,
+          "run_type": "factor_screen",
+          "warning_rows": 0
+        }
+      ],
+      "links": {
+        "control_screen_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__control_screen.csv",
+        "dml_estimates_path": "/output/models/baseline_tdc_lp_liquidity_decomposition__dml_estimates.csv",
+        "dml_summary_path": "output/manifests/baseline_tdc_lp_liquidity_decomposition__dml_summary.json",
+        "factor_loadings_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__dflmx_top_loadings.csv",
+        "factor_meta_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__dflmx_factor_meta.json",
+        "forest_estimates_path": "/output/models/baseline_tdc_lp_liquidity_decomposition__forest_estimates.csv",
+        "forest_summary_path": "output/manifests/baseline_tdc_lp_liquidity_decomposition__forest_summary.json",
+        "ladder_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__robustness_ladder.csv",
+        "negative_control_csv_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__negative_control_mining.csv",
+        "negative_control_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__negative_control_mining.json",
+        "regime_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__regime_sensitivity.csv",
+        "summary_path": "output/manifests/baseline_tdc_lp_liquidity_decomposition__robustness_summary.json",
+        "tmle_estimates_path": "/output/models/baseline_tdc_lp_liquidity_decomposition__tmle_estimates.csv",
+        "tmle_summary_path": "output/manifests/baseline_tdc_lp_liquidity_decomposition__tmle_summary.json",
+        "treatment_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__treatment_sensitivity.csv"
+      },
+      "ml_public_branch": "dml",
+      "ml_public_branch_label": "DML",
+      "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
+      "negative_controls": {
+        "candidate_control_branch": "recommended_factors",
+        "candidate_count": 12,
+        "lead_placebo_count": 3,
+        "max_lead_placebo_abs_z": 8.273244,
+        "signal": "cautionary",
+        "signal_label": "Placebo leads are still cautionary"
+      },
+      "output_family": "supporting_descriptive",
+      "recommended_avg_abs_beta": 0.274659,
+      "recommended_factor_count": 4,
+      "recommended_k": 300,
+      "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response.",
+      "regime_filter_count": 11,
+      "regime_rows": [
+        {
+          "avg_abs_beta": 0.273859,
+          "regime_id": "exclude_2008_2009",
+          "rows_in_regime": 311,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.197541,
+          "regime_id": "exclude_2020",
+          "rows_in_regime": 315,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 1.301851,
+          "regime_id": "coord_low_reserve_state_l1",
+          "rows_in_regime": 15,
+          "rows_written": 20
+        },
+        {
+          "avg_abs_beta": 0.306372,
+          "regime_id": "coord_on_rrp_drain_state_l1__low",
+          "rows_in_regime": 36,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.373878,
+          "regime_id": "coord_on_rrp_drain_state_l1__high",
+          "rows_in_regime": 38,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.356688,
+          "regime_id": "tsyparty_bank_absorption_share_l1__low",
+          "rows_in_regime": 145,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.2878,
+          "regime_id": "tsyparty_bank_absorption_share_l1__high",
+          "rows_in_regime": 145,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.397634,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__low",
+          "rows_in_regime": 42,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.210743,
+          "regime_id": "tsyparty_bank_foreign_private_corr_l1__high",
+          "rows_in_regime": 42,
+          "rows_written": 25
+        },
+        {
+          "avg_abs_beta": 0.521128,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__low",
+          "rows_in_regime": 13,
+          "rows_written": 15
+        },
+        {
+          "avg_abs_beta": 0.978592,
+          "regime_id": "slrwatch_bank_leverage_pressure_l1__high",
+          "rows_in_regime": 14,
+          "rows_written": 15
+        }
+      ],
+      "release1_scope": "committed",
+      "screened_feature_count": 6436,
+      "tmle": {
+        "avg_nuisance_r2_outcome": null,
+        "avg_nuisance_r2_treatment": 0.011032,
+        "avg_tmle_epsilon": 8310.90096938,
+        "avg_tmle_theta_init": 0.2181056,
+        "epsilon_clip_rate": null,
+        "rows_written": 25
+      },
+      "top_loadings": [
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag025",
+          "loading_abs": -0.006554
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag019",
+          "loading_abs": -0.006553
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag026",
+          "loading_abs": -0.006553
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag022",
+          "loading_abs": -0.006553
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag024",
+          "loading_abs": -0.006553
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag018",
+          "loading_abs": -0.006553
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag020",
+          "loading_abs": -0.006553
+        },
+        {
+          "factor_id": "dflmx_k100_f1",
+          "feature_id": "d__dgs5_dgs5__lag027",
+          "loading_abs": -0.006553
+        }
+      ],
+      "treatment_rows": [
+        {
+          "avg_abs_beta": 0.275395,
+          "rows_written": 25,
+          "treatment_variant": "tdc_base_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.273289,
+          "rows_written": 25,
+          "treatment_variant": "tdc_no_remit_bank_only",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.270177,
+          "rows_written": 25,
+          "treatment_variant": "tdc_domestic_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.275503,
+          "rows_written": 25,
+          "treatment_variant": "tdc_bank_only_extended_1990",
+          "warning_rows": 0
+        }
+      ],
+      "treatment_variant_count": 4
+    }
+  ]
+}

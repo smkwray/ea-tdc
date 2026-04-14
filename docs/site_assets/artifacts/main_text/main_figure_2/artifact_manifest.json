@@ -1,0 +1,26 @@
+{
+  "artifact_id": "main_figure_2",
+  "artifact_kind": "figure",
+  "caption": "Impulse responses for Raw reserve balances, Repo spread, Fed funds, SOFR to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4.",
+  "display_spec": "impulse_response_grid",
+  "generated_at": "2026-04-12T15:34:27+00:00",
+  "html_path": "/output/artifacts/main_text/main_figure_2/main_figure_2.html",
+  "job_id": "baseline_tdc_lp_funding",
+  "notes": [
+    "Treatment: Baseline TDC estimate",
+    "Response: Direct response at horizon h",
+    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves",
+    "Covariance: Newey-West HAC",
+    "Sample span: 1946Q4 to 2026Q2",
+    "Observations: 31 to 93",
+    "Displayed branch: K=200 screened controls",
+    "Artifact source: Funding and rate responses to the baseline TDC estimate"
+  ],
+  "primary_path": "/output/artifacts/main_text/main_figure_2/main_figure_2.svg",
+  "release_channel": "main_text",
+  "secondary_path": "",
+  "slot_label": "Main Figure 2",
+  "source_estimates_path": "/output/models/baseline_tdc_lp_funding__robustness_k200_estimates.csv",
+  "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 4 outcomes | 31-93 obs",
+  "title": "Funding and rate responses to the baseline TDC estimate"
+}

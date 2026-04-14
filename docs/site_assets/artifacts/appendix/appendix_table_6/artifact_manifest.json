@@ -1,0 +1,26 @@
+{
+  "artifact_id": "appendix_table_6",
+  "artifact_kind": "table",
+  "caption": "Coefficient table for Matched total deposits, M2, Repo spread in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4 with the corresponding standard errors and confidence intervals.",
+  "display_spec": "supporting_table",
+  "generated_at": "2026-04-12T14:18:52+00:00",
+  "html_path": "/output/artifacts/appendix/appendix_table_6/appendix_table_6.html",
+  "job_id": "tdc_state_dep_on_rrp_drain",
+  "notes": [
+    "Treatment: Baseline TDC estimate",
+    "Response: Direct response at horizon h",
+    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves",
+    "Covariance: Newey-West HAC",
+    "Sample span: 1946Q4 to 2026Q2",
+    "Observations: 31 to 93",
+    "Displayed branch: K=200 screened controls",
+    "Artifact source: State dependence during ON RRP drain episodes"
+  ],
+  "primary_path": "/output/artifacts/appendix/appendix_table_6/appendix_table_6.md",
+  "release_channel": "appendix",
+  "secondary_path": "/output/artifacts/appendix/appendix_table_6/appendix_table_6.csv",
+  "slot_label": "Appendix Table 6",
+  "source_estimates_path": "/output/models/tdc_state_dep_on_rrp_drain__robustness_k200_estimates.csv",
+  "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 31-93 obs",
+  "title": "State dependence during ON RRP drain episodes estimates"
+}

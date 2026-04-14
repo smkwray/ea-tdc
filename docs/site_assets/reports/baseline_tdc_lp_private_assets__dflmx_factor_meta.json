@@ -1,0 +1,681 @@
+{
+  "factors": [
+    {
+      "explained_eigenvalue": 57.010268,
+      "factor_id": "dflmx_k100_f1",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__fgexpnd_fgexpnd__lag001",
+          "loading": 0.007303
+        },
+        {
+          "feature_id": "q__na000283q_gov_current_exp__lag001",
+          "loading": 0.007302
+        },
+        {
+          "feature_id": "q__fgexpnd_fgexpnd__lag002",
+          "loading": 0.007294
+        },
+        {
+          "feature_id": "q__na000283q_gov_current_exp__lag002",
+          "loading": 0.007294
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag004",
+          "loading": 0.006976
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag003",
+          "loading": 0.006961
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag002",
+          "loading": 0.006935
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag002",
+          "loading": 0.006806
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gse_tsy__lag002",
+          "loading": 0.006806
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag001",
+          "loading": 0.006795
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gse_tsy__lag001",
+          "loading": 0.006795
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag003",
+          "loading": 0.006772
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 16.034766,
+      "factor_id": "dflmx_k100_f2",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.009433
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.009147
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.008639
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.008599
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag005",
+          "loading": -0.008329
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag001",
+          "loading": -0.007783
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.007513
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.007495
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag012",
+          "loading": 0.007477
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag002",
+          "loading": -0.007474
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag005",
+          "loading": 0.007461
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag007",
+          "loading": 0.007452
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 10.223233,
+      "factor_id": "dflmx_k100_f3",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.016649
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.016566
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.016536
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.016257
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.015987
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.015942
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.015898
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.015889
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.015685
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": 0.007359
+        },
+        {
+          "feature_id": "q__rowgseq027s_row_agency_flow__lag001",
+          "loading": -0.006833
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": 0.006091
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 3.481626,
+      "factor_id": "dflmx_k100_f4",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__manemp_manemp__lag003",
+          "loading": 0.015173
+        },
+        {
+          "feature_id": "m__manemp_manemp__lag009",
+          "loading": 0.015132
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag004",
+          "loading": 0.014544
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag005",
+          "loading": 0.011164
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": 0.011025
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": 0.010896
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag003",
+          "loading": 0.010596
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag001",
+          "loading": 0.010397
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": 0.0099
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": 0.009741
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag005",
+          "loading": 0.009732
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": 0.009687
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 114.30321,
+      "factor_id": "dflmx_k200_f1",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "q__fgexpnd_fgexpnd__lag001",
+          "loading": 0.005082
+        },
+        {
+          "feature_id": "q__na000283q_gov_current_exp__lag001",
+          "loading": 0.005082
+        },
+        {
+          "feature_id": "q__fgexpnd_fgexpnd__lag002",
+          "loading": 0.005079
+        },
+        {
+          "feature_id": "q__na000283q_gov_current_exp__lag002",
+          "loading": 0.005079
+        },
+        {
+          "feature_id": "q__bogz1fl543061175q_life_insurance_ts__lag002",
+          "loading": 0.004923
+        },
+        {
+          "feature_id": "q__bogz1fl543061175q_life_insurance_ts__lag003",
+          "loading": 0.004921
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag005",
+          "loading": 0.004919
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag006",
+          "loading": 0.004919
+        },
+        {
+          "feature_id": "q__bogz1fl543061175q_life_insurance_ts__lag001",
+          "loading": 0.004918
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag004",
+          "loading": 0.004918
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag007",
+          "loading": 0.004913
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag003",
+          "loading": 0.004906
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 27.23982,
+      "factor_id": "dflmx_k200_f2",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag023",
+          "loading": 0.006536
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag020",
+          "loading": 0.006527
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag017",
+          "loading": 0.006527
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag015",
+          "loading": 0.006526
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag018",
+          "loading": 0.006523
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag019",
+          "loading": 0.006521
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag021",
+          "loading": 0.00652
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag016",
+          "loading": 0.006512
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag022",
+          "loading": 0.006512
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag024",
+          "loading": 0.006508
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag025",
+          "loading": 0.006499
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag027",
+          "loading": 0.006497
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 20.793804,
+      "factor_id": "dflmx_k200_f3",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.007636
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.007306
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag002",
+          "loading": -0.007093
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag002",
+          "loading": -0.007093
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.007043
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.006929
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.006867
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag003",
+          "loading": -0.006779
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag003",
+          "loading": -0.006779
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": -0.006731
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag001",
+          "loading": -0.006666
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag001",
+          "loading": -0.006666
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 11.203069,
+      "factor_id": "dflmx_k200_f4",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.013953
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.013725
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.013678
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.013352
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.013233
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.013104
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.013079
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.013028
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.01302
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag001",
+          "loading": -0.01115
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag002",
+          "loading": -0.010918
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": 0.009668
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 178.987865,
+      "factor_id": "dflmx_k300_f1",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag036",
+          "loading": -0.003823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.003823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.003823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.003821
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.003821
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag046",
+          "loading": -0.003821
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.00382
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.00382
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.00382
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag047",
+          "loading": -0.00382
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.00382
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.00382
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 53.958948,
+      "factor_id": "dflmx_k300_f2",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag002",
+          "loading": 0.005091
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag001",
+          "loading": 0.00509
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag003",
+          "loading": 0.005088
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag004",
+          "loading": 0.005087
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag005",
+          "loading": 0.005083
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag007",
+          "loading": 0.005079
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag006",
+          "loading": 0.005078
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.005073
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag010",
+          "loading": 0.005073
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag011",
+          "loading": 0.00507
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.005067
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag012",
+          "loading": 0.005062
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 22.905864,
+      "factor_id": "dflmx_k300_f3",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.007229
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag002",
+          "loading": -0.007113
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag002",
+          "loading": -0.007113
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.006952
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag003",
+          "loading": -0.006794
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag003",
+          "loading": -0.006794
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag001",
+          "loading": -0.006741
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag001",
+          "loading": -0.006741
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": -0.006672
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.006665
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.006508
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.006506
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 12.801001,
+      "factor_id": "dflmx_k300_f4",
+      "job_id": "baseline_tdc_lp_private_assets",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.013416
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.013232
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.013208
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.012989
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.012869
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.012841
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.012796
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.012598
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.012542
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag010",
+          "loading": 0.011812
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag001",
+          "loading": -0.010409
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag002",
+          "loading": -0.010299
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-04-13T13:24:28+00:00",
+  "job_id": "baseline_tdc_lp_private_assets",
+  "recommended_factor_count": 4,
+  "recommended_k": 100,
+  "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response."
+}

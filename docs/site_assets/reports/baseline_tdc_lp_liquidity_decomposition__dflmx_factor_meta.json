@@ -1,0 +1,681 @@
+{
+  "factors": [
+    {
+      "explained_eigenvalue": 72.695131,
+      "factor_id": "dflmx_k100_f1",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag025",
+          "loading": -0.006554
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag019",
+          "loading": -0.006553
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag026",
+          "loading": -0.006553
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag022",
+          "loading": -0.006553
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag024",
+          "loading": -0.006553
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag018",
+          "loading": -0.006553
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag020",
+          "loading": -0.006553
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag027",
+          "loading": -0.006553
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.006552
+        },
+        {
+          "feature_id": "d__dgs3_dgs3__lag019",
+          "loading": -0.006552
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag028",
+          "loading": -0.006552
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag016",
+          "loading": -0.006552
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 10.068551,
+      "factor_id": "dflmx_k100_f2",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.014534
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.014314
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.014249
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.014218
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag005",
+          "loading": -0.014155
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.014111
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills_raw__lag008",
+          "loading": 0.013995
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills__lag008",
+          "loading": 0.013995
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag001",
+          "loading": -0.013774
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag002",
+          "loading": -0.013509
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag011",
+          "loading": -0.01338
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag012",
+          "loading": -0.013216
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 7.34189,
+      "factor_id": "dflmx_k100_f3",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__psave_psave__lag002",
+          "loading": 0.016261
+        },
+        {
+          "feature_id": "q__psave_psave__lag001",
+          "loading": 0.015945
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": 0.015711
+        },
+        {
+          "feature_id": "q__fgdef_fgdef__lag001",
+          "loading": -0.015625
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag001",
+          "loading": -0.015008
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag002",
+          "loading": -0.014861
+        },
+        {
+          "feature_id": "q__psave_psave__lag003",
+          "loading": 0.014395
+        },
+        {
+          "feature_id": "q__bogz1fa313161105q_tsy_net_tx__lag002",
+          "loading": 0.014231
+        },
+        {
+          "feature_id": "q__fbtsatq027s_dom_fin_sector_tsy_tx__lag002",
+          "loading": 0.013351
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag003",
+          "loading": -0.013218
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag004",
+          "loading": 0.011599
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag005",
+          "loading": 0.010854
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 2.792529,
+      "factor_id": "dflmx_k100_f4",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag002",
+          "loading": -0.02402
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag003",
+          "loading": -0.023571
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag001",
+          "loading": -0.023283
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": 0.014557
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag001",
+          "loading": 0.014135
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag004",
+          "loading": 0.012174
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag005",
+          "loading": 0.009252
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": -0.007668
+        },
+        {
+          "feature_id": "q__fgdef_fgdef__lag001",
+          "loading": 0.007381
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag011",
+          "loading": -0.00733
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.007017
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag002",
+          "loading": -0.006925
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 159.226833,
+      "factor_id": "dflmx_k200_f1",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.004441
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.004441
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag042",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag033",
+          "loading": -0.00444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag036",
+          "loading": -0.004439
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 13.232047,
+      "factor_id": "dflmx_k200_f2",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills_raw__lag008",
+          "loading": 0.01347
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills__lag008",
+          "loading": 0.01347
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills_raw__lag007",
+          "loading": 0.013237
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills__lag007",
+          "loading": 0.013237
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag005",
+          "loading": -0.011933
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.011875
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag002",
+          "loading": -0.011847
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag001",
+          "loading": -0.011823
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.011771
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag003",
+          "loading": -0.011771
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.011751
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.011701
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 9.684884,
+      "factor_id": "dflmx_k200_f3",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "q__psave_psave__lag002",
+          "loading": 0.014289
+        },
+        {
+          "feature_id": "q__psave_psave__lag001",
+          "loading": 0.013509
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": 0.013481
+        },
+        {
+          "feature_id": "q__fbtsatq027s_dom_fin_sector_tsy_tx__lag002",
+          "loading": 0.01348
+        },
+        {
+          "feature_id": "q__fgdef_fgdef__lag002",
+          "loading": -0.013369
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": 0.013353
+        },
+        {
+          "feature_id": "q__bogz1fa313161105q_tsy_net_tx__lag002",
+          "loading": 0.013111
+        },
+        {
+          "feature_id": "q__fgdef_fgdef__lag001",
+          "loading": -0.013081
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag002",
+          "loading": -0.012782
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag001",
+          "loading": -0.01251
+        },
+        {
+          "feature_id": "q__psave_psave__lag003",
+          "loading": 0.012058
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": 0.011164
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 3.493363,
+      "factor_id": "dflmx_k200_f4",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag001",
+          "loading": -0.021396
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag002",
+          "loading": -0.021224
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag003",
+          "loading": -0.020368
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag001",
+          "loading": 0.014844
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag001",
+          "loading": 0.012198
+        },
+        {
+          "feature_id": "q__bogz1fr543061175q_life_insurance_ts_reval__lag004",
+          "loading": 0.011951
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": 0.010315
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.008865
+        },
+        {
+          "feature_id": "q__bogz1fa713061113q_cb_bills_tx__lag001",
+          "loading": 0.008797
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": -0.008694
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.00857
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag009",
+          "loading": 0.008077
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 247.866033,
+      "factor_id": "dflmx_k300_f1",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.00356
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag042",
+          "loading": -0.00356
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.00356
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.003559
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.003559
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.003559
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.003559
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag045",
+          "loading": -0.003559
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.003558
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.003558
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag046",
+          "loading": -0.003558
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag033",
+          "loading": -0.003558
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 15.209361,
+      "factor_id": "dflmx_k300_f2",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills_raw__lag008",
+          "loading": 0.012404
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills__lag008",
+          "loading": 0.012404
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills_raw__lag007",
+          "loading": 0.012237
+        },
+        {
+          "feature_id": "q__bogz1fl713061113q_cb_bills__lag007",
+          "loading": 0.012237
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag002",
+          "loading": 0.010909
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag003",
+          "loading": 0.010908
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.01089
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.010888
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag001",
+          "loading": 0.010882
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag009",
+          "loading": 0.010875
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag005",
+          "loading": -0.010724
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag002",
+          "loading": -0.010722
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 11.733682,
+      "factor_id": "dflmx_k300_f3",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "q__psave_psave__lag002",
+          "loading": 0.01255
+        },
+        {
+          "feature_id": "q__psave_psave__lag001",
+          "loading": 0.012116
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": 0.011885
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": 0.011666
+        },
+        {
+          "feature_id": "q__fgdef_fgdef__lag002",
+          "loading": -0.011575
+        },
+        {
+          "feature_id": "q__fbtsatq027s_dom_fin_sector_tsy_tx__lag002",
+          "loading": 0.01147
+        },
+        {
+          "feature_id": "q__fgdef_fgdef__lag001",
+          "loading": -0.011404
+        },
+        {
+          "feature_id": "q__psave_psave__lag003",
+          "loading": 0.011247
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag002",
+          "loading": -0.01106
+        },
+        {
+          "feature_id": "q__tgdef_net_gov_sav__lag001",
+          "loading": -0.010866
+        },
+        {
+          "feature_id": "q__bogz1fa313161105q_tsy_net_tx__lag002",
+          "loading": 0.010747
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag003",
+          "loading": 0.010724
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 4.394122,
+      "factor_id": "dflmx_k300_f4",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag001",
+          "loading": -0.018044
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag002",
+          "loading": -0.018027
+        },
+        {
+          "feature_id": "q__bogz1lm903061103q_instrument_discrepancies_ts__lag003",
+          "loading": -0.017386
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.011108
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag001",
+          "loading": 0.009832
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": -0.009274
+        },
+        {
+          "feature_id": "q__bogz1fr543061175q_life_insurance_ts_reval__lag005",
+          "loading": 0.009084
+        },
+        {
+          "feature_id": "q__bogz1fr543061175q_life_insurance_ts_reval__lag004",
+          "loading": 0.008918
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": -0.008707
+        },
+        {
+          "feature_id": "q__bogz1fl712051000q_fed_rrp__lag001",
+          "loading": 0.007238
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": 0.007166
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.007133
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-04-13T13:23:37+00:00",
+  "job_id": "baseline_tdc_lp_liquidity_decomposition",
+  "recommended_factor_count": 4,
+  "recommended_k": 300,
+  "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response."
+}

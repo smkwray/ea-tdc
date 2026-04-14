@@ -1,0 +1,108 @@
+version: 0.1
+
+standard_series_frame:
+  description: Long-form standardized data table used by adapters before design building.
+  required_fields:
+    - series_id
+    - series_label
+    - source_family
+    - source_repo
+    - source_table
+    - freq
+    - period_end
+    - release_date
+    - available_at
+    - vintage_policy
+    - units
+    - value
+    - transform_default
+    - seasonal_adjustment_flag
+    - interpolated_flag
+    - component_group
+    - role
+    - notes
+  freq_allowed: [daily, weekly, monthly, quarterly, irregular_event]
+
+quarterly_bundle:
+  description: Wide or long quarterly table after harmonization and before DASS design generation.
+  required_fields:
+    - quarter
+    - series_id
+    - value
+    - available_at
+    - role
+    - source_repo
+    - treatment_family
+    - outcome_family
+    - keep_flag
+  mandatory_roles:
+    - treatment
+    - outcome
+    - control
+    - state
+    - instrument
+    - mechanism
+
+event_bundle:
+  description: Irregular event-time table for QRA / SLR / other dated events.
+  required_fields:
+    - event_id
+    - event_date
+    - event_type
+    - source_repo
+    - treatment_id
+    - treatment_value
+    - cutoff_timestamp
+    - embargo_rule
+    - horizon_unit
+    - notes
+
+design_manifest:
+  description: One file per estimation job proving what was fed to the estimator.
+  required_fields:
+    - job_id
+    - sample_start
+    - sample_end
+    - treatment_id
+    - instrument_ids
+    - outcome_ids
+    - control_ids
+    - state_ids
+    - cutoff_rule
+    - horizon_grid
+    - exclusion_windows
+    - scaling_rule
+    - shock_definition
+    - multiple_testing_family
+    - generated_at
+
+sample_manifest:
+  description: Human-readable ladder of coverage and restrictions.
+  required_fields:
+    - job_id
+    - step_order
+    - step_label
+    - observations_remaining
+    - reason
+
+validation_rules:
+  - rule_id: no_post_cutoff_features
+    description: no feature row may have available_at after the job cutoff
+  - rule_id: no_duplicate_series_with_same_role
+    description: avoid duplicate transformed versions in the same baseline design without naming
+  - rule_id: standardized_sign_convention
+    description: positive treatment values must match registry sign convention
+  - rule_id: instrument_declared
+    description: every LP-IV job must declare instrument metadata in the manifest
+  - rule_id: event_horizon_calendar_consistency
+    description: business-day horizons must be computed with the chosen holiday calendar
+  - rule_id: bundle_hash_recorded
+    description: adapter outputs should store a bundle hash for reproducibility
+
+file_conventions:
+  raw_adapters_dir: data/adapters/
+  standardized_dir: data/standardized/
+  bundles_dir: data/bundles/
+  designs_dir: output/designs/
+  results_dir: output/results/
+  manifests_dir: output/manifests/
