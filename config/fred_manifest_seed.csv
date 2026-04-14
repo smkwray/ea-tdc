@@ -1,0 +1,61 @@
+series_id,domain,role,priority,default_transform,notes
+BOGZ1FL764100005Q,deposits_money,outcome,headline,diff,Matched total bank deposits level from Z.1 via FRED for quarterly QoQ construction
+LTDACBM027NBOG,deposits_money,outcome,secondary,diff,Large time deposits for wholesale-like deposit-mix decomposition
+RMFSL,deposits_money,outcome,secondary,diff,Retail money market funds for deposit-substitution decomposition
+WIMFSL,deposits_money,outcome,secondary,diff,Institutional money market funds for wholesale-funding substitution decomposition
+BOGZ1FL883034010Q,deposits_money,outcome,secondary,diff,Quarterly Z.1 institutional money market fund shares fallback after WIMFSL coverage ends
+GDP,real_or_nominal_activity,control,headline,logdiff,Nominal GDP level; use for scaling and macro context
+GDPC1,real_activity,outcome,secondary,logdiff,Real GDP
+GDPDEF,prices,outcome,secondary,logdiff,GDP deflator
+CPIAUCSL,prices,outcome,headline,inflation_qoq_ann,Headline CPI
+CPILFESL,prices,outcome,headline,inflation_qoq_ann,Core CPI
+PCEPI,prices,outcome,secondary,inflation_qoq_ann,Headline PCE
+PCEPILFE,prices,outcome,headline,inflation_qoq_ann,Core PCE
+M2SL,deposits_money,outcome,headline,logdiff,M2
+TOTBKCR,private_credit,outcome,secondary,diff,Total bank credit for bank non-Treasury asset exposure
+BUSLOANS,private_credit,outcome,secondary,diff,Commercial and industrial loans at commercial banks for business-credit decomposition
+TOTCI,private_credit,outcome,secondary,diff,H.8 commercial and industrial loans cross-check for business-credit decomposition
+BOGZ1FL704041005Q,private_credit,outcome,secondary,diff,Z.1 short-term U.S. bank loans for alternative bank-credit decomposition
+TASACBW027SBOG,private_credit,outcome,secondary,diff,Bank holdings of agency and GSE-backed securities
+OSEACBW027SBOG,private_credit,outcome,secondary,diff,Bank holdings of other non-Treasury securities
+CLSACBW027SBOG,private_credit,outcome,secondary,diff,Consumer loans at all commercial banks
+RELACBW027SBOG,private_credit,outcome,secondary,diff,Real estate loans at all commercial banks
+BOGZ1FL264035005Q,external_balance,outcome,secondary,diff,Rest of world loans assets from Z.1
+EXPGS,external_balance,outcome,secondary,diff,Exports of goods and services for quarterly deposit-source decomposition
+IMPGS,external_balance,outcome,secondary,diff,Imports of goods and services for quarterly deposit-source decomposition
+BOPBCA,external_balance,outcome,secondary,level_change,Current account balance for broader external-balance decomposition
+ROWCBAQ027S,external_balance,outcome,secondary,level_change,Rest of world purchases of U.S. corporate bonds for private-flow decomposition
+ROWCEAQ027S,external_balance,outcome,secondary,level_change,Rest of world purchases of U.S. corporate equities for private-flow decomposition
+ROWGSEQ027S,external_balance,outcome,secondary,level_change,Rest of world purchases of agency and GSE-backed securities for private-flow decomposition
+ROWNBLQ027S,external_balance,outcome,secondary,level_change,Rest of world nonfinancial-business loan flow for private-flow decomposition
+THREEFYTP10,treasury_market,outcome,headline,level_change,ACM 10-year term premium for release-event rates work
+DGS3MO,treasury_market,outcome,headline,level_change,3-month Treasury
+DGS2,treasury_market,outcome,headline,level_change,2-year Treasury
+DGS5,treasury_market,outcome,secondary,level_change,5-year Treasury
+DGS10,treasury_market,outcome,headline,level_change,10-year Treasury
+DGS30,treasury_market,outcome,secondary,level_change,30-year Treasury
+TB3MS,treasury_market,control,secondary,level_change,3-month bill monthly rate
+FEDFUNDS,funding_liquidity,outcome,headline,level_change,Fed funds
+DFF,funding_liquidity,control,headline,level_change,Daily effective federal funds rate for event controls
+SOFR,funding_liquidity,outcome,headline,level_change,SOFR
+WRESBAL,funding_liquidity,outcome,headline,level_change,Reserve balances
+TGCRRATE,funding_liquidity,outcome,headline,level_change,Tri-party general collateral rate
+RRPONTSYAWARD,funding_liquidity,outcome,headline,level_change,ON RRP award rate
+RRPONTSYD,funding_liquidity,control,secondary,level_change,ON RRP take-up amount
+TOTRESNS,funding_liquidity,control,headline,logdiff,Total reserves
+WALCL,funding_liquidity,control,secondary,diff,Fed balance sheet proxy
+TREAST,funding_liquidity,control,secondary,diff,Fed Treasury holdings proxy
+WDTGAL,funding_liquidity,control,secondary,diff,Treasury General Account level for event controls
+BAA,credit_spreads,outcome,headline,level_change,Moody's BAA yield
+AAA,credit_spreads,outcome,headline,level_change,Moody's AAA yield
+BAMLC0A0CM,credit_spreads,outcome,secondary,level_change,ICE BofA US Corporate Master OAS
+BAMLC0A4CBBB,credit_spreads,outcome,secondary,level_change,BBB OAS
+BAMLH0A0HYM2,credit_spreads,outcome,secondary,level_change,High Yield OAS
+SP500,financial_conditions,outcome,headline,level_change,S&P 500 level for event-return construction
+VIXCLS,financial_conditions,outcome,headline,level_change,VIX close for event volatility changes
+UNRATE,real_activity,outcome,secondary,level_change,Unemployment rate
+PAYEMS,real_activity,outcome,secondary,logdiff,Payroll employment
+INDPRO,real_activity,outcome,secondary,logdiff,Industrial production
+HOUST,real_activity,outcome,secondary,logdiff,Housing starts
+RSXFS,real_activity,outcome,secondary,logdiff,Retail sales ex food services maybe depending on label
+DTWEXBGS,external_balance,control,secondary,level_change,Broad dollar index

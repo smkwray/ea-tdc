@@ -1,0 +1,84 @@
+sources:
+  fred:
+    kind: direct_download
+    target_dir: data/raw/fred
+    manifest: config/fred_manifest_seed.csv
+    adapter: fred_csv_folder
+    required: true
+    notes: Primary macro and funding series pulled directly from FRED.
+  treasury_fiscaldata:
+    kind: direct_download
+    target_dir: data/raw/treasury
+    adapter: treasury_api
+    required: true
+    notes: Treasury API inputs fetched directly by this project.
+  tdcest_seed:
+    kind: optional_seed_file
+    path_env: EA_TDC_SEED_TDCEST_BUNDLE
+    copy_to: data/seed/tdcest
+    adapter: tdcest_bundle
+    required: false
+    notes: Optional seed bundle copied from a local TDC estimator output.
+  qrawatch_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_QRAWATCH_DIR
+    copy_to: data/seed/qrawatch
+    adapter: qrawatch_publish
+    required: false
+    notes: Optional local publish directory for QRA maturity objects.
+  qrawatch_raw_fred_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_QRAWATCH_RAW_FRED_DIR
+    copy_to: data/seed/qrawatch_raw_fred
+    adapter: fred_series_folder
+    required: false
+    notes: Optional local raw daily series directory copied from qrawatch for seeded non-FRED market series.
+  tsyparty_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_TSYPARTY_DIR
+    copy_to: data/seed/tsyparty
+    adapter: tsyparty_outputs
+    required: false
+    notes: Optional seed data for sector holding and counterparty states.
+  tdcpass_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_TDCPASS_DIR
+    copy_to: data/seed/tdcpass
+    adapter: tdcpass_outputs
+    required: false
+    notes: Optional seed data for published canonical quarterly panel and shock diagnostics.
+  wamest_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_WAMEST_DIR
+    copy_to: data/seed/wamest
+    adapter: wamest_outputs
+    required: false
+    notes: Optional seed data for sector maturity gap states.
+  slrwatch_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_SLRWATCH_DIR
+    copy_to: data/seed/slrwatch
+    adapter: slrwatch_reports
+    required: false
+    notes: Optional seed data for bank-capacity and SLR mechanism states.
+  coordwatch_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_COORDWATCH_DIR
+    copy_to: data/seed/coordwatch
+    adapter: coordwatch_outputs
+    required: false
+    notes: Optional seed data for reserve and funding state variables.
+  accounting_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_ACCOUNTING_DIR
+    copy_to: data/seed/accounting
+    adapter: accounting_identity_inputs
+    required: false
+    notes: Optional local accounting-input directory for identity-style deposit source decomposition.
+  interpol_seed:
+    kind: optional_seed_dir
+    path_env: EA_TDC_SEED_INTERPOL_ROOT
+    copy_to: data/seed/interpol
+    adapter: fred_seed_folder
+    required: false
+    notes: Optional hydrated cloud folder used only to seed raw files into this repo.

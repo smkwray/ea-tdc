@@ -1,0 +1,12 @@
+job_id,regime_id,rows_in_regime,control_ids_used,dropped_controls,rows_written,warning_rows,weak_instrument_rows,avg_abs_beta,avg_n
+baseline_tdc_lp_deposits,exclude_2008_2009,311,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.286988,82.0
+baseline_tdc_lp_deposits,exclude_2020,315,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.226722,86.0
+baseline_tdc_lp_deposits,coord_low_reserve_state_l1,15,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,8,0,0,1.095078,13.25
+baseline_tdc_lp_deposits,coord_on_rrp_drain_state_l1__low,36,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.28691,33.0
+baseline_tdc_lp_deposits,coord_on_rrp_drain_state_l1__high,38,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.385909,33.0
+baseline_tdc_lp_deposits,tsyparty_bank_absorption_share_l1__low,145,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.255765,38.0
+baseline_tdc_lp_deposits,tsyparty_bank_absorption_share_l1__high,145,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.344722,45.0
+baseline_tdc_lp_deposits,tsyparty_bank_foreign_private_corr_l1__low,42,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.411768,39.0
+baseline_tdc_lp_deposits,tsyparty_bank_foreign_private_corr_l1__high,42,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,10,0,0,0.215208,39.0
+baseline_tdc_lp_deposits,slrwatch_bank_leverage_pressure_l1__low,13,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,6,0,0,0.377472,12.0
+baseline_tdc_lp_deposits,slrwatch_bank_leverage_pressure_l1__high,14,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,6,0,0,1.055099,13.0

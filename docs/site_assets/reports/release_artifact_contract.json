@@ -1,0 +1,64 @@
+{
+  "appendix_artifacts": 2,
+  "committed_jobs": 3,
+  "generated_at": "2026-04-14T11:17:30+00:00",
+  "main_text_artifacts": 2,
+  "rows": [
+    {
+      "artifact_id": "appendix_table_1",
+      "artifact_kind": "table",
+      "contract_source": "release1_appendix_candidate",
+      "display_spec": "supporting_table",
+      "estimator": "lp",
+      "horizons": "0,1,2,4,8",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "outcome_ids": "baa_aaa,investment_grade_oas,high_yield_oas",
+      "output_family": "supporting_reduced_form",
+      "release_channel": "appendix",
+      "status": "ready",
+      "title": "Appendix support table: baseline tdc lp credit spreads"
+    },
+    {
+      "artifact_id": "appendix_table_2",
+      "artifact_kind": "table",
+      "contract_source": "release1_appendix_candidate",
+      "display_spec": "supporting_table",
+      "estimator": "lp",
+      "horizons": "0,1,2,4",
+      "job_id": "tdc_state_dep_low_reserves",
+      "outcome_ids": "matched_total_deposits,m2,repo_spread",
+      "output_family": "supporting_reduced_form",
+      "release_channel": "appendix",
+      "status": "ready",
+      "title": "Appendix support table: tdc state dep low reserves"
+    },
+    {
+      "artifact_id": "main_figure_1",
+      "artifact_kind": "figure",
+      "contract_source": "release1_main_candidate",
+      "display_spec": "impulse_response_grid",
+      "estimator": "lp",
+      "horizons": "0,1,2,4,8",
+      "job_id": "baseline_tdc_lp_deposits",
+      "outcome_ids": "matched_total_deposits,other_component_qoq,m2",
+      "output_family": "headline_identified",
+      "release_channel": "main_text",
+      "status": "ready",
+      "title": "Main impulse response: baseline tdc lp deposits"
+    },
+    {
+      "artifact_id": "main_table_1",
+      "artifact_kind": "table",
+      "contract_source": "release1_main_candidate",
+      "display_spec": "coefficient_table",
+      "estimator": "lp",
+      "horizons": "0,1,2,4,8",
+      "job_id": "baseline_tdc_lp_deposits",
+      "outcome_ids": "matched_total_deposits,other_component_qoq,m2",
+      "output_family": "headline_identified",
+      "release_channel": "main_text",
+      "status": "ready",
+      "title": "Main coefficient table: baseline tdc lp deposits"
+    }
+  ]
+}

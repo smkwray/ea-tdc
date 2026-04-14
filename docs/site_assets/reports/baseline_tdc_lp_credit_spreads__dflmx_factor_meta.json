@@ -1,0 +1,681 @@
+{
+  "factors": [
+    {
+      "explained_eigenvalue": 51.977255,
+      "factor_id": "dflmx_k100_f1",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl704135005q_usb_loan_l__lag001",
+          "loading": 0.007167
+        },
+        {
+          "feature_id": "q__bogz1fl704141005q_usb_stloan_l__lag001",
+          "loading": 0.007151
+        },
+        {
+          "feature_id": "m__ipdcongd_ipdcongd__lag008",
+          "loading": 0.007144
+        },
+        {
+          "feature_id": "m__ipdcongd_ipdcongd__lag009",
+          "loading": 0.007125
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag010",
+          "loading": 0.007064
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag011",
+          "loading": 0.007063
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag007",
+          "loading": 0.007059
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag012",
+          "loading": 0.007059
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag008",
+          "loading": 0.007058
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag009",
+          "loading": 0.007055
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag004",
+          "loading": 0.007054
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag005",
+          "loading": 0.007052
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 19.779484,
+      "factor_id": "dflmx_k100_f2",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag017",
+          "loading": 0.008495
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag018",
+          "loading": 0.008488
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag019",
+          "loading": 0.008487
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag021",
+          "loading": 0.008487
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag016",
+          "loading": 0.008478
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag022",
+          "loading": 0.008476
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag024",
+          "loading": 0.00847
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag025",
+          "loading": 0.008459
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag057",
+          "loading": 0.008458
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag088",
+          "loading": 0.008444
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag026",
+          "loading": 0.008436
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag089",
+          "loading": 0.008433
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 12.1488,
+      "factor_id": "dflmx_k100_f3",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.011911
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.011867
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.011861
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.011574
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.011499
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.01146
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.011295
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.011154
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.011036
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag009",
+          "loading": -0.009759
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag008",
+          "loading": -0.009666
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag007",
+          "loading": -0.009576
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 6.170164,
+      "factor_id": "dflmx_k100_f4",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag002",
+          "loading": 0.015452
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag002",
+          "loading": 0.015452
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag001",
+          "loading": 0.014957
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag001",
+          "loading": 0.014957
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": 0.014283
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": 0.01389
+        },
+        {
+          "feature_id": "m__baaffm_baaff__lag001",
+          "loading": -0.01208
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": -0.010568
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": -0.010386
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": -0.010091
+        },
+        {
+          "feature_id": "q__psave_psave__lag002",
+          "loading": 0.01005
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": -0.009966
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 130.025874,
+      "factor_id": "dflmx_k200_f1",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.004824
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.004824
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.004823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.004823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.004823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag036",
+          "loading": -0.004823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag046",
+          "loading": -0.004823
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.004822
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.004822
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag047",
+          "loading": -0.004822
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.004821
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.004821
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 35.997778,
+      "factor_id": "dflmx_k200_f2",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag002",
+          "loading": 0.008287
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag003",
+          "loading": 0.00828
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag006",
+          "loading": 0.008239
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag008",
+          "loading": 0.008202
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag009",
+          "loading": 0.008193
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag012",
+          "loading": 0.008137
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag002",
+          "loading": 0.00807
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag001",
+          "loading": 0.008068
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag004",
+          "loading": 0.008067
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag003",
+          "loading": 0.008067
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag005",
+          "loading": 0.008063
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag007",
+          "loading": 0.008058
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 12.774353,
+      "factor_id": "dflmx_k200_f3",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.011726
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.011658
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.011642
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.011339
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.011252
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.011205
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.011101
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.010984
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.010888
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag009",
+          "loading": -0.009587
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag008",
+          "loading": -0.009475
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag007",
+          "loading": -0.00938
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 8.270984,
+      "factor_id": "dflmx_k200_f4",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag002",
+          "loading": 0.013206
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag002",
+          "loading": 0.013206
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag001",
+          "loading": 0.012888
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag001",
+          "loading": 0.012888
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": 0.012151
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": 0.011951
+        },
+        {
+          "feature_id": "m__baaffm_baaff__lag002",
+          "loading": -0.011493
+        },
+        {
+          "feature_id": "m__baaffm_baaff__lag001",
+          "loading": -0.011298
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": -0.010755
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": -0.010496
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": -0.010338
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag002",
+          "loading": 0.010044
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 218.306216,
+      "factor_id": "dflmx_k300_f1",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.003774
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.003774
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag046",
+          "loading": -0.003774
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag047",
+          "loading": -0.003774
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag048",
+          "loading": -0.003773
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag045",
+          "loading": -0.003773
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag050",
+          "loading": -0.003772
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.003772
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag052",
+          "loading": -0.003772
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag049",
+          "loading": -0.003772
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.003772
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag042",
+          "loading": -0.003772
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 42.486001,
+      "factor_id": "dflmx_k300_f2",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag002",
+          "loading": 0.007904
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag003",
+          "loading": 0.007899
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag004",
+          "loading": 0.00788
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag005",
+          "loading": 0.007877
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag006",
+          "loading": 0.007871
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag008",
+          "loading": 0.00784
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag009",
+          "loading": 0.007832
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag010",
+          "loading": 0.007797
+        },
+        {
+          "feature_id": "m__ipncongd_ipncongd__lag012",
+          "loading": 0.007787
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag002",
+          "loading": 0.007753
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag004",
+          "loading": 0.007751
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag001",
+          "loading": 0.00775
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 13.628237,
+      "factor_id": "dflmx_k300_f3",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.011289
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.011225
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.011218
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.010934
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.010855
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.010813
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.010749
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.010644
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.010572
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag009",
+          "loading": -0.009261
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag008",
+          "loading": -0.009148
+        },
+        {
+          "feature_id": "m__awotman_awotman__lag010",
+          "loading": -0.009122
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 9.06377,
+      "factor_id": "dflmx_k300_f4",
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag002",
+          "loading": 0.012679
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag002",
+          "loading": 0.012679
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag001",
+          "loading": 0.012377
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag001",
+          "loading": 0.012377
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag002",
+          "loading": 0.011598
+        },
+        {
+          "feature_id": "q__bogz1fl313024000q_tres_oper_cash__lag001",
+          "loading": 0.011389
+        },
+        {
+          "feature_id": "m__baaffm_baaff__lag002",
+          "loading": -0.011102
+        },
+        {
+          "feature_id": "m__baaffm_baaff__lag001",
+          "loading": -0.010891
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": -0.010223
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": -0.009946
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": -0.00979
+        },
+        {
+          "feature_id": "q__bogz1lm403061105q_gses_ts__lag002",
+          "loading": 0.009593
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-04-13T13:23:49+00:00",
+  "job_id": "baseline_tdc_lp_credit_spreads",
+  "recommended_factor_count": 4,
+  "recommended_k": 100,
+  "recommended_k_reason": "Selected the smallest factor-screened branch within 90% of the strongest warning-minimized average absolute response."
+}

@@ -1,0 +1,679 @@
+{
+  "factors": [
+    {
+      "explained_eigenvalue": 35.436323,
+      "factor_id": "dflmx_k100_f1",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag002",
+          "loading": 0.00909
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag004",
+          "loading": 0.009077
+        },
+        {
+          "feature_id": "q__bogz1fl702050005q_usb_ffrrp__lag001",
+          "loading": 0.009042
+        },
+        {
+          "feature_id": "m__ipbuseq_ipbuseq__lag002",
+          "loading": 0.008968
+        },
+        {
+          "feature_id": "m__ipbuseq_ipbuseq__lag003",
+          "loading": 0.008962
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag003",
+          "loading": 0.008934
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag004",
+          "loading": 0.008933
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag002",
+          "loading": 0.008932
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag007",
+          "loading": 0.008932
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag008",
+          "loading": 0.00892
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag009",
+          "loading": 0.008917
+        },
+        {
+          "feature_id": "m__ipbuseq_ipbuseq__lag009",
+          "loading": 0.008916
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 15.725493,
+      "factor_id": "dflmx_k100_f2",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.010077
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.009474
+        },
+        {
+          "feature_id": "q__fbtsatq027s_dom_fin_sector_tsy_tx__lag002",
+          "loading": -0.009444
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.009074
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag004",
+          "loading": -0.008876
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": -0.008843
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag007",
+          "loading": -0.008735
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag003",
+          "loading": -0.008517
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag005",
+          "loading": -0.008496
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag003",
+          "loading": -0.008248
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag001",
+          "loading": -0.00807
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": -0.008033
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 8.831337,
+      "factor_id": "dflmx_k100_f3",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "m__unrate_unrate__lag001",
+          "loading": 0.015148
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": 0.015123
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag002",
+          "loading": 0.015056
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag003",
+          "loading": 0.014759
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": 0.014718
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": 0.014504
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": 0.014096
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": 0.013825
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": 0.012929
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag002",
+          "loading": -0.00927
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga_z1__lag002",
+          "loading": -0.00927
+        },
+        {
+          "feature_id": "q__bogz1fl713123030q_tga__lag001",
+          "loading": -0.008366
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 7.870371,
+      "factor_id": "dflmx_k100_f4",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 100,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fr573061143q_private_db_pension_ts_reval__lag003",
+          "loading": -0.01704
+        },
+        {
+          "feature_id": "q__bogz1fr573061105q_private_pension_ts_reval__lag003",
+          "loading": -0.01695
+        },
+        {
+          "feature_id": "q__bogz1fr593061105q_pension_ts_reval__lag003",
+          "loading": -0.016755
+        },
+        {
+          "feature_id": "q__bogz1fr753061103q_usb_tsy_for_reval__lag003",
+          "loading": -0.016593
+        },
+        {
+          "feature_id": "q__bogz1fr263061105q_row_bills_reval__lag003",
+          "loading": -0.016031
+        },
+        {
+          "feature_id": "q__bogz1fr263061105q_row_tsy_reval__lag003",
+          "loading": -0.016031
+        },
+        {
+          "feature_id": "q__bogz1fr263061130q_row_gov_tsy_reval__lag003",
+          "loading": -0.014983
+        },
+        {
+          "feature_id": "q__bogz1fa313161110q_totalbills_z1_tx__lag002",
+          "loading": -0.01094
+        },
+        {
+          "feature_id": "q__bogz1fa633061105q_money_market_funds_ts_tx__lag002",
+          "loading": -0.010893
+        },
+        {
+          "feature_id": "q__bogz1fa633061110q_mmf_bills_tx__lag002",
+          "loading": -0.010612
+        },
+        {
+          "feature_id": "q__fbtsatq027s_dom_fin_sector_tsy_tx__lag004",
+          "loading": 0.009385
+        },
+        {
+          "feature_id": "q__bogz1fa313161105q_tsy_net_tx__lag004",
+          "loading": 0.00868
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 79.824626,
+      "factor_id": "dflmx_k200_f1",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag036",
+          "loading": -0.00568
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.005679
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.005678
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.005674
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.005674
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.005674
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.005673
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.005673
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.005672
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.005672
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag046",
+          "loading": -0.005669
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag034",
+          "loading": -0.005669
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 24.989263,
+      "factor_id": "dflmx_k200_f2",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.00767
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.007664
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag001",
+          "loading": 0.007189
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag002",
+          "loading": 0.007185
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag003",
+          "loading": 0.007181
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag004",
+          "loading": 0.007169
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag005",
+          "loading": 0.007157
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag006",
+          "loading": 0.007152
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag007",
+          "loading": 0.007146
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag008",
+          "loading": 0.007135
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag009",
+          "loading": 0.007127
+        },
+        {
+          "feature_id": "m__indpro_indpro__lag002",
+          "loading": 0.006884
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 19.909558,
+      "factor_id": "dflmx_k200_f3",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "q__fbtsatq027s_dom_fin_sector_tsy_tx__lag002",
+          "loading": -0.008605
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.00811
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": -0.007906
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.007592
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": -0.007544
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": -0.007525
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag003",
+          "loading": -0.007276
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": -0.007245
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.007227
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": -0.007143
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag004",
+          "loading": -0.007012
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag007",
+          "loading": -0.007004
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 11.09652,
+      "factor_id": "dflmx_k200_f4",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 200,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fr573061143q_private_db_pension_ts_reval__lag003",
+          "loading": 0.014386
+        },
+        {
+          "feature_id": "q__bogz1fr573061105q_private_pension_ts_reval__lag003",
+          "loading": 0.014366
+        },
+        {
+          "feature_id": "q__bogz1fr593061105q_pension_ts_reval__lag003",
+          "loading": 0.014275
+        },
+        {
+          "feature_id": "q__bogz1fr343061113q_fed_gov_dcf_retirement_ts_reval__lag003",
+          "loading": 0.014273
+        },
+        {
+          "feature_id": "q__bogz1fr343061105q_fed_gov_retirement_ts_reval__lag003",
+          "loading": 0.014247
+        },
+        {
+          "feature_id": "q__bogz1fr223061143q_state_local_db_retirement_ts_reval__lag003",
+          "loading": 0.013943
+        },
+        {
+          "feature_id": "q__bogz1fr753061103q_usb_tsy_for_reval__lag003",
+          "loading": 0.0137
+        },
+        {
+          "feature_id": "q__bogz1fr263061105q_row_bills_reval__lag003",
+          "loading": 0.013483
+        },
+        {
+          "feature_id": "q__bogz1fr263061105q_row_tsy_reval__lag003",
+          "loading": 0.013483
+        },
+        {
+          "feature_id": "q__bogz1fr263061130q_row_gov_tsy_reval__lag003",
+          "loading": 0.012675
+        },
+        {
+          "feature_id": "q__bogz1fr543061175q_life_insurance_ts_reval__lag003",
+          "loading": 0.011087
+        },
+        {
+          "feature_id": "q__bogz1fa633061105q_money_market_funds_ts_tx__lag002",
+          "loading": 0.007218
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 151.145045,
+      "factor_id": "dflmx_k300_f1",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "d__dgs5_dgs5__lag037",
+          "loading": -0.004461
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag038",
+          "loading": -0.004461
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag036",
+          "loading": -0.004461
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag039",
+          "loading": -0.00446
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag043",
+          "loading": -0.00446
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag044",
+          "loading": -0.00446
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag040",
+          "loading": -0.00446
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag032",
+          "loading": -0.00446
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag041",
+          "loading": -0.004459
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag031",
+          "loading": -0.004459
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag046",
+          "loading": -0.004458
+        },
+        {
+          "feature_id": "d__dgs5_dgs5__lag042",
+          "loading": -0.004458
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 35.027707,
+      "factor_id": "dflmx_k300_f2",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag008",
+          "loading": 0.0076
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag003",
+          "loading": 0.007599
+        },
+        {
+          "feature_id": "m__ipcongd_ipcongd__lag009",
+          "loading": 0.007594
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag001",
+          "loading": 0.007377
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag002",
+          "loading": 0.007374
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag003",
+          "loading": 0.007372
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag004",
+          "loading": 0.007365
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag005",
+          "loading": 0.007355
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag007",
+          "loading": 0.00735
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag006",
+          "loading": 0.007349
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag008",
+          "loading": 0.007341
+        },
+        {
+          "feature_id": "m__ipfinal_ipfinal__lag010",
+          "loading": 0.007339
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 22.220136,
+      "factor_id": "dflmx_k300_f3",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "q__fbtsatq027s_dom_fin_sector_tsy_tx__lag002",
+          "loading": -0.008133
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag009",
+          "loading": -0.007504
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag002",
+          "loading": -0.007215
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag009",
+          "loading": -0.006991
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag006",
+          "loading": -0.006873
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag006",
+          "loading": -0.006859
+        },
+        {
+          "feature_id": "q__bogz1fa713061103q_cb_tsy_tx__lag003",
+          "loading": -0.006722
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag008",
+          "loading": -0.006719
+        },
+        {
+          "feature_id": "m__psavert_psavert__lag008",
+          "loading": -0.006654
+        },
+        {
+          "feature_id": "q__bogz1fr543061175q_life_insurance_ts_reval__lag003",
+          "loading": -0.006589
+        },
+        {
+          "feature_id": "q__bogz1fa313161105q_tsy_net_tx__lag002",
+          "loading": -0.006518
+        },
+        {
+          "feature_id": "m__unrate_unrate__lag005",
+          "loading": -0.006509
+        }
+      ]
+    },
+    {
+      "explained_eigenvalue": 13.562816,
+      "factor_id": "dflmx_k300_f4",
+      "job_id": "tdcpass_identity_baseline_deposits",
+      "k_screened": 300,
+      "top_loadings": [
+        {
+          "feature_id": "q__bogz1fr573061105q_private_pension_ts_reval__lag003",
+          "loading": 0.012717
+        },
+        {
+          "feature_id": "q__bogz1fr343061113q_fed_gov_dcf_retirement_ts_reval__lag003",
+          "loading": 0.012673
+        },
+        {
+          "feature_id": "q__bogz1fr573061143q_private_db_pension_ts_reval__lag003",
+          "loading": 0.012673
+        },
+        {
+          "feature_id": "q__bogz1fr593061105q_pension_ts_reval__lag003",
+          "loading": 0.012639
+        },
+        {
+          "feature_id": "q__bogz1fr343061105q_fed_gov_retirement_ts_reval__lag003",
+          "loading": 0.012596
+        },
+        {
+          "feature_id": "q__bogz1fr573061133q_private_dc_pension_ts_reval__lag003",
+          "loading": 0.012571
+        },
+        {
+          "feature_id": "q__bogz1fr653061105q_mutual_funds_ts_reval__lag003",
+          "loading": 0.012464
+        },
+        {
+          "feature_id": "q__bogz1fr223061143q_state_local_db_retirement_ts_reval__lag003",
+          "loading": 0.012349
+        },
+        {
+          "feature_id": "q__bogz1fr753061103q_usb_tsy_for_reval__lag003",
+          "loading": 0.012105
+        },
+        {
+          "feature_id": "q__bogz1fr263061105q_row_bills_reval__lag003",
+          "loading": 0.011901
+        },
+        {
+          "feature_id": "q__bogz1fr263061105q_row_tsy_reval__lag003",
+          "loading": 0.011901
+        },
+        {
+          "feature_id": "q__bogz1fr263061130q_row_gov_tsy_reval__lag003",
+          "loading": 0.010958
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-04-12T11:45:59+00:00",
+  "job_id": "tdcpass_identity_baseline_deposits",
+  "recommended_k": 200
+}

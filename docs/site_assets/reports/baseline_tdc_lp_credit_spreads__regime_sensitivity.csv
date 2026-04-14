@@ -1,0 +1,12 @@
+job_id,regime_id,rows_in_regime,control_ids_used,dropped_controls,rows_written,warning_rows,weak_instrument_rows,avg_abs_beta,avg_n
+baseline_tdc_lp_credit_spreads,exclude_2008_2009,311,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,6e-06,83.2
+baseline_tdc_lp_credit_spreads,exclude_2020,315,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,1.8e-05,87.2
+baseline_tdc_lp_credit_spreads,coord_low_reserve_state_l1,15,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,12,0,0,3e-05,13.25
+baseline_tdc_lp_credit_spreads,coord_on_rrp_drain_state_l1__low,36,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,1.9e-05,33.0
+baseline_tdc_lp_credit_spreads,coord_on_rrp_drain_state_l1__high,38,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,6e-06,34.2
+baseline_tdc_lp_credit_spreads,tsyparty_bank_absorption_share_l1__low,145,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,1.3e-05,38.0
+baseline_tdc_lp_credit_spreads,tsyparty_bank_absorption_share_l1__high,145,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,5e-06,45.0
+baseline_tdc_lp_credit_spreads,tsyparty_bank_foreign_private_corr_l1__low,42,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,6e-06,39.0
+baseline_tdc_lp_credit_spreads,tsyparty_bank_foreign_private_corr_l1__high,42,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,15,0,0,2.2e-05,39.0
+baseline_tdc_lp_credit_spreads,slrwatch_bank_leverage_pressure_l1__low,13,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,9,0,0,3e-06,12.0
+baseline_tdc_lp_credit_spreads,slrwatch_bank_leverage_pressure_l1__high,14,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,9,0,0,7e-06,13.0

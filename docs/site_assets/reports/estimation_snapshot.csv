@@ -1,0 +1,11 @@
+job_id,estimator,rows_written,estimates_path,comparison_path,sample_policy,requested_sample_rows,headline_eligible_rows
+baseline_tdc_lp_deposits,lp,10,output/models/baseline_tdc_lp_deposits__lp_estimates.csv,,,,
+baseline_tdc_lp_funding,lp,8,output/models/baseline_tdc_lp_funding__lp_estimates.csv,,,,
+baseline_tdc_lp_credit_spreads,lp,15,output/models/baseline_tdc_lp_credit_spreads__lp_estimates.csv,,,,
+tdc_lpiv_deposits_qra_ru_gap,lp_iv,10,output/models/tdc_lpiv_deposits_qra_ru_gap__lp_iv_estimates.csv,,,,
+tdc_lpiv_deposits_qra_bank_absorption,lp_iv,10,output/models/tdc_lpiv_deposits_qra_bank_absorption__lp_iv_estimates.csv,,,,
+qra_event_rates_63bd,event_lp,20,output/models/qra_event_rates_63bd__event_lp_estimates.csv,,reviewed_nonmissing,14,4
+qra_event_rates_63bd_expanded_descriptive,event_lp,20,output/models/qra_event_rates_63bd_expanded_descriptive__event_lp_estimates.csv,,reviewed_nonmissing,14,4
+qra_event_risk_21bd,event_lp,18,output/models/qra_event_risk_21bd__event_lp_estimates.csv,,reviewed_nonmissing,14,4
+qra_event_risk_21bd_expanded_descriptive,event_lp,18,output/models/qra_event_risk_21bd_expanded_descriptive__event_lp_estimates.csv,,reviewed_nonmissing,14,4
+tdc_state_dep_low_reserves,lp,8,output/models/tdc_state_dep_low_reserves__lp_estimates.csv,,,,

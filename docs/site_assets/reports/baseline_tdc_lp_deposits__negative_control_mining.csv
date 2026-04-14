@@ -1,0 +1,13 @@
+job_id,candidate_outcome,avg_abs_z,min_p_value,tested_horizons,control_branch
+baseline_tdc_lp_deposits,BAMLH0A0HYM2,0.234608,0.697087,"0,1",baseline_core
+baseline_tdc_lp_deposits,high_yield_oas,0.234608,0.697087,"0,1",baseline_core
+baseline_tdc_lp_deposits,baa_aaa,0.307495,0.743377,"0,1",baseline_core
+baseline_tdc_lp_deposits,CPILFESL,0.371191,0.555656,"0,1",baseline_core
+baseline_tdc_lp_deposits,BAMLC0A0CM,0.532308,0.492923,"0,1",baseline_core
+baseline_tdc_lp_deposits,investment_grade_oas,0.532308,0.492923,"0,1",baseline_core
+baseline_tdc_lp_deposits,BAA,0.576948,0.397009,"0,1",baseline_core
+baseline_tdc_lp_deposits,AAA,0.602762,0.502671,"0,1",baseline_core
+baseline_tdc_lp_deposits,PCEPILFE,0.81417,0.379827,"0,1",baseline_core
+baseline_tdc_lp_deposits,core_cpi_inflation_qoq_ann,0.848019,0.341307,"0,1",baseline_core
+baseline_tdc_lp_deposits,CPIAUCSL,0.881641,0.231504,"0,1",baseline_core
+baseline_tdc_lp_deposits,bank_credit_qoq,1.139248,0.164938,"0,1",baseline_core

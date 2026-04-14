@@ -1,0 +1,228 @@
+{
+  "baseline_branch_candidate_count": 29,
+  "candidate_control_branch": "recommended_factors",
+  "generated_at": "2026-04-12T13:01:54+00:00",
+  "job_id": "baseline_tdc_lp_liquidity_decomposition",
+  "lead_placebos": [
+    {
+      "avg_abs_z": 2.640352,
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "lead": 1,
+      "max_abs_z": 8.273244,
+      "rows_written": 10
+    },
+    {
+      "avg_abs_z": 0.788712,
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "lead": 2,
+      "max_abs_z": 2.031952,
+      "rows_written": 10
+    },
+    {
+      "avg_abs_z": 1.652234,
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "lead": 4,
+      "max_abs_z": 3.370647,
+      "rows_written": 10
+    }
+  ],
+  "most_responsive_candidates": [
+    {
+      "avg_abs_z": 2.898548,
+      "candidate_outcome": "WRESBAL",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.000117,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 2.118884,
+      "candidate_outcome": "bank_consumer_loans_qoq",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.013563,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 1.239775,
+      "candidate_outcome": "row_loans_assets_qoq",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.140637,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 1.123013,
+      "candidate_outcome": "bank_agency_securities_qoq",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.116399,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 1.03095,
+      "candidate_outcome": "bank_real_estate_loans_qoq",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.082136,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.883007,
+      "candidate_outcome": "TREAST",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.175834,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.867721,
+      "candidate_outcome": "BOGZ1FL264035005Q",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.127064,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.839801,
+      "candidate_outcome": "CLSACBW027SBOG",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.163502,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.80533,
+      "candidate_outcome": "broad_dollar_change",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.2024,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.764599,
+      "candidate_outcome": "bank_credit_qoq",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.362835,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.68386,
+      "candidate_outcome": "WALCL",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.326259,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.674657,
+      "candidate_outcome": "M2SL",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.398649,
+      "tested_horizons": "0,1"
+    }
+  ],
+  "notes": "Negative-control mining here means lead-placebo checks plus candidate placebo-outcome screening over numeric bundle columns that are not treatment, instrument, or primary outcome fields. Candidate outcomes need enough coverage to support quarterly horizons, and the miner now compares the screened-factor branch against the baseline core controls rather than returning an empty panel immediately.",
+  "recommended_branch_candidate_count": 29,
+  "recommended_k": 200,
+  "top_clean_candidates": [
+    {
+      "avg_abs_z": 0.100612,
+      "candidate_outcome": "TOTBKCR",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.90872,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.155386,
+      "candidate_outcome": "baa_aaa",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.801909,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.243422,
+      "candidate_outcome": "PCEPILFE",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.742106,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.267757,
+      "candidate_outcome": "BAMLH0A0HYM2",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.748397,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.267757,
+      "candidate_outcome": "high_yield_oas",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.748397,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.274354,
+      "candidate_outcome": "TASACBW027SBOG",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.76235,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.283845,
+      "candidate_outcome": "core_pce_inflation_qoq_ann",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.607256,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.34024,
+      "candidate_outcome": "BAMLC0A0CM",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.654478,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.34024,
+      "candidate_outcome": "investment_grade_oas",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.654478,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.340843,
+      "candidate_outcome": "AAA",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.627885,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.345342,
+      "candidate_outcome": "RELACBW027SBOG",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.605751,
+      "tested_horizons": "0,1"
+    },
+    {
+      "avg_abs_z": 0.360979,
+      "candidate_outcome": "headline_cpi_inflation_qoq_ann",
+      "control_branch": "recommended_factors",
+      "job_id": "baseline_tdc_lp_liquidity_decomposition",
+      "min_p_value": 0.707226,
+      "tested_horizons": "0,1"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+job_id,treatment_variant,control_ids_used,dropped_controls,rows_written,warning_rows,weak_instrument_rows,avg_abs_beta,avg_n
+baseline_tdc_lp_fx,tdc_base_broad_depository_np_cu_ru_flow,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,5,0,0,3e-06,80.4
+baseline_tdc_lp_fx,tdc_no_remit_bank_only,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,5,0,0,3e-06,80.4
+baseline_tdc_lp_fx,tdc_domestic_bank_only_ru_flow,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,5,0,0,2e-06,80.4
+baseline_tdc_lp_fx,tdc_bank_only_extended_1990,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,5,0,0,3e-06,80.4

@@ -1,0 +1,9 @@
+job_id,estimator,freq,release1_scope,readiness_status,final_sample_observations,usable_rows,estimation_status,estimated_rows_written,estimates_path,comparison_path,sample_policy,requested_sample_rows,headline_eligible_rows,reviewed_nonmissing_rows,min_observations,max_observations,covariance_estimators_used,warning_rows,weak_instrument_rows,adaptive_control_rows,small_sample_rows,publication_risk_flags
+baseline_tdc_lp_deposits,lp,quarterly,committed,ready_for_estimation,93,68,estimated,10,output/models/baseline_tdc_lp_deposits__lp_estimates.csv,,,0,0,0,85,93,newey_west,0,0,0,0,
+baseline_tdc_lp_funding,lp,quarterly,committed,ready_for_estimation,93,68,estimated,8,output/models/baseline_tdc_lp_funding__lp_estimates.csv,,,0,0,0,31,93,newey_west,0,0,0,0,
+baseline_tdc_lp_credit_spreads,lp,quarterly,committed,ready_for_estimation,93,68,estimated,15,output/models/baseline_tdc_lp_credit_spreads__lp_estimates.csv,,,0,0,0,86,93,newey_west,0,0,0,0,
+tdc_lpiv_deposits_qra_ru_gap,lp_iv,quarterly,deferred,ready_for_estimation,64,68,estimated,10,output/models/tdc_lpiv_deposits_qra_ru_gap__lp_iv_estimates.csv,,,0,0,0,59,64,hc1,10,10,0,0,weak_instrument
+tdc_lpiv_deposits_qra_bank_absorption,lp_iv,quarterly,deferred,ready_for_estimation,64,68,estimated,10,output/models/tdc_lpiv_deposits_qra_bank_absorption__lp_iv_estimates.csv,,,0,0,0,59,64,hc1,10,10,0,0,weak_instrument
+qra_event_rates_63bd,event_lp,irregular_event,committed,ready_for_estimation,14,14,estimated,20,output/models/qra_event_rates_63bd__event_lp_estimates.csv,,reviewed_nonmissing,14,4,14,14,14,hc1,0,0,0,0,
+qra_event_risk_21bd,event_lp,irregular_event,committed,ready_for_estimation,14,14,estimated,18,output/models/qra_event_risk_21bd__event_lp_estimates.csv,,reviewed_nonmissing,14,4,14,14,14,hc1,0,0,0,0,
+tdc_state_dep_low_reserves,lp,quarterly,committed,ready_for_estimation,73,68,estimated,8,output/models/tdc_state_dep_low_reserves__lp_estimates.csv,,,0,0,0,69,73,newey_west,0,0,0,0,

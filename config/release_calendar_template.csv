@@ -1,0 +1,7 @@
+source_family,default_freq,typical_release_lag_days,embargo_days,notes
+fred_daily,daily,1,0,Approximation only when exact timestamps are unavailable
+fred_weekly,weekly,7,0,Use source-specific metadata if available
+fred_monthly,monthly,15,0,Replace with exact release calendar later when possible
+fred_quarterly,quarterly,45,0,Important for revised macro series
+qra_release,irregular_event,0,1,Event cutoff should usually be market close with embargo
+repo_internal_quarterly,quarterly,0,0,Local artifact bundle already dated and aligned

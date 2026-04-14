@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#fafbfd" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+<title>EA-TDC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/style.css">
+<script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script defer src="assets/js/main.js"></script>
+</head>
+<body data-page="home" data-root-prefix="">
+<header class="nav">
+<div class="container nav-inner">
+<div class="brand">
+<span class="brand-mark">EA-TDC</span>
+<span class="brand-copy">Definitions, estimates, and evidence</span>
+</div>
+<nav class="nav-links" aria-label="Primary">
+<a href="#questions">Questions</a>
+<a href="#definitions">TDC definition</a>
+<a href="#headline-results">Results</a>
+<a href="#additional-evidence">Additional evidence</a>
+<a href="#robustness">Robustness</a>
+<a href="#release-package">Artifacts</a>
+<button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme"></button>
+</nav>
+</div>
+</header>
+<main class="page">
+<section class="hero container">
+<div class="hero-copy reveal">
+<div class="eyebrow">EA-TDC</div>
+<h1>Treasury component of deposits: estimates and transmission.</h1>
+<p>This work asks how the baseline estimate of the Treasury component of deposits moves deposits first, how the remaining deposit component adjusts, and how much of that adjustment can be reconstructed with a simple accounting breakdown.</p>
+<div class="button-row">
+<a class="button primary" href="#headline-results">Read the results</a>
+<a class="button" href="#definitions">See the TDC definition</a>
+<a class="button" href="artifacts/index.html">Open figures and tables</a>
+</div>
+</div>
+<div id="metric-grid" class="metric-grid"></div>
+</section>
+<section class="section container" id="questions">
+<div class="section-header reveal">
+<div><div class="eyebrow">Questions</div><h2>Research questions.</h2></div>
+<p>The central questions are whether the Treasury component of deposits first shows up in deposits, whether that result survives broader holder definitions, and whether the non-TDC deposit component can be reconstructed in a sensible way.</p>
+</div>
+<div id="questions-grid" class="insight-grid"></div>
+</section>
+<section class="section container">
+<details class="definition-shell reveal" id="definitions">
+<summary><div><div class="eyebrow">TDC definition</div><h2>Equations and notation.</h2></div><p>View equations</p></summary>
+<div class="definition-body">
+<p>The baseline treatment is the marketable-Treasury, transaction-based estimate of the Treasury component of deposits. In the upstream estimator its short name includes "bank" because it excludes credit unions, not because it excludes the rest of world. The actual baseline formula below includes Federal Reserve, bank-sector, and rest-of-world Treasury transactions.</p>
+<div class="notation-grid">
+<article class="notation-chip">
+<strong><abbr title="Treasury component of deposits.">TDC</abbr></strong>
+<p>Treasury component of deposits.</p>
+</article>
+<article class="notation-chip">
+<strong><abbr title="Federal Reserve.">Fed</abbr></strong>
+<p>Federal Reserve.</p>
+</article>
+<article class="notation-chip">
+<strong><abbr title="Rest of world.">ROW</abbr></strong>
+<p>Rest of world.</p>
+</article>
+<article class="notation-chip">
+<strong><abbr title="Treasury General Account.">TGA</abbr></strong>
+<p>Treasury General Account.</p>
+</article>
+<article class="notation-chip">
+<strong><abbr title="Overnight reverse repurchase facility.">ON RRP</abbr></strong>
+<p>Overnight reverse repurchase facility.</p>
+</article>
+<article class="notation-chip">
+<strong><abbr title="Quarterly Refunding Announcement.">QRA</abbr></strong>
+<p>Quarterly Refunding Announcement.</p>
+</article>
+</div>
+<div class="equation-grid">
+<article class="equation-card">
+<div class="eyebrow">Headline estimator</div>
+<h3>Baseline TDC estimate used in the quarterly results</h3>
+<p>This is the empirical TDC estimate used in the main quarterly work. It includes Federal Reserve, bank-sector, and rest-of-world Treasury transactions, subtracts Treasury operating cash, and adds positive Federal Reserve remittances.</p>
+<div class="math">\[\widehat{\Delta D}^{mkt,bank}_{TDC,t} = \left(\Delta TS^{tx}_{Fed,t} + \Delta TS^{tx}_{Banks,t} + \Delta TS^{tx}_{ROW,t}\right) - \Delta Cash^{tx}_{Treasury,t} + Remit^{+}_{Fed,t}\]</div>
+<dl class="equation-definitions">
+<div class="definition-row">
+<dt><code class="symbol-code" title="Estimated baseline TDC used in period t.">ΔD^mkt,bank_TDC,t</code></dt>
+<dd>Estimated baseline TDC used in period t.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Federal Reserve net transactions in marketable Treasury securities.">ΔTS^tx_Fed,t</code></dt>
+<dd>Federal Reserve net transactions in marketable Treasury securities.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Bank-sector net transactions in marketable Treasury securities.">ΔTS^tx_Banks,t</code></dt>
+<dd>Bank-sector net transactions in marketable Treasury securities.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Rest-of-world net transactions in marketable Treasury securities.">ΔTS^tx_ROW,t</code></dt>
+<dd>Rest-of-world net transactions in marketable Treasury securities.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Change in Treasury operating cash transactions; higher Treasury cash drains deposits.">ΔCash^tx_Treasury,t</code></dt>
+<dd>Change in Treasury operating cash transactions; higher Treasury cash drains deposits.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Positive Federal Reserve remittances to Treasury, summed within the period.">Remit^+_Fed,t</code></dt>
+<dd>Positive Federal Reserve remittances to Treasury, summed within the period.</dd>
+</div>
+</dl>
+</article>
+<article class="equation-card">
+<div class="eyebrow">Theory identity 1</div>
+<h3>Deposit-user flow identity</h3>
+<p>TDC can be read as Treasury injections into deposit users plus net Treasury-security redistribution toward reserve users.</p>
+<div class="math">\[\Delta D_{TDC} = \left(G_{dep} - T_{dep}\right) + \left(D_{sales} - D_{purch}\right) + D_{yield}\]</div>
+<dl class="equation-definitions">
+<div class="definition-row">
+<dt><code class="symbol-code" title="Treasury-attributed change in deposits.">ΔD_TDC</code></dt>
+<dd>Treasury-attributed change in deposits.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Treasury spending paid to agents that hold deposits.">G_dep</code></dt>
+<dd>Treasury spending paid to agents that hold deposits.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Taxes and other Treasury receipts collected from deposit-holding agents.">T_dep</code></dt>
+<dd>Taxes and other Treasury receipts collected from deposit-holding agents.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Deposit inflow created when Treasury securities are sold into deposit-holding sectors.">D_sales</code></dt>
+<dd>Deposit inflow created when Treasury securities are sold into deposit-holding sectors.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Deposit outflow created when deposit-holding sectors buy Treasury securities.">D_purch</code></dt>
+<dd>Deposit outflow created when deposit-holding sectors buy Treasury securities.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Net Treasury interest and related cash-flow support to deposits.">D_yield</code></dt>
+<dd>Net Treasury interest and related cash-flow support to deposits.</dd>
+</div>
+</dl>
+</article>
+<article class="equation-card">
+<div class="eyebrow">Theory identity 2</div>
+<h3>Reserve-user flow identity</h3>
+<p>The same object can be re-expressed through Treasury issuance, reserve-user cash flows, positive Fed remittances, and the Treasury cash balance.</p>
+<div class="math">\[\Delta D_{TDC} = \left(D_{sales} - D_{purch}\right) + \left(T_{AV} - T_{Rx} - R_{yield} + R_{Tx}\right) + \max(0, F_{PY} + M_{MT} - F_{OE}) - \Delta TGA\]</div>
+<dl class="equation-definitions">
+<div class="definition-row">
+<dt><code class="symbol-code" title="Treasury issuance absorbed by reserve-using sectors.">T_AV</code></dt>
+<dd>Treasury issuance absorbed by reserve-using sectors.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Treasury receipts paid by reserve-using sectors.">T_Rx</code></dt>
+<dd>Treasury receipts paid by reserve-using sectors.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Yield flows paid out by reserve users on the Treasury side of the balance sheet.">R_yield</code></dt>
+<dd>Yield flows paid out by reserve users on the Treasury side of the balance sheet.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Other Treasury-related transfers that move cash back toward deposit users.">R_Tx</code></dt>
+<dd>Other Treasury-related transfers that move cash back toward deposit users.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Federal Reserve income available for remittance.">F_PY</code></dt>
+<dd>Federal Reserve income available for remittance.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Maturity-related Treasury cash support that reaches Treasury from the Fed side.">M_MT</code></dt>
+<dd>Maturity-related Treasury cash support that reaches Treasury from the Fed side.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Federal Reserve operating expenses and other deductions from remittable income.">F_OE</code></dt>
+<dd>Federal Reserve operating expenses and other deductions from remittable income.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Change in the Treasury General Account balance.">ΔTGA</code></dt>
+<dd>Change in the Treasury General Account balance.</dd>
+</div>
+</dl>
+</article>
+<article class="equation-card">
+<div class="eyebrow">Theory identity 3</div>
+<h3>Money-balance decomposition</h3>
+<p>A rough decomposition view reads TDC as the part of money growth left after stripping out non-deposit money and non-Treasury balance-sheet channels.</p>
+<div class="math">\[\Delta D_{TDC} = (\Delta M - \Delta C - \Delta X) - (\Delta L_{B,DU} + \Delta S_{B,DU} - \Delta CB_B) - \Delta CB_{NB} - \Delta FI_{NonTS}\]</div>
+<dl class="equation-definitions">
+<div class="definition-row">
+<dt><code class="symbol-code" title="Broad money growth.">ΔM</code></dt>
+<dd>Broad money growth.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Currency growth outside deposits.">ΔC</code></dt>
+<dd>Currency growth outside deposits.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Other money-like components excluded from deposits.">ΔX</code></dt>
+<dd>Other money-like components excluded from deposits.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Bank lending to deposit users.">ΔL_B,DU</code></dt>
+<dd>Bank lending to deposit users.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Bank purchases of private securities from deposit users.">ΔS_B,DU</code></dt>
+<dd>Bank purchases of private securities from deposit users.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Central-bank liquidity support flowing through banks.">ΔCB_B</code></dt>
+<dd>Central-bank liquidity support flowing through banks.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Central-bank liquidity support flowing through nonbanks.">ΔCB_NB</code></dt>
+<dd>Central-bank liquidity support flowing through nonbanks.</dd>
+</div>
+<div class="definition-row">
+<dt><code class="symbol-code" title="Non-Treasury financial-asset channel that also moves deposits.">ΔFI_NonTS</code></dt>
+<dd>Non-Treasury financial-asset channel that also moves deposits.</dd>
+</div>
+</dl>
+</article>
+</div>
+<p>TDC means the Treasury-attributed component of deposits: the part of deposit change traced to Treasury cash operations, Treasury security transactions, and related official-balance-sheet channels.</p>
+</div>
+</details>
+</section>
+<section class="section container" id="headline-results">
+<div class="section-header reveal">
+<div><div class="eyebrow">Results</div><h2>Deposits come first.</h2></div>
+<p>This figure traces the main deposit response to the baseline TDC estimate using the selected public version of the quarterly model.</p>
+</div>
+<div id="headline-job-list" class="job-list"></div>
+</section>
+<section class="section container" id="deposit-accounting-section">
+<div class="section-header reveal">
+<div><div class="eyebrow">Deposit accounting</div><h2>The deposit result and the accounting reconstruction line up.</h2></div>
+<p>This section ties the main deposit result to the residual non-TDC deposit component and then rebuilds that residual with four accounting buckets.</p>
+</div>
+<div id="deposit-accounting" class="job-list"></div>
+</section>
+<section class="section container" id="additional-evidence">
+<div class="section-header reveal">
+<div><div class="eyebrow">Additional evidence</div><h2>Inflation, FX, private balance sheets, and low-reserve state dependence.</h2></div>
+<p>These branches extend the same baseline TDC estimate into prices, exchange rates, private non-Treasury balance sheets, and the one restored state-dependent branch that currently looks interpretable.</p>
+</div>
+<div id="additional-evidence-grid" class="insight-grid"></div>
+<div style="height:18px"></div>
+<div id="job-list-sidecar" class="job-list"></div>
+</section>
+<section class="section container" id="treatment-variants">
+<div class="section-header reveal">
+<div><div class="eyebrow">Treatment variants</div><h2>Does the result survive a broader deposit-holder definition?</h2></div>
+<p>This comparison asks whether the public deposit result looks similar when mutual funds and the broader depository perimeter are folded into the TDC construction.</p>
+</div>
+<div id="treatment-comparisons" class="job-list"></div>
+</section>
+<section class="section container" id="robustness">
+<div class="section-header reveal">
+<div><div class="eyebrow">Robustness</div><h2>Larger control sets and sensitivity checks.</h2></div>
+<p>This section summarizes how the quarterly results look under the larger control set, treatment variants, and other supporting checks.</p>
+</div>
+<div id="robustness-overview"></div>
+<div style="height:18px"></div>
+<div id="robustness-grid" class="robustness-grid"></div>
+</section>
+<section class="section container" id="release-package">
+<div class="section-header reveal">
+<div><div class="eyebrow">Figures and tables</div><h2>Interactive views and downloads.</h2></div>
+<p>The same results are available as figures, tables, and downloadable files.</p>
+</div>
+<div id="artifact-grid-main" class="artifact-grid"></div>
+<div style="height:18px"></div>
+<div id="artifact-grid-appendix" class="artifact-grid"></div>
+</section>
+<section class="section container" id="deferred-work">
+<div class="section-header reveal">
+<div><div class="eyebrow">Open questions</div><h2>Results that still need stronger identification.</h2></div>
+<p>These branches remain visible because the questions matter, but they are not used as headline claims while the weak-IV problem remains unresolved.</p>
+</div>
+<div id="deferred-grid" class="deferred-grid"></div>
+</section>
+<footer class="site-footer container">
+<div class="footer-grid reveal">
+<div><div class="eyebrow">About EA-TDC</div><h2>Treasury component of deposits: definitions, estimates, and evidence.</h2><p>Definitions, estimates, figures, and downloadable result files are collected here together.</p></div>
+<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="site_assets/reports/release_scorecard.json" download>Scorecard JSON</a><a class="link-chip" href="site_assets/reports/release_contract.json" download>Contract JSON</a><a class="link-chip" href="#robustness">Robustness</a></div><p class="footer-note">Generated 2026-04-14T11:17:32+00:00</p></div>
+</div>
+</footer>
+</main>
+</body>
+</html>

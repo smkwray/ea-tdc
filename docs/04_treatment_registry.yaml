@@ -1,0 +1,296 @@
+version: 0.1
+
+treatments:
+  - treatment_id: tdc_bank_only_qoq
+    family: primary_treatment
+    source_repo: tdcest
+    upstream_object: tdc_base_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Canonical reduced-form TDC flow used in the public quarterly work.
+
+  - treatment_id: tdc_bank_only_shock
+    family: primary_treatment
+    source_repo: derived_from_tdc_bank_only_qoq
+    upstream_object: tdc_bank_only_qoq
+    freq: quarterly
+    units: usd_flow_residual
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_unexpected_deposit_positive_tdc
+    shock_model: elastic_net_residual_on_pre_cutoff_information_set
+    cutoff_rule: quarter_start_default
+    instrument_ok: true
+    direct_effect_risk: medium
+    notes: Experimental residualized variant, not the default public quarterly treatment.
+
+  - treatment_id: tdc_ru_acquisition_component_qoq
+    family: component_treatment
+    source_repo: tdcest
+    upstream_object: ru_net_acquisition_marketable_treasuries
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_more_ru_absorption
+    shock_model: optional_residualized_variant
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Component decomposition lane.
+
+  - treatment_id: tdc_treasury_cash_drain_component_qoq
+    family: component_treatment
+    source_repo: tdcest
+    upstream_object: treasury_operating_cash_drain
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_more_cash_drain_from_banks
+    shock_model: optional_residualized_variant
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Include sign normalization if used directly in IRFs.
+
+  - treatment_id: tdc_positive_remit_component_qoq
+    family: component_treatment
+    source_repo: tdcest
+    upstream_object: clipped_positive_fed_remittances
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_more_positive_remittance_support
+    shock_model: optional_residualized_variant
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: low
+    notes: Likely small but important for decomposition.
+
+  - treatment_id: qra_maturity_tilt_level
+    family: debt_management_treatment
+    source_repo: qrawatch
+    upstream_object: maturity_tilt
+    freq: quarterly
+    units: share_or_index
+    scaling: none
+    sign_convention: positive_means_more_bill_heavy_financing
+    shock_model: none
+    cutoff_rule: quarter_end_or_release_aggregate
+    instrument_ok: false
+    direct_effect_risk: high
+    notes: State or level treatment, not the preferred IV.
+
+  - treatment_id: qra_maturity_tilt_flow
+    family: debt_management_treatment
+    source_repo: qrawatch
+    upstream_object: maturity_tilt_flow
+    freq: quarterly
+    units: signed_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_bill_heavier_than_baseline
+    shock_model: residualized_surprise_against_pre_cutoff_financing_information
+    cutoff_rule: quarter_start_default
+    instrument_ok: conditional
+    direct_effect_risk: high
+    notes: Main QRA treatment in quarterly jobs.
+
+  - treatment_id: qra_excess_bills_stock
+    family: debt_management_state
+    source_repo: qrawatch
+    upstream_object: excess_bills_stock
+    freq: quarterly
+    units: stock
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_larger_bill_overhang
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Slow-moving state variable.
+
+  - treatment_id: qra_public_duration_supply_q
+    family: debt_management_treatment
+    source_repo: qrawatch
+    upstream_object: public_duration_supply
+    freq: quarterly_aggregated_from_weekly
+    units: duration_supply
+    scaling: standardize_within_sample
+    sign_convention: positive_means_more_duration_for_private_sector
+    shock_model: optional_residualized_variant
+    cutoff_rule: quarter_start_default_or_weekly_event
+    instrument_ok: conditional
+    direct_effect_risk: high
+    notes: Best for pricing and fast market outcomes.
+
+  - treatment_id: qra_release_63bd
+    family: event_treatment
+    source_repo: qrawatch
+    upstream_object: unique_release_fixed_horizon_63bd_design
+    freq: irregular_event
+    units: release_surprise
+    scaling: standardize_within_sample
+    sign_convention: positive_means_bill_heavier_or_lower_duration_than_expected
+    shock_model: upstream_event_design
+    cutoff_rule: event_close_with_embargo
+    instrument_ok: conditional
+    direct_effect_risk: high
+    notes: Event-study anchor; not a universal quarterly IV.
+
+  - treatment_id: tsyparty_bank_absorption_share_l1
+    family: mechanism_state
+    source_repo: tsyparty
+    upstream_object: bank_absorption_share
+    freq: quarterly
+    units: share
+    scaling: none
+    sign_convention: positive_means_more_bank_absorption_capacity
+    shock_model: none
+    cutoff_rule: lagged_one_quarter
+    instrument_ok: n_a
+    direct_effect_risk: n_a
+    notes: Predetermined interaction state.
+
+  - treatment_id: tsyparty_row_absorption_share_l1
+    family: mechanism_state
+    source_repo: tsyparty
+    upstream_object: row_absorption_share
+    freq: quarterly
+    units: share
+    scaling: none
+    sign_convention: positive_means_more_row_absorption_capacity
+    shock_model: none
+    cutoff_rule: lagged_one_quarter
+    instrument_ok: n_a
+    direct_effect_risk: n_a
+    notes: Predetermined interaction state.
+
+  - treatment_id: tsyparty_ru_gap_l1
+    family: mechanism_state
+    source_repo: tsyparty
+    upstream_object: ru_absorption_gap
+    freq: quarterly
+    units: share_or_gap
+    scaling: standardize_within_sample
+    sign_convention: positive_means_ru_more_likely_to_absorb
+    shock_model: none
+    cutoff_rule: lagged_one_quarter
+    instrument_ok: n_a
+    direct_effect_risk: n_a
+    notes: Strong candidate for interaction-based IV.
+
+  - treatment_id: wam_gap_bank_vs_treasury_l1
+    family: mechanism_state
+    source_repo: wamest
+    upstream_object: bank_wam_minus_treasury_wam
+    freq: quarterly
+    units: maturity_gap
+    scaling: standardize_within_sample
+    sign_convention: positive_means_banks_already_longer_maturity
+    shock_model: none
+    cutoff_rule: lagged_one_quarter
+    instrument_ok: n_a
+    direct_effect_risk: n_a
+    notes: Conditions the maturity mechanism.
+
+  - treatment_id: slr_pressure_state_l1
+    family: mechanism_state
+    source_repo: slrwatch
+    upstream_object: aggregate_slr_pressure_or_headroom
+    freq: quarterly
+    units: index
+    scaling: standardize_within_sample
+    sign_convention: positive_means_tighter_slr_constraint
+    shock_model: none
+    cutoff_rule: lagged_one_quarter
+    instrument_ok: n_a
+    direct_effect_risk: n_a
+    notes: Use in interactions and heterogeneity.
+
+  - treatment_id: slr_exclusion_event
+    family: event_treatment
+    source_repo: slrwatch
+    upstream_object: 2020_slr_exclusion_event
+    freq: irregular_event
+    units: binary
+    scaling: none
+    sign_convention: one_means_exclusion_active
+    shock_model: none
+    cutoff_rule: event_specific
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Mechanism event, not the whole macro design.
+
+  - treatment_id: coord_low_reserve_state_l1
+    family: liquidity_state
+    source_repo: coordwatch
+    upstream_object: low_reserve_state
+    freq: quarterly
+    units: binary_or_index
+    scaling: none
+    sign_convention: positive_means_less_ample_reserves
+    shock_model: none
+    cutoff_rule: lagged_one_quarter
+    instrument_ok: n_a
+    direct_effect_risk: n_a
+    notes: State dependence for transmission.
+
+  - treatment_id: coord_on_rrp_drain_state_l1
+    family: liquidity_state
+    source_repo: coordwatch
+    upstream_object: on_rrp_drain_state
+    freq: quarterly
+    units: level_or_share
+    scaling: standardize_within_sample
+    sign_convention: positive_means_less_on_rrp_buffer
+    shock_model: none
+    cutoff_rule: lagged_one_quarter
+    instrument_ok: n_a
+    direct_effect_risk: n_a
+    notes: Important liquidity interaction.
+
+  - treatment_id: iv_qra_x_ru_gap
+    family: interaction_instrument
+    source_repo: derived
+    upstream_object: qra_maturity_tilt_flow * tsyparty_ru_gap_l1
+    freq: quarterly
+    units: interaction
+    scaling: standardize_within_sample
+    sign_convention: positive_means_bill-heavy_qra_in_a_high_ru_absorption_state
+    shock_model: derived_interaction
+    cutoff_rule: quarter_start_default_with_lagged_state
+    instrument_ok: true
+    direct_effect_risk: lower_than_raw_qra_but_not_zero
+    notes: Preferred IV candidate for TDC on deposit outcomes; control raw QRA and main state.
+
+  - treatment_id: iv_qra_x_bank_absorption
+    family: interaction_instrument
+    source_repo: derived
+    upstream_object: qra_maturity_tilt_flow * tsyparty_bank_absorption_share_l1
+    freq: quarterly
+    units: interaction
+    scaling: standardize_within_sample
+    sign_convention: positive_means_bill-heavy_qra_when_banks_are_more_likely_absorbers
+    shock_model: derived_interaction
+    cutoff_rule: quarter_start_default_with_lagged_state
+    instrument_ok: true
+    direct_effect_risk: lower_than_raw_qra_but_not_zero
+    notes: Strong candidate when deposit outcomes are central.
+
+  - treatment_id: iv_qra_x_slr_state
+    family: interaction_instrument
+    source_repo: derived
+    upstream_object: qra_maturity_tilt_flow * slr_pressure_state_l1
+    freq: quarterly
+    units: interaction
+    scaling: standardize_within_sample
+    sign_convention: positive_means_bill-heavy_qra_under_tighter_or_looser_bank_capacity_dep_on_sign_choice
+    shock_model: derived_interaction
+    cutoff_rule: quarter_start_default_with_lagged_state
+    instrument_ok: true
+    direct_effect_risk: lower_than_raw_qra_but_not_zero
+    notes: Use carefully; sign must be aligned to interpretation.
