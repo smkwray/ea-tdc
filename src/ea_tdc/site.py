@@ -4,6 +4,7 @@ import csv
 import html
 import json
 import shutil
+from urllib.parse import quote
 from dataclasses import dataclass
 from pathlib import Path
 from textwrap import dedent
@@ -402,42 +403,108 @@ DEPOSIT_ACCOUNTING_OUTCOME_KEYS = [
     "accounting_identity_gap_qoq",
 ]
 
+
+def _eq_term_html(
+    base: str,
+    *,
+    sup: str | None = None,
+    sub: str | None = None,
+    delta: bool = False,
+    hat: bool = False,
+) -> str:
+    base_html = f'<span class="eq-var">{html.escape(base)}</span>'
+    if hat:
+        base_html = f'<span class="eq-hat">{base_html}</span>'
+    delta_html = '<span class="eq-op">&Delta;</span>' if delta else ""
+    sup_html = f'<sup class="eq-sup">{html.escape(sup)}</sup>' if sup else ""
+    sub_html = f'<sub class="eq-sub">{html.escape(sub)}</sub>' if sub else ""
+    return f"{delta_html}{base_html}{sup_html}{sub_html}"
+
+
+def _eq_def(latex: str, meaning: str, symbol_html: str) -> tuple[str, str, str]:
+    return (latex, meaning, symbol_html)
+
+
+RESIDUAL_SYMBOL_HTML = _eq_term_html("D", sup="non-TDC", sub="t", delta=True)
+MATCHED_SYMBOL_HTML = _eq_term_html("D", sup="matched", sub="t", delta=True)
+TDC_SYMBOL_HTML = _eq_term_html("D", sup="TDC", sub="t", delta=True, hat=True)
+RECON_SYMBOL_HTML = _eq_term_html("D", sup="recon", sub="t", delta=True)
+GAP_SYMBOL_HTML = _eq_term_html("D", sup="gap", sub="t", delta=True)
+SUB_SYMBOL_HTML = _eq_term_html("D", sup="sub", sub="t", delta=True)
+BANK_SYMBOL_HTML = _eq_term_html("D", sup="bank", sub="t", delta=True)
+PUBLIC_SYMBOL_HTML = _eq_term_html("D", sup="public", sub="t", delta=True)
+EXT_SYMBOL_HTML = _eq_term_html("D", sup="ext", sub="t", delta=True)
+LTD_SYMBOL_HTML = _eq_term_html("LTD", sub="t", delta=True)
+RETAIL_MMF_SYMBOL_HTML = _eq_term_html("MMF", sup="retail", sub="t", delta=True)
+INST_MMF_SYMBOL_HTML = _eq_term_html("MMF", sup="inst", sub="t", delta=True)
+BANK_SECURITIES_SYMBOL_HTML = _eq_term_html("S", sup="bank, non-Tsy", sub="t", delta=True)
+BANK_LOANS_SYMBOL_HTML = _eq_term_html("L", sup="bank, short", sub="t", delta=True)
+TGA_SYMBOL_HTML = _eq_term_html("TGA", sub="t", delta=True)
+ON_RRP_SYMBOL_HTML = _eq_term_html("ONRRP", sub="t", delta=True)
+ROW_PRIVATE_SYMBOL_HTML = _eq_term_html("F", sup="ROW, private", sub="t", delta=True)
+NET_EXPORTS_SYMBOL_HTML = _eq_term_html("NX", sub="t", delta=True)
+
 DEPOSIT_ACCOUNTING_BUCKETS = [
     {
         "title": "Deposit substitution",
         "summary": "This bucket asks whether money moves between deposits and deposit-like instruments rather than disappearing outright.",
-        "equation": r"\Delta Deposits_{sub} = \Delta LTD - \Delta RetailMMF - \Delta InstitutionalMMF",
+        "equation": r"\Delta D^{\text{sub}}_t = \Delta LTD_t - \Delta MMF^{\text{retail}}_t - \Delta MMF^{\text{inst}}_t",
+        "equation_html": f"{SUB_SYMBOL_HTML} = {LTD_SYMBOL_HTML} - {RETAIL_MMF_SYMBOL_HTML} - {INST_MMF_SYMBOL_HTML}",
+        "definitions": [
+            _eq_def(r"\Delta D^{\text{sub}}_t", "Interpretive proxy bucket `deposit_substitution_block_qoq`, constructed as `large_time_deposits_qoq - retail_mmf_assets_qoq - institutional_mmf_assets_qoq`.", SUB_SYMBOL_HTML),
+            _eq_def(r"\Delta LTD_t", "Large time deposits: outcome `large_time_deposits_qoq`, FRED `LTDACBM027NBOG`, quarter-over-quarter change.", LTD_SYMBOL_HTML),
+            _eq_def(r"\Delta MMF^{\text{retail}}_t", "Retail money market fund assets: outcome `retail_mmf_assets_qoq`, FRED `RMFSL`, quarter-over-quarter change.", RETAIL_MMF_SYMBOL_HTML),
+            _eq_def(r"\Delta MMF^{\text{inst}}_t", "Institutional money market fund assets: outcome `institutional_mmf_assets_qoq`, FRED `WIMFSL` with Z.1 fallback `BOGZ1FL883034010Q`, quarter-over-quarter change.", INST_MMF_SYMBOL_HTML),
+        ],
         "series": [
-            "Large time deposits",
-            "Retail money market fund assets",
-            "Institutional money market fund assets",
+            "Large time deposits (`large_time_deposits_qoq`; FRED `LTDACBM027NBOG`)",
+            "Retail money market fund assets (`retail_mmf_assets_qoq`; FRED `RMFSL`)",
+            "Institutional money market fund assets (`institutional_mmf_assets_qoq`; FRED `WIMFSL`, fallback `BOGZ1FL883034010Q`)",
         ],
     },
     {
         "title": "Bank balance-sheet adjustment",
         "summary": "This bucket tracks the other bank asset moves that can create or absorb deposits outside the direct Treasury channel.",
-        "equation": r"\Delta Deposits_{bank} = \Delta BankNonTreasurySecurities + \Delta BankShortTermLoans",
+        "equation": r"\Delta D^{\text{bank}}_t = \Delta S^{\text{bank, non-Tsy}}_t + \Delta L^{\text{bank, short}}_t",
+        "equation_html": f"{BANK_SYMBOL_HTML} = {BANK_SECURITIES_SYMBOL_HTML} + {BANK_LOANS_SYMBOL_HTML}",
+        "definitions": [
+            _eq_def(r"\Delta D^{\text{bank}}_t", "Interpretive proxy bucket `bank_balance_sheet_proxy_block_qoq`, constructed as `bank_non_treasury_securities_qoq + bank_short_term_loans_z1_qoq`.", BANK_SYMBOL_HTML),
+            _eq_def(r"\Delta S^{\text{bank, non-Tsy}}_t", "Banks' non-Treasury securities: outcome `bank_non_treasury_securities_qoq`, FRED `OSEACBW027SBOG`, quarter-over-quarter change.", BANK_SECURITIES_SYMBOL_HTML),
+            _eq_def(r"\Delta L^{\text{bank, short}}_t", "Short-term bank loans: outcome `bank_short_term_loans_z1_qoq`, FRED `BOGZ1FL704041005Q`, quarter-over-quarter change.", BANK_LOANS_SYMBOL_HTML),
+        ],
         "series": [
-            "Bank non-Treasury securities",
-            "Short-term bank loans",
+            "Bank non-Treasury securities (`bank_non_treasury_securities_qoq`; FRED `OSEACBW027SBOG`)",
+            "Short-term bank loans (`bank_short_term_loans_z1_qoq`; FRED `BOGZ1FL704041005Q`)",
         ],
     },
     {
         "title": "Public-liquidity plumbing",
         "summary": "This bucket tracks public cash balances that pull money into or out of the private deposit base.",
-        "equation": r"\Delta Deposits_{public} = - \Delta TGA - \Delta ONRRP",
+        "equation": r"\Delta D^{\text{public}}_t = - \Delta TGA_t - \Delta ONRRP_t",
+        "equation_html": f"{PUBLIC_SYMBOL_HTML} = - {TGA_SYMBOL_HTML} - {ON_RRP_SYMBOL_HTML}",
+        "definitions": [
+            _eq_def(r"\Delta D^{\text{public}}_t", "Interpretive proxy bucket `public_liquidity_proxy_block_qoq`, constructed as `- tga_balance_qoq - on_rrp_balance_qoq`.", PUBLIC_SYMBOL_HTML),
+            _eq_def(r"\Delta TGA_t", "Treasury General Account balance: outcome `tga_balance_qoq`, FRED `WDTGAL`, quarter-over-quarter change.", TGA_SYMBOL_HTML),
+            _eq_def(r"\Delta ONRRP_t", "ON RRP balance: outcome `on_rrp_balance_qoq`, FRED `RRPONTSYD`, quarter-over-quarter change.", ON_RRP_SYMBOL_HTML),
+        ],
         "series": [
-            "Treasury General Account balance",
-            "ON RRP balance",
+            "Treasury General Account balance (`tga_balance_qoq`; FRED `WDTGAL`)",
+            "ON RRP balance (`on_rrp_balance_qoq`; FRED `RRPONTSYD`)",
         ],
     },
     {
         "title": "External flow",
         "summary": "This bucket tracks cross-border and external-balance channels that can add to or subtract from deposits.",
-        "equation": r"\Delta Deposits_{external} = \Delta ROWPrivateFlows + \Delta NetExports",
+        "equation": r"\Delta D^{\text{ext}}_t = \Delta F^{\text{ROW, private}}_t + \Delta NX_t",
+        "equation_html": f"{EXT_SYMBOL_HTML} = {ROW_PRIVATE_SYMBOL_HTML} + {NET_EXPORTS_SYMBOL_HTML}",
+        "definitions": [
+            _eq_def(r"\Delta D^{\text{ext}}_t", "Interpretive proxy bucket `external_flow_proxy_block_qoq`, constructed as `row_private_flow_block + net_exports_qoq`.", EXT_SYMBOL_HTML),
+            _eq_def(r"\Delta F^{\text{ROW, private}}_t", "Rest-of-world private-flow block: outcome `row_private_flow_block`, constructed as `row_corp_bonds_flow + row_corp_equities_flow + row_agency_flow + row_nonfin_business_loans_flow`.", ROW_PRIVATE_SYMBOL_HTML),
+            _eq_def(r"\Delta NX_t", "Net exports: outcome `net_exports_qoq`, constructed as `exports_qoq - imports_qoq`, using FRED `EXPGS` and `IMPGS`.", NET_EXPORTS_SYMBOL_HTML),
+        ],
         "series": [
-            "Rest-of-world private flow block",
-            "Net exports",
+            "ROW private-flow block (`row_private_flow_block` = `row_corp_bonds_flow + row_corp_equities_flow + row_agency_flow + row_nonfin_business_loans_flow`)",
+            "Net exports (`net_exports_qoq` = `exports_qoq - imports_qoq`; FRED `EXPGS` minus `IMPGS`)",
         ],
     },
 ]
@@ -835,11 +902,95 @@ CSS_TEXT = dedent(
       gap: 12px;
     }
 
-    .equation-card .math {
+    .equation-card .math,
+    .insight-card .math {
       padding: 14px;
       border-radius: 12px;
       background: rgba(127, 127, 127, 0.05);
       overflow-x: auto;
+    }
+
+    .equation-rendered {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 1.28rem;
+      line-height: 1.45;
+      white-space: nowrap;
+      color: var(--text-primary);
+    }
+
+    .equation-rendered .eq-var {
+      font-style: italic;
+    }
+
+    .equation-rendered .eq-op {
+      margin-right: 0.04em;
+    }
+
+    .equation-rendered .eq-hat {
+      position: relative;
+      display: inline-block;
+      padding-top: 0.16em;
+    }
+
+    .equation-rendered .eq-hat::before {
+      content: "";
+      position: absolute;
+      left: 0.08em;
+      right: 0.08em;
+      top: 0.02em;
+      border-top: 1.5px solid currentColor;
+      transform: skewX(-18deg);
+      transform-origin: center;
+    }
+
+    .equation-rendered .eq-sup,
+    .equation-rendered .eq-sub {
+      font-size: 0.7em;
+      font-style: normal;
+      letter-spacing: 0.01em;
+    }
+
+    .equation-symbol {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 1rem;
+      line-height: 1.2;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .equation-symbol .eq-var {
+      font-style: italic;
+    }
+
+    .equation-symbol .eq-op {
+      margin-right: 0.04em;
+    }
+
+    .equation-symbol .eq-hat {
+      position: relative;
+      display: inline-block;
+      padding-top: 0.16em;
+    }
+
+    .equation-symbol .eq-hat::before {
+      content: "";
+      position: absolute;
+      left: 0.08em;
+      right: 0.08em;
+      top: 0.02em;
+      border-top: 1.5px solid currentColor;
+      transform: skewX(-18deg);
+      transform-origin: center;
+    }
+
+    .equation-symbol .eq-sup,
+    .equation-symbol .eq-sub {
+      font-size: 0.72em;
+      font-style: normal;
+      letter-spacing: 0.01em;
     }
 
     .equation-definitions {
@@ -876,6 +1027,10 @@ CSS_TEXT = dedent(
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: break-word;
+    }
+
+    .math-inline {
+      white-space: nowrap;
     }
 
     .notation-grid {
@@ -1298,6 +1453,7 @@ JS_TEXT = dedent(
       var ROOT_PREFIX = '';
       var PAGE = 'home';
       var ARTIFACT_ID = '';
+      var SITE_VERSION = '';
       var SITE_DATA = null;
 
       function initPageConfig() {
@@ -1306,10 +1462,16 @@ JS_TEXT = dedent(
         ROOT_PREFIX = body.getAttribute('data-root-prefix') || '';
         PAGE = body.getAttribute('data-page') || 'home';
         ARTIFACT_ID = body.getAttribute('data-artifact-id') || '';
+        SITE_VERSION = body.getAttribute('data-site-version') || '';
       }
 
       function resolvePath(path) {
         return ROOT_PREFIX + path;
+      }
+
+      function versionedPath(path) {
+        if (!SITE_VERSION) return path;
+        return path + (path.indexOf('?') === -1 ? '?v=' : '&v=') + encodeURIComponent(SITE_VERSION);
       }
 
       function endsWith(text, suffix) {
@@ -1331,6 +1493,33 @@ JS_TEXT = dedent(
           .replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#39;');
+      }
+
+      function renderDefinitionList(definitions) {
+        if (!definitions || !definitions.length) return '';
+        var rows = [];
+        for (var i = 0; i < definitions.length; i++) {
+          var item = definitions[i] || [];
+          var symbolHtml = item.length > 2 ? String(item[2] || '') : '';
+          var symbolMarkup = symbolHtml
+            ? '<span class="equation-symbol">' + symbolHtml + '</span>'
+            : '<span class="math-inline">\\\\(' + escapeHtml(item[0] || '') + '\\\\)</span>';
+          rows.push(
+            '<div class="definition-row"><dt>' +
+            symbolMarkup +
+            '</dt><dd>' +
+            escapeHtml(item[1] || '') +
+            '</dd></div>'
+          );
+        }
+        return '<dl class="equation-definitions">' + rows.join('') + '</dl>';
+      }
+
+      function renderEquationMarkup(latex, htmlMarkup) {
+        if (htmlMarkup) {
+          return '<div class="math"><div class="equation-rendered">' + htmlMarkup + '</div></div>';
+        }
+        return '<div class="math">\\\\[' + escapeHtml(latex || '') + '\\\\]</div>';
       }
 
       function linkMarkup(link, className) {
@@ -1420,7 +1609,7 @@ JS_TEXT = dedent(
       }
 
       function loadSiteData(callback) {
-        requestJson(DATA_FILE, function (error, data) {
+        requestJson(versionedPath(DATA_FILE), function (error, data) {
           if (error) {
             callback(error);
             return;
@@ -1428,6 +1617,27 @@ JS_TEXT = dedent(
           SITE_DATA = data;
           callback(null, data);
         });
+      }
+
+      function typesetMath(targets) {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          return window.MathJax.typesetPromise(targets || []);
+        }
+        return Promise.resolve();
+      }
+
+      function scheduleTypeset(targets, attempt) {
+        var tries = attempt || 0;
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          typesetMath(targets);
+          return;
+        }
+        if (tries >= 40) {
+          return;
+        }
+        window.setTimeout(function () {
+          scheduleTypeset(targets, tries + 1);
+        }, 250);
       }
 
       function revealAll() {
@@ -1514,16 +1724,17 @@ JS_TEXT = dedent(
           html += '<details class="definition-shell" style="margin-top:18px;"><summary><div><div class="eyebrow">How the accounting works</div><h2>Residual, reconstruction, and gap.</h2></div><p>Show details</p></summary>';
           html += '<div class="definition-body">';
           html += '<p>The residual non-TDC deposit component is defined first. The accounting reconstruction then adds the four bucket totals and compares that sum with the residual.</p>';
+          html += '<p class="mini-note">Notation: \u0394 denotes a quarter-over-quarter change, and t indexes the quarter.</p>';
           html += '<div class="equation-grid">';
-          html += '<article class="equation-card"><div class="eyebrow">Residual</div><h3>Non-TDC deposit component</h3><div class="math">\\[' + escapeHtml(block.residual_equation) + '\\]</div></article>';
-          html += '<article class="equation-card"><div class="eyebrow">Accounting identity</div><h3>Four-bucket reconstruction</h3><div class="math">\\[' + escapeHtml(block.identity_equation) + '\\]</div></article>';
-          html += '<article class="equation-card"><div class="eyebrow">Closure check</div><h3>Remaining gap</h3><div class="math">\\[' + escapeHtml(block.gap_equation) + '\\]</div></article>';
+          html += '<article class="equation-card"><div class="eyebrow">Residual</div><h3>Non-TDC deposit component</h3>' + renderEquationMarkup(block.residual_equation, block.residual_equation_html) + renderDefinitionList(block.residual_definitions) + '</article>';
+          html += '<article class="equation-card"><div class="eyebrow">Accounting identity</div><h3>Four-bucket reconstruction</h3>' + renderEquationMarkup(block.identity_equation, block.identity_equation_html) + renderDefinitionList(block.identity_definitions) + '</article>';
+          html += '<article class="equation-card"><div class="eyebrow">Closure check</div><h3>Remaining gap</h3>' + renderEquationMarkup(block.gap_equation, block.gap_equation_html) + renderDefinitionList(block.gap_definitions) + '</article>';
           html += '</div>';
           html += '<p>' + escapeHtml(block.bucket_intro) + '</p>';
           html += '<div class="insight-grid">';
           for (var j = 0; j < block.buckets.length; j++) {
             var bucket = block.buckets[j];
-            html += '<article class="insight-card"><div class="slot-label">Bucket ' + escapeHtml(String(j + 1)) + '</div><h3>' + escapeHtml(bucket.title) + '</h3><p>' + escapeHtml(bucket.summary) + '</p><div class="math">\\[' + escapeHtml(bucket.equation) + '\\]</div><p class="mini-note">Series used: ' + escapeHtml((bucket.series || []).join('; ')) + '.</p></article>';
+            html += '<article class="insight-card"><div class="slot-label">Bucket ' + escapeHtml(String(j + 1)) + '</div><h3>' + escapeHtml(bucket.title) + '</h3><p>' + escapeHtml(bucket.summary) + '</p>' + renderEquationMarkup(bucket.equation, bucket.equation_html) + renderDefinitionList(bucket.definitions) + '<p class="mini-note">Series used: ' + escapeHtml((bucket.series || []).join('; ')) + '.</p></article>';
           }
           html += '</div>';
           html += '</div></details>';
@@ -2012,9 +2223,7 @@ JS_TEXT = dedent(
       function afterRender() {
         revealAll();
         renderAllCharts();
-        if (window.MathJax && window.MathJax.typesetPromise) {
-          window.MathJax.typesetPromise();
-        }
+        scheduleTypeset();
       }
 
       document.addEventListener('DOMContentLoaded', function () {
@@ -2033,6 +2242,12 @@ JS_TEXT = dedent(
         });
         window.addEventListener('resize', function () { renderAllCharts(); });
         window.addEventListener('ea-tdc-themechange', function () { renderAllCharts(); });
+        document.addEventListener('toggle', function (event) {
+          var target = event.target;
+          if (target && target.tagName === 'DETAILS' && target.open) {
+            scheduleTypeset([target]);
+          }
+        });
       });
     })();
     """
@@ -2484,9 +2699,29 @@ def _deposit_accounting_payload(paths: ProjectPaths) -> dict[str, Any] | None:
             "The accounting reconstruction checks whether that second piece can be rebuilt from deposit substitution, bank balance-sheet adjustment, public-liquidity plumbing, and external flows."
         ),
         "impact_summary": impact_summary,
-        "residual_equation": r"OtherDepositComponent_t = MatchedTotalDeposits_t - TDC_t",
-        "identity_equation": r"AccountingTotal_t = DepositSubstitution_t + BankBalanceSheet_t + PublicLiquidity_t + ExternalFlow_t",
-        "gap_equation": r"AccountingGap_t = OtherDepositComponent_t - AccountingTotal_t",
+        "residual_equation": r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t = \Delta D^{\mathrm{matched}}_t - \widehat{\Delta D}^{\mathrm{TDC}}_t",
+        "residual_equation_html": f"{RESIDUAL_SYMBOL_HTML} = {MATCHED_SYMBOL_HTML} - {TDC_SYMBOL_HTML}",
+        "residual_definitions": [
+            _eq_def(r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t", "Residual outcome `other_component_qoq`, constructed in the quarterly design as `matched_total_deposits - tdc_bank_only_qoq`.", RESIDUAL_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\mathrm{matched}}_t", "Observed matched deposits outcome `matched_total_deposits`, quarter-over-quarter change in FRED `BOGZ1FL764100005Q`.", MATCHED_SYMBOL_HTML),
+            _eq_def(r"\widehat{\Delta D}^{\mathrm{TDC}}_t", "Baseline TDC treatment `tdc_bank_only_qoq`, mapped from the treatment source `tdc_base_bank_only_ru_flow` in the `tdcest` bundle.", TDC_SYMBOL_HTML),
+        ],
+        "identity_equation": r"\Delta D^{\mathrm{recon}}_t = \Delta D^{\mathrm{sub}}_t + \Delta D^{\mathrm{bank}}_t + \Delta D^{\mathrm{public}}_t + \Delta D^{\mathrm{ext}}_t",
+        "identity_equation_html": f"{RECON_SYMBOL_HTML} = {SUB_SYMBOL_HTML} + {BANK_SYMBOL_HTML} + {PUBLIC_SYMBOL_HTML} + {EXT_SYMBOL_HTML}",
+        "identity_definitions": [
+            _eq_def(r"\Delta D^{\mathrm{recon}}_t", "Reconstruction outcome `accounting_identity_total_qoq`, defined as `accounting_deposit_substitution_qoq + accounting_bank_balance_sheet_qoq + accounting_public_liquidity_qoq + accounting_external_flow_qoq`.", RECON_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\mathrm{sub}}_t", "Deposit-substitution accounting channel `accounting_deposit_substitution_qoq`; the bucket card below shows the proxy construction `deposit_substitution_block_qoq`.", SUB_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\mathrm{bank}}_t", "Bank balance-sheet accounting channel `accounting_bank_balance_sheet_qoq`; the bucket card below shows the proxy construction `bank_balance_sheet_proxy_block_qoq`.", BANK_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\mathrm{public}}_t", "Public-liquidity accounting channel `accounting_public_liquidity_qoq`; the bucket card below shows the proxy construction `public_liquidity_proxy_block_qoq`.", PUBLIC_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\mathrm{ext}}_t", "External-flow accounting channel `accounting_external_flow_qoq`; the bucket card below shows the proxy construction `external_flow_proxy_block_qoq`.", EXT_SYMBOL_HTML),
+        ],
+        "gap_equation": r"\Delta D^{\mathrm{gap}}_t = \Delta D^{\mathrm{non\mbox{-}TDC}}_t - \Delta D^{\mathrm{recon}}_t",
+        "gap_equation_html": f"{GAP_SYMBOL_HTML} = {RESIDUAL_SYMBOL_HTML} - {RECON_SYMBOL_HTML}",
+        "gap_definitions": [
+            _eq_def(r"\Delta D^{\mathrm{gap}}_t", "Closure-gap outcome `accounting_identity_gap_qoq`, constructed as `other_component_qoq - accounting_identity_total_qoq`.", GAP_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t", "Residual component `other_component_qoq`.", RESIDUAL_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\mathrm{recon}}_t", "Four-bucket reconstruction `accounting_identity_total_qoq`.", RECON_SYMBOL_HTML),
+        ],
         "bucket_intro": "The accounting reconstruction groups the non-TDC deposit component into four buckets.",
         "outcomes": outcomes,
         "buckets": DEPOSIT_ACCOUNTING_BUCKETS,
@@ -2886,7 +3121,9 @@ def _site_data_payload(
     }
 
 
-def _head(relative_assets: str, title: str, include_math: bool = False) -> str:
+def _head(relative_assets: str, title: str, include_math: bool = False, asset_version: str = "") -> str:
+    asset_version = quote(asset_version, safe="")
+    asset_suffix = f"?v={asset_version}" if asset_version else ""
     math_script = '<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>' if include_math else ""
     return "\n".join(
         [
@@ -2900,11 +3137,11 @@ def _head(relative_assets: str, title: str, include_math: bool = False) -> str:
             '<link rel="preconnect" href="https://fonts.googleapis.com">',
             '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
             '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">',
-            f'<script src="{html.escape(relative_assets)}js/theme.js"></script>',
-            f'<link rel="stylesheet" href="{html.escape(relative_assets)}css/style.css">',
+            f'<script src="{html.escape(relative_assets)}js/theme.js{asset_suffix}"></script>',
+            f'<link rel="stylesheet" href="{html.escape(relative_assets)}css/style.css{asset_suffix}">',
             '<script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>',
             math_script,
-            f'<script defer src="{html.escape(relative_assets)}js/main.js"></script>',
+            f'<script defer src="{html.escape(relative_assets)}js/main.js{asset_suffix}"></script>',
             "</head>",
         ]
     )
@@ -3037,8 +3274,8 @@ def _home_html(generated_at: str) -> str:
         [
             "<!DOCTYPE html>",
             '<html lang="en" data-theme="light">',
-            _head("assets/", "EA-TDC", include_math=True),
-            '<body data-page="home" data-root-prefix="">',
+            _head("assets/", "EA-TDC", include_math=True, asset_version=generated_at),
+            f'<body data-page="home" data-root-prefix="" data-site-version="{html.escape(generated_at)}">',
             _nav("home"),
             '<main class="page">',
             '<section class="hero container">',
@@ -3137,8 +3374,8 @@ def _sidecar_html(generated_at: str) -> str:
         [
             "<!DOCTYPE html>",
             '<html lang="en" data-theme="light">',
-            _head("../assets/", "EA-TDC Additional Evidence"),
-            '<body data-page="sidecar" data-root-prefix="../">',
+            _head("../assets/", "EA-TDC Additional Evidence", asset_version=generated_at),
+            f'<body data-page="sidecar" data-root-prefix="../" data-site-version="{html.escape(generated_at)}">',
             _nav("sidecar"),
             '<main class="page">',
             '<section class="hero container">',
@@ -3171,8 +3408,8 @@ def _artifact_gallery_html(generated_at: str) -> str:
         [
             "<!DOCTYPE html>",
             '<html lang="en" data-theme="light">',
-            _head("../assets/", "EA-TDC Artifact Pages"),
-            '<body data-page="gallery" data-root-prefix="../">',
+            _head("../assets/", "EA-TDC Artifact Pages", asset_version=generated_at),
+            f'<body data-page="gallery" data-root-prefix="../" data-site-version="{html.escape(generated_at)}">',
             _nav("gallery"),
             '<main class="page">',
             '<section class="hero container" id="top">',
@@ -3206,8 +3443,8 @@ def _artifact_page_html(artifact: dict[str, Any], generated_at: str) -> str:
         [
             "<!DOCTYPE html>",
             '<html lang="en" data-theme="light">',
-            _head("../../assets/", f'EA-TDC • {artifact["slot_label"]}'),
-            f'<body data-page="artifact" data-artifact-id="{html.escape(artifact["artifact_id"])}" data-root-prefix="../../">',
+            _head("../../assets/", f'EA-TDC • {artifact["slot_label"]}', asset_version=generated_at),
+            f'<body data-page="artifact" data-artifact-id="{html.escape(artifact["artifact_id"])}" data-root-prefix="../../" data-site-version="{html.escape(generated_at)}">',
             _nav("artifact"),
             '<main class="page">',
             '<section class="hero container">',

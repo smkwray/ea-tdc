@@ -5,6 +5,7 @@
   var ROOT_PREFIX = '';
   var PAGE = 'home';
   var ARTIFACT_ID = '';
+  var SITE_VERSION = '';
   var SITE_DATA = null;
 
   function initPageConfig() {
@@ -13,10 +14,16 @@
     ROOT_PREFIX = body.getAttribute('data-root-prefix') || '';
     PAGE = body.getAttribute('data-page') || 'home';
     ARTIFACT_ID = body.getAttribute('data-artifact-id') || '';
+    SITE_VERSION = body.getAttribute('data-site-version') || '';
   }
 
   function resolvePath(path) {
     return ROOT_PREFIX + path;
+  }
+
+  function versionedPath(path) {
+    if (!SITE_VERSION) return path;
+    return path + (path.indexOf('?') === -1 ? '?v=' : '&v=') + encodeURIComponent(SITE_VERSION);
   }
 
   function endsWith(text, suffix) {
@@ -38,6 +45,33 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function renderDefinitionList(definitions) {
+    if (!definitions || !definitions.length) return '';
+    var rows = [];
+    for (var i = 0; i < definitions.length; i++) {
+      var item = definitions[i] || [];
+      var symbolHtml = item.length > 2 ? String(item[2] || '') : '';
+      var symbolMarkup = symbolHtml
+        ? '<span class="equation-symbol">' + symbolHtml + '</span>'
+        : '<span class="math-inline">\\(' + escapeHtml(item[0] || '') + '\\)</span>';
+      rows.push(
+        '<div class="definition-row"><dt>' +
+        symbolMarkup +
+        '</dt><dd>' +
+        escapeHtml(item[1] || '') +
+        '</dd></div>'
+      );
+    }
+    return '<dl class="equation-definitions">' + rows.join('') + '</dl>';
+  }
+
+  function renderEquationMarkup(latex, htmlMarkup) {
+    if (htmlMarkup) {
+      return '<div class="math"><div class="equation-rendered">' + htmlMarkup + '</div></div>';
+    }
+    return '<div class="math">\\[' + escapeHtml(latex || '') + '\\]</div>';
   }
 
   function linkMarkup(link, className) {
@@ -127,7 +161,7 @@
   }
 
   function loadSiteData(callback) {
-    requestJson(DATA_FILE, function (error, data) {
+    requestJson(versionedPath(DATA_FILE), function (error, data) {
       if (error) {
         callback(error);
         return;
@@ -135,6 +169,27 @@
       SITE_DATA = data;
       callback(null, data);
     });
+  }
+
+  function typesetMath(targets) {
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      return window.MathJax.typesetPromise(targets || []);
+    }
+    return Promise.resolve();
+  }
+
+  function scheduleTypeset(targets, attempt) {
+    var tries = attempt || 0;
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      typesetMath(targets);
+      return;
+    }
+    if (tries >= 40) {
+      return;
+    }
+    window.setTimeout(function () {
+      scheduleTypeset(targets, tries + 1);
+    }, 250);
   }
 
   function revealAll() {
@@ -221,16 +276,17 @@
       html += '<details class="definition-shell" style="margin-top:18px;"><summary><div><div class="eyebrow">How the accounting works</div><h2>Residual, reconstruction, and gap.</h2></div><p>Show details</p></summary>';
       html += '<div class="definition-body">';
       html += '<p>The residual non-TDC deposit component is defined first. The accounting reconstruction then adds the four bucket totals and compares that sum with the residual.</p>';
+      html += '<p class="mini-note">Notation: Δ denotes a quarter-over-quarter change, and t indexes the quarter.</p>';
       html += '<div class="equation-grid">';
-      html += '<article class="equation-card"><div class="eyebrow">Residual</div><h3>Non-TDC deposit component</h3><div class="math">\[' + escapeHtml(block.residual_equation) + '\]</div></article>';
-      html += '<article class="equation-card"><div class="eyebrow">Accounting identity</div><h3>Four-bucket reconstruction</h3><div class="math">\[' + escapeHtml(block.identity_equation) + '\]</div></article>';
-      html += '<article class="equation-card"><div class="eyebrow">Closure check</div><h3>Remaining gap</h3><div class="math">\[' + escapeHtml(block.gap_equation) + '\]</div></article>';
+      html += '<article class="equation-card"><div class="eyebrow">Residual</div><h3>Non-TDC deposit component</h3>' + renderEquationMarkup(block.residual_equation, block.residual_equation_html) + renderDefinitionList(block.residual_definitions) + '</article>';
+      html += '<article class="equation-card"><div class="eyebrow">Accounting identity</div><h3>Four-bucket reconstruction</h3>' + renderEquationMarkup(block.identity_equation, block.identity_equation_html) + renderDefinitionList(block.identity_definitions) + '</article>';
+      html += '<article class="equation-card"><div class="eyebrow">Closure check</div><h3>Remaining gap</h3>' + renderEquationMarkup(block.gap_equation, block.gap_equation_html) + renderDefinitionList(block.gap_definitions) + '</article>';
       html += '</div>';
       html += '<p>' + escapeHtml(block.bucket_intro) + '</p>';
       html += '<div class="insight-grid">';
       for (var j = 0; j < block.buckets.length; j++) {
         var bucket = block.buckets[j];
-        html += '<article class="insight-card"><div class="slot-label">Bucket ' + escapeHtml(String(j + 1)) + '</div><h3>' + escapeHtml(bucket.title) + '</h3><p>' + escapeHtml(bucket.summary) + '</p><div class="math">\[' + escapeHtml(bucket.equation) + '\]</div><p class="mini-note">Series used: ' + escapeHtml((bucket.series || []).join('; ')) + '.</p></article>';
+        html += '<article class="insight-card"><div class="slot-label">Bucket ' + escapeHtml(String(j + 1)) + '</div><h3>' + escapeHtml(bucket.title) + '</h3><p>' + escapeHtml(bucket.summary) + '</p>' + renderEquationMarkup(bucket.equation, bucket.equation_html) + renderDefinitionList(bucket.definitions) + '<p class="mini-note">Series used: ' + escapeHtml((bucket.series || []).join('; ')) + '.</p></article>';
       }
       html += '</div>';
       html += '</div></details>';
@@ -719,9 +775,7 @@
   function afterRender() {
     revealAll();
     renderAllCharts();
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise();
-    }
+    scheduleTypeset();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -740,5 +794,11 @@
     });
     window.addEventListener('resize', function () { renderAllCharts(); });
     window.addEventListener('ea-tdc-themechange', function () { renderAllCharts(); });
+    document.addEventListener('toggle', function (event) {
+      var target = event.target;
+      if (target && target.tagName === 'DETAILS' && target.open) {
+        scheduleTypeset([target]);
+      }
+    });
   });
 })();

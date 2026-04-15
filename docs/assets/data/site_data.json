@@ -963,7 +963,7 @@
       "title": "TDC LP-IV Deposits QRA Ru Gap"
     }
   ],
-  "generated_at": "2026-04-14T11:17:32+00:00",
+  "generated_at": "2026-04-15T17:45:08+00:00",
   "home": {
     "appendix_artifacts": [
       {
@@ -1280,45 +1280,168 @@
       "bucket_intro": "The accounting reconstruction groups the non-TDC deposit component into four buckets.",
       "buckets": [
         {
-          "equation": "\\Delta Deposits_{sub} = \\Delta LTD - \\Delta RetailMMF - \\Delta InstitutionalMMF",
+          "definitions": [
+            [
+              "\\Delta D^{\\text{sub}}_t",
+              "Interpretive proxy bucket `deposit_substitution_block_qoq`, constructed as `large_time_deposits_qoq - retail_mmf_assets_qoq - institutional_mmf_assets_qoq`.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta LTD_t",
+              "Large time deposits: outcome `large_time_deposits_qoq`, FRED `LTDACBM027NBOG`, quarter-over-quarter change.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">LTD</span><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta MMF^{\\text{retail}}_t",
+              "Retail money market fund assets: outcome `retail_mmf_assets_qoq`, FRED `RMFSL`, quarter-over-quarter change.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">retail</sup><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta MMF^{\\text{inst}}_t",
+              "Institutional money market fund assets: outcome `institutional_mmf_assets_qoq`, FRED `WIMFSL` with Z.1 fallback `BOGZ1FL883034010Q`, quarter-over-quarter change.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">inst</sup><sub class=\"eq-sub\">t</sub>"
+            ]
+          ],
+          "equation": "\\Delta D^{\\text{sub}}_t = \\Delta LTD_t - \\Delta MMF^{\\text{retail}}_t - \\Delta MMF^{\\text{inst}}_t",
+          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">LTD</span><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">retail</sup><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">inst</sup><sub class=\"eq-sub\">t</sub>",
           "series": [
-            "Large time deposits",
-            "Retail money market fund assets",
-            "Institutional money market fund assets"
+            "Large time deposits (`large_time_deposits_qoq`; FRED `LTDACBM027NBOG`)",
+            "Retail money market fund assets (`retail_mmf_assets_qoq`; FRED `RMFSL`)",
+            "Institutional money market fund assets (`institutional_mmf_assets_qoq`; FRED `WIMFSL`, fallback `BOGZ1FL883034010Q`)"
           ],
           "summary": "This bucket asks whether money moves between deposits and deposit-like instruments rather than disappearing outright.",
           "title": "Deposit substitution"
         },
         {
-          "equation": "\\Delta Deposits_{bank} = \\Delta BankNonTreasurySecurities + \\Delta BankShortTermLoans",
+          "definitions": [
+            [
+              "\\Delta D^{\\text{bank}}_t",
+              "Interpretive proxy bucket `bank_balance_sheet_proxy_block_qoq`, constructed as `bank_non_treasury_securities_qoq + bank_short_term_loans_z1_qoq`.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta S^{\\text{bank, non-Tsy}}_t",
+              "Banks' non-Treasury securities: outcome `bank_non_treasury_securities_qoq`, FRED `OSEACBW027SBOG`, quarter-over-quarter change.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">S</span><sup class=\"eq-sup\">bank, non-Tsy</sup><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta L^{\\text{bank, short}}_t",
+              "Short-term bank loans: outcome `bank_short_term_loans_z1_qoq`, FRED `BOGZ1FL704041005Q`, quarter-over-quarter change.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">L</span><sup class=\"eq-sup\">bank, short</sup><sub class=\"eq-sub\">t</sub>"
+            ]
+          ],
+          "equation": "\\Delta D^{\\text{bank}}_t = \\Delta S^{\\text{bank, non-Tsy}}_t + \\Delta L^{\\text{bank, short}}_t",
+          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">S</span><sup class=\"eq-sup\">bank, non-Tsy</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">L</span><sup class=\"eq-sup\">bank, short</sup><sub class=\"eq-sub\">t</sub>",
           "series": [
-            "Bank non-Treasury securities",
-            "Short-term bank loans"
+            "Bank non-Treasury securities (`bank_non_treasury_securities_qoq`; FRED `OSEACBW027SBOG`)",
+            "Short-term bank loans (`bank_short_term_loans_z1_qoq`; FRED `BOGZ1FL704041005Q`)"
           ],
           "summary": "This bucket tracks the other bank asset moves that can create or absorb deposits outside the direct Treasury channel.",
           "title": "Bank balance-sheet adjustment"
         },
         {
-          "equation": "\\Delta Deposits_{public} = - \\Delta TGA - \\Delta ONRRP",
+          "definitions": [
+            [
+              "\\Delta D^{\\text{public}}_t",
+              "Interpretive proxy bucket `public_liquidity_proxy_block_qoq`, constructed as `- tga_balance_qoq - on_rrp_balance_qoq`.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta TGA_t",
+              "Treasury General Account balance: outcome `tga_balance_qoq`, FRED `WDTGAL`, quarter-over-quarter change.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">TGA</span><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta ONRRP_t",
+              "ON RRP balance: outcome `on_rrp_balance_qoq`, FRED `RRPONTSYD`, quarter-over-quarter change.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">ONRRP</span><sub class=\"eq-sub\">t</sub>"
+            ]
+          ],
+          "equation": "\\Delta D^{\\text{public}}_t = - \\Delta TGA_t - \\Delta ONRRP_t",
+          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub> = - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">TGA</span><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">ONRRP</span><sub class=\"eq-sub\">t</sub>",
           "series": [
-            "Treasury General Account balance",
-            "ON RRP balance"
+            "Treasury General Account balance (`tga_balance_qoq`; FRED `WDTGAL`)",
+            "ON RRP balance (`on_rrp_balance_qoq`; FRED `RRPONTSYD`)"
           ],
           "summary": "This bucket tracks public cash balances that pull money into or out of the private deposit base.",
           "title": "Public-liquidity plumbing"
         },
         {
-          "equation": "\\Delta Deposits_{external} = \\Delta ROWPrivateFlows + \\Delta NetExports",
+          "definitions": [
+            [
+              "\\Delta D^{\\text{ext}}_t",
+              "Interpretive proxy bucket `external_flow_proxy_block_qoq`, constructed as `row_private_flow_block + net_exports_qoq`.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta F^{\\text{ROW, private}}_t",
+              "Rest-of-world private-flow block: outcome `row_private_flow_block`, constructed as `row_corp_bonds_flow + row_corp_equities_flow + row_agency_flow + row_nonfin_business_loans_flow`.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">F</span><sup class=\"eq-sup\">ROW, private</sup><sub class=\"eq-sub\">t</sub>"
+            ],
+            [
+              "\\Delta NX_t",
+              "Net exports: outcome `net_exports_qoq`, constructed as `exports_qoq - imports_qoq`, using FRED `EXPGS` and `IMPGS`.",
+              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">NX</span><sub class=\"eq-sub\">t</sub>"
+            ]
+          ],
+          "equation": "\\Delta D^{\\text{ext}}_t = \\Delta F^{\\text{ROW, private}}_t + \\Delta NX_t",
+          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">F</span><sup class=\"eq-sup\">ROW, private</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">NX</span><sub class=\"eq-sub\">t</sub>",
           "series": [
-            "Rest-of-world private flow block",
-            "Net exports"
+            "ROW private-flow block (`row_private_flow_block` = `row_corp_bonds_flow + row_corp_equities_flow + row_agency_flow + row_nonfin_business_loans_flow`)",
+            "Net exports (`net_exports_qoq` = `exports_qoq - imports_qoq`; FRED `EXPGS` minus `IMPGS`)"
           ],
           "summary": "This bucket tracks cross-border and external-balance channels that can add to or subtract from deposits.",
           "title": "External flow"
         }
       ],
-      "gap_equation": "AccountingGap_t = OtherDepositComponent_t - AccountingTotal_t",
-      "identity_equation": "AccountingTotal_t = DepositSubstitution_t + BankBalanceSheet_t + PublicLiquidity_t + ExternalFlow_t",
+      "gap_definitions": [
+        [
+          "\\Delta D^{\\mathrm{gap}}_t",
+          "Closure-gap outcome `accounting_identity_gap_qoq`, constructed as `other_component_qoq - accounting_identity_total_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">gap</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t",
+          "Residual component `other_component_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\Delta D^{\\mathrm{recon}}_t",
+          "Four-bucket reconstruction `accounting_identity_total_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub>"
+        ]
+      ],
+      "gap_equation": "\\Delta D^{\\mathrm{gap}}_t = \\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t - \\Delta D^{\\mathrm{recon}}_t",
+      "gap_equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">gap</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub>",
+      "identity_definitions": [
+        [
+          "\\Delta D^{\\mathrm{recon}}_t",
+          "Reconstruction outcome `accounting_identity_total_qoq`, defined as `accounting_deposit_substitution_qoq + accounting_bank_balance_sheet_qoq + accounting_public_liquidity_qoq + accounting_external_flow_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\Delta D^{\\mathrm{sub}}_t",
+          "Deposit-substitution accounting channel `accounting_deposit_substitution_qoq`; the bucket card below shows the proxy construction `deposit_substitution_block_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\Delta D^{\\mathrm{bank}}_t",
+          "Bank balance-sheet accounting channel `accounting_bank_balance_sheet_qoq`; the bucket card below shows the proxy construction `bank_balance_sheet_proxy_block_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\Delta D^{\\mathrm{public}}_t",
+          "Public-liquidity accounting channel `accounting_public_liquidity_qoq`; the bucket card below shows the proxy construction `public_liquidity_proxy_block_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\Delta D^{\\mathrm{ext}}_t",
+          "External-flow accounting channel `accounting_external_flow_qoq`; the bucket card below shows the proxy construction `external_flow_proxy_block_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub>"
+        ]
+      ],
+      "identity_equation": "\\Delta D^{\\mathrm{recon}}_t = \\Delta D^{\\mathrm{sub}}_t + \\Delta D^{\\mathrm{bank}}_t + \\Delta D^{\\mathrm{public}}_t + \\Delta D^{\\mathrm{ext}}_t",
+      "identity_equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub>",
       "impact_summary": "On impact, the non-TDC deposit component falls by -0.61, the accounting reconstruction moves by -0.59, the remaining gap is -0.02.",
       "links": [
         {
@@ -1458,7 +1581,25 @@
           ]
         }
       ],
-      "residual_equation": "OtherDepositComponent_t = MatchedTotalDeposits_t - TDC_t",
+      "residual_definitions": [
+        [
+          "\\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t",
+          "Residual outcome `other_component_qoq`, constructed in the quarterly design as `matched_total_deposits - tdc_bank_only_qoq`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\Delta D^{\\mathrm{matched}}_t",
+          "Observed matched deposits outcome `matched_total_deposits`, quarter-over-quarter change in FRED `BOGZ1FL764100005Q`.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">matched</sup><sub class=\"eq-sub\">t</sub>"
+        ],
+        [
+          "\\widehat{\\Delta D}^{\\mathrm{TDC}}_t",
+          "Baseline TDC treatment `tdc_bank_only_qoq`, mapped from the treatment source `tdc_base_bank_only_ru_flow` in the `tdcest` bundle.",
+          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-hat\"><span class=\"eq-var\">D</span></span><sup class=\"eq-sup\">TDC</sup><sub class=\"eq-sub\">t</sub>"
+        ]
+      ],
+      "residual_equation": "\\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t = \\Delta D^{\\mathrm{matched}}_t - \\widehat{\\Delta D}^{\\mathrm{TDC}}_t",
+      "residual_equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">matched</sup><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-hat\"><span class=\"eq-var\">D</span></span><sup class=\"eq-sup\">TDC</sup><sub class=\"eq-sub\">t</sub>",
       "subtitle": "The residual deposit component and the accounting reconstruction move together rather than in opposite directions.",
       "summary": "The quarterly deposit result has two parts. Matched deposits rise with TDC, while the non-TDC deposit component moves the other way. The accounting reconstruction checks whether that second piece can be rebuilt from deposit substitution, bank balance-sheet adjustment, public-liquidity plumbing, and external flows.",
       "title": "Deposits and the accounting reconstruction tell the same story"
