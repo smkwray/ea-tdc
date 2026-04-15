@@ -381,11 +381,95 @@ code {
   gap: 12px;
 }
 
-.equation-card .math {
+.equation-card .math,
+.insight-card .math {
   padding: 14px;
   border-radius: 12px;
   background: rgba(127, 127, 127, 0.05);
   overflow-x: auto;
+}
+
+.equation-rendered {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.28rem;
+  line-height: 1.45;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.equation-rendered .eq-var {
+  font-style: italic;
+}
+
+.equation-rendered .eq-op {
+  margin-right: 0.04em;
+}
+
+.equation-rendered .eq-hat {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.16em;
+}
+
+.equation-rendered .eq-hat::before {
+  content: "";
+  position: absolute;
+  left: 0.08em;
+  right: 0.08em;
+  top: 0.02em;
+  border-top: 1.5px solid currentColor;
+  transform: skewX(-18deg);
+  transform-origin: center;
+}
+
+.equation-rendered .eq-sup,
+.equation-rendered .eq-sub {
+  font-size: 0.7em;
+  font-style: normal;
+  letter-spacing: 0.01em;
+}
+
+.equation-symbol {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.2;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.equation-symbol .eq-var {
+  font-style: italic;
+}
+
+.equation-symbol .eq-op {
+  margin-right: 0.04em;
+}
+
+.equation-symbol .eq-hat {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.16em;
+}
+
+.equation-symbol .eq-hat::before {
+  content: "";
+  position: absolute;
+  left: 0.08em;
+  right: 0.08em;
+  top: 0.02em;
+  border-top: 1.5px solid currentColor;
+  transform: skewX(-18deg);
+  transform-origin: center;
+}
+
+.equation-symbol .eq-sup,
+.equation-symbol .eq-sub {
+  font-size: 0.72em;
+  font-style: normal;
+  letter-spacing: 0.01em;
 }
 
 .equation-definitions {
@@ -422,6 +506,10 @@ code {
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.math-inline {
+  white-space: nowrap;
 }
 
 .notation-grid {

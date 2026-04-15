@@ -74,9 +74,9 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     index_text = result.index_path.read_text(encoding="utf-8")
     assert 'data-theme="light"' in index_text
     assert 'id="theme-toggle"' in index_text
-    assert 'href="assets/css/style.css"' in index_text
-    assert 'src="assets/js/theme.js"' in index_text
-    assert 'src="assets/js/main.js"' in index_text
+    assert 'href="assets/css/style.css?v=' in index_text
+    assert 'src="assets/js/theme.js?v=' in index_text
+    assert 'src="assets/js/main.js?v=' in index_text
     assert 'cdn.plot.ly/plotly-2.35.2.min.js' in index_text
     assert "Treasury component of deposits: estimates and transmission." in index_text
     assert "Research questions." in index_text
@@ -97,9 +97,9 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     assert "This material now lives on the main page." in sidecar_text
     assert "Open additional evidence" in sidecar_text
     assert "The public site now uses a single continuous narrative." in sidecar_text
-    assert 'href="../assets/css/style.css"' in sidecar_text
-    assert 'src="../assets/js/theme.js"' in sidecar_text
-    assert 'src="../assets/js/main.js"' in sidecar_text
+    assert 'href="../assets/css/style.css?v=' in sidecar_text
+    assert 'src="../assets/js/theme.js?v=' in sidecar_text
+    assert 'src="../assets/js/main.js?v=' in sidecar_text
     assert 'data-page="sidecar"' in sidecar_text
     gallery_text = (paths.root / "docs" / "artifacts" / "index.html").read_text(encoding="utf-8")
     assert "All figures and tables in one place." in gallery_text
@@ -110,7 +110,7 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     assert artifact_dirs
     artifact_text = (artifact_dirs[0] / "index.html").read_text(encoding="utf-8")
     assert "Selected figure or table." in artifact_text
-    assert 'assets/js/theme.js' in artifact_text
+    assert 'assets/js/theme.js?v=' in artifact_text
     site_data = json.loads((paths.root / "docs" / "assets" / "data" / "site_data.json").read_text(encoding="utf-8"))
     assert site_data["artifact_gallery"]
     assert "robustness" in site_data
@@ -121,6 +121,13 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     assert site_data["jobs"]["custom_lp_job"]["branch_note"] == "Selected public version uses the baseline quarterly control set."
     assert "jobs" in site_data["robustness"]
     assert "deposit_accounting" in site_data["home"]
+    deposit_block = site_data["home"]["deposit_accounting"]
+    if deposit_block:
+        assert r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t" in deposit_block["residual_equation"]
+        assert deposit_block["residual_definitions"][0][1].startswith("Residual outcome `other_component_qoq`")
+        assert deposit_block["buckets"][0]["definitions"][1][0] == r"\Delta LTD_t"
+    main_js = (paths.root / "docs" / "assets" / "js" / "main.js").read_text(encoding="utf-8")
+    assert r"\\[" in main_js
     assert "Lpiv" not in json.dumps(site_data)
     if site_data["robustness"]["jobs"]:
         assert site_data["robustness"]["jobs"][0]["ml_public_branch"] in {"none", "dml", "forest", "tmle"}
