@@ -7,6 +7,8 @@ from pathlib import Path
 from ea_tdc.paths import ensure_repo_dirs, project_paths
 from ea_tdc.reporting import (
     _classify_release_contract_row,
+    build_component_sidecar_artifact_pack,
+    build_component_sidecar_screening,
     build_event_sidecar_artifact_pack,
     build_event_sidecar_screening,
     build_robustness_snapshot,
@@ -389,6 +391,111 @@ def test_event_sidecar_screening_builds_summary(tmp_path: Path) -> None:
     assert "Risk and plumbing benchmark" in summary
     assert "`dgs10` at `h=63`" in summary
     assert "`sp500_return` at `h=1`" in summary
+
+
+def test_component_sidecar_screening_builds_summary(tmp_path: Path) -> None:
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    models_dir = paths.output / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+
+    _write_text(
+        models_dir / "tdc_component_lp_ru_acquisition__lp_estimates.csv",
+        "\n".join(
+            [
+                "job_id,outcome,horizon,beta,se,lower95,upper95,z_score,p_value_normal,n,treatment_id,control_ids_used,response_type,inference_method,covariance_estimator,covariance_lags,rsquared,warning_flags,dropped_control_ids,state_id,state_profile,state_reference_value,state_interaction_beta,state_interaction_se",
+                "tdc_component_lp_ru_acquisition,matched_total_deposits,0,0.80,0.15,0.50,1.10,5.3,0.00001,183,ru_bank_only_tsy_tx,controls,direct_at_h,ols_newey_west_scaffold,newey_west,1,0.5,,,,,,",
+                "tdc_component_lp_ru_acquisition,repo_spread,0,0.00001,0.00002,-0.00002,0.00004,0.5,0.60,31,ru_bank_only_tsy_tx,controls,direct_at_h,ols_newey_west_scaffold,newey_west,1,0.2,,,,,,",
+            ]
+        ),
+    )
+    _write_text(
+        models_dir / "tdc_component_lp_positive_remit_liquidity_decomposition__lp_estimates.csv",
+        "\n".join(
+            [
+                "job_id,outcome,horizon,beta,se,lower95,upper95,z_score,p_value_normal,n,treatment_id,control_ids_used,response_type,inference_method,covariance_estimator,covariance_lags,rsquared,warning_flags,dropped_control_ids,state_id,state_profile,state_reference_value,state_interaction_beta,state_interaction_se",
+                "tdc_component_lp_positive_remit_liquidity_decomposition,reserve_balances_net_fed_assets_qoq,0,-12.4,4.0,-20.0,-4.8,-3.1,0.0011,92,fed_remit_positive,controls,direct_at_h,ols_newey_west_scaffold,newey_west,1,0.2,,,,,,",
+            ]
+        ),
+    )
+    _write_text(
+        models_dir / "tdc_component_state_dep_treasury_cash_drain_on_rrp_drain__lp_estimates.csv",
+        "\n".join(
+            [
+                "job_id,outcome,horizon,beta,se,lower95,upper95,z_score,p_value_normal,n,treatment_id,control_ids_used,response_type,inference_method,covariance_estimator,covariance_lags,rsquared,warning_flags,dropped_control_ids,state_id,state_profile,state_reference_value,state_interaction_beta,state_interaction_se",
+                "tdc_component_state_dep_treasury_cash_drain_on_rrp_drain,matched_total_deposits,4,-0.01,0.08,-0.16,0.15,-0.08,0.94,68,minus_treasury_operating_cash_tx,controls,direct_at_h,ols_newey_west_state_interaction_scaffold,newey_west,4,0.3,,,coord_on_rrp_drain_state_l1,low_state,-0.2,-0.164,0.062",
+                "tdc_component_state_dep_treasury_cash_drain_on_rrp_drain,matched_total_deposits,4,-0.15,0.09,-0.33,0.03,-1.60,0.089,68,minus_treasury_operating_cash_tx,controls,direct_at_h,ols_newey_west_state_interaction_scaffold,newey_west,4,0.3,,,coord_on_rrp_drain_state_l1,high_state,0.61,-0.164,0.062",
+            ]
+        ),
+    )
+
+    result = build_component_sidecar_screening(paths)
+
+    assert result.jobs_summarized == 3
+    assert result.signal_count == 3
+    with result.summary_csv_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 3
+    assert {row["lane"] for row in rows} == {"component_reduced_form", "liquidity_decomposition", "state_probe"}
+    summary = result.summary_path.read_text(encoding="utf-8")
+    assert "RU acquisition reduced form" in summary
+    assert "Positive remittance liquidity decomposition" in summary
+    assert "Treasury cash under ON RRP drain" in summary
+    assert "`matched_total_deposits` at `h=0`" in summary
+    assert "`reserve_balances_net_fed_assets_qoq` at `h=0`" in summary
+    assert "`matched_total_deposits` at `h=4`: `interaction beta ≈ -0.164`" in summary
+    assert "`low-state beta ≈ -0.01`, `p ≈ 0.94`" in summary
+    assert "`high-state beta ≈ -0.15`, `p ≈ 0.089`" in summary
+
+
+def test_component_sidecar_artifact_pack_builds_exports(tmp_path: Path) -> None:
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    models_dir = paths.output / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+
+    _write_text(
+        models_dir / "tdc_component_lp_ru_acquisition__lp_estimates.csv",
+        "\n".join(
+            [
+                "job_id,outcome,horizon,beta,se,lower95,upper95,z_score,p_value_normal,n,treatment_id,control_ids_used,response_type,inference_method,covariance_estimator,covariance_lags,rsquared,warning_flags,dropped_control_ids,state_id,state_profile,state_reference_value,state_interaction_beta,state_interaction_se",
+                "tdc_component_lp_ru_acquisition,matched_total_deposits,0,0.80,0.15,0.50,1.10,5.3,0.00001,183,ru_bank_only_tsy_tx,controls,direct_at_h,ols_newey_west_scaffold,newey_west,1,0.5,,,,,,",
+            ]
+        ),
+    )
+    _write_text(
+        models_dir / "tdc_component_lp_positive_remit_liquidity_decomposition__lp_estimates.csv",
+        "\n".join(
+            [
+                "job_id,outcome,horizon,beta,se,lower95,upper95,z_score,p_value_normal,n,treatment_id,control_ids_used,response_type,inference_method,covariance_estimator,covariance_lags,rsquared,warning_flags,dropped_control_ids,state_id,state_profile,state_reference_value,state_interaction_beta,state_interaction_se",
+                "tdc_component_lp_positive_remit_liquidity_decomposition,reserve_balances_net_fed_assets_qoq,0,-12.4,4.0,-20.0,-4.8,-3.1,0.0011,92,fed_remit_positive,controls,direct_at_h,ols_newey_west_scaffold,newey_west,1,0.2,,,,,,",
+            ]
+        ),
+    )
+    _write_text(
+        models_dir / "tdc_component_state_dep_treasury_cash_drain_on_rrp_drain__lp_estimates.csv",
+        "\n".join(
+            [
+                "job_id,outcome,horizon,beta,se,lower95,upper95,z_score,p_value_normal,n,treatment_id,control_ids_used,response_type,inference_method,covariance_estimator,covariance_lags,rsquared,warning_flags,dropped_control_ids,state_id,state_profile,state_reference_value,state_interaction_beta,state_interaction_se",
+                "tdc_component_state_dep_treasury_cash_drain_on_rrp_drain,matched_total_deposits,4,-0.01,0.08,-0.16,0.15,-0.08,0.94,68,minus_treasury_operating_cash_tx,controls,direct_at_h,ols_newey_west_state_interaction_scaffold,newey_west,4,0.3,,,coord_on_rrp_drain_state_l1,low_state,-0.2,-0.164,0.062",
+                "tdc_component_state_dep_treasury_cash_drain_on_rrp_drain,matched_total_deposits,4,-0.15,0.09,-0.33,0.03,-1.60,0.089,68,minus_treasury_operating_cash_tx,controls,direct_at_h,ols_newey_west_state_interaction_scaffold,newey_west,4,0.3,,,coord_on_rrp_drain_state_l1,high_state,0.61,-0.164,0.062",
+            ]
+        ),
+    )
+
+    result = build_component_sidecar_artifact_pack(paths)
+
+    assert result.signal_count == 3
+    assert result.reduced_form_csv_path.exists()
+    assert result.liquidity_csv_path.exists()
+    assert result.state_probe_csv_path.exists()
+    summary = result.summary_path.read_text(encoding="utf-8")
+    assert "Component Sidecar Artifact Pack" in summary
+    assert "component_sidecar_reduced_form_table.csv" in summary
+    assert "component_sidecar_liquidity_table.csv" in summary
+    assert "component_sidecar_state_probe_table.csv" in summary
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    assert manifest["signal_count"] == 3
 
 
 def test_event_sidecar_artifact_pack_and_completion_closeout(tmp_path: Path) -> None:

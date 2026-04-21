@@ -1,7 +1,0 @@
-job_id,lane,outcome,horizon,beta,p_value_normal,n,warning_flags
-qra_event_rates_63bd,rates,threefytp10,63,1.195035978592094,2.4197430990913205e-05,14,
-qra_event_rates_63bd,rates,dgs2,21,0.6347830193034348,0.07113046471499995,14,
-qra_event_rates_63bd,rates,dgs2,63,1.7562301209451294,0.006763466006798335,14,
-qra_event_rates_63bd,rates,dgs10,63,2.251106883595567,0.0001365135482653823,14,
-qra_event_rates_63bd,rates,term_spread_10y_3m,63,2.0575310285953377,1.1577554248631827e-08,14,
-qra_event_rates_63bd,rates,repo_spread,21,0.030987327956842836,0.04432914667080823,14,

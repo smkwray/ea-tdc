@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -75,10 +76,28 @@ class EventSidecarScreeningResult:
 
 
 @dataclass(frozen=True)
+class ComponentSidecarScreeningResult:
+    summary_path: Path
+    summary_csv_path: Path
+    signal_count: int
+    jobs_summarized: int
+
+
+@dataclass(frozen=True)
 class EventSidecarArtifactPackResult:
     summary_path: Path
     rates_csv_path: Path
     plumbing_csv_path: Path
+    manifest_path: Path
+    signal_count: int
+
+
+@dataclass(frozen=True)
+class ComponentSidecarArtifactPackResult:
+    summary_path: Path
+    reduced_form_csv_path: Path
+    liquidity_csv_path: Path
+    state_probe_csv_path: Path
     manifest_path: Path
     signal_count: int
 
@@ -131,6 +150,13 @@ def _safe_float(value: Any) -> float | None:
         return float(text)
     except ValueError:
         return None
+
+
+def _normal_p_value(beta: float | None, se: float | None) -> float | None:
+    if beta is None or se is None or se == 0:
+        return None
+    z_score = beta / se
+    return math.erfc(abs(z_score) / math.sqrt(2.0))
 
 
 def _robustness_series_count(control_universe_meta: dict[str, Any]) -> int:
@@ -893,6 +919,377 @@ def build_release_artifact_contract(paths: ProjectPaths) -> ReleaseArtifactContr
     )
 
 
+def _component_sidecar_lane_blocks(paths: ProjectPaths) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
+    models_dir = paths.output / "models"
+    job_specs = [
+        {
+            "job_id": "tdc_component_lp_ru_acquisition",
+            "lane": "component_reduced_form",
+            "title": "RU acquisition reduced form",
+            "description": "Core RU-acquisition component on deposits, residual deposits, and baseline liquidity outcomes.",
+        },
+        {
+            "job_id": "tdc_component_lp_treasury_cash_drain",
+            "lane": "component_reduced_form",
+            "title": "Treasury cash reduced form",
+            "description": "Treasury operating cash component on deposits, residual deposits, and baseline liquidity outcomes.",
+        },
+        {
+            "job_id": "tdc_component_lp_positive_remit",
+            "lane": "component_reduced_form",
+            "title": "Positive remittance reduced form",
+            "description": "Positive remittance add-back on deposits, residual deposits, and baseline liquidity outcomes.",
+        },
+        {
+            "job_id": "tdc_component_lp_ru_acquisition_liquidity_decomposition",
+            "lane": "liquidity_decomposition",
+            "title": "RU acquisition liquidity decomposition",
+            "description": "RU-acquisition component across reserves, Fed assets, Treasury holdings, and repo plumbing.",
+        },
+        {
+            "job_id": "tdc_component_lp_treasury_cash_drain_liquidity_decomposition",
+            "lane": "liquidity_decomposition",
+            "title": "Treasury cash liquidity decomposition",
+            "description": "Treasury-cash component across reserves, Fed assets, Treasury holdings, and repo plumbing.",
+        },
+        {
+            "job_id": "tdc_component_lp_positive_remit_liquidity_decomposition",
+            "lane": "liquidity_decomposition",
+            "title": "Positive remittance liquidity decomposition",
+            "description": "Positive remittance component across reserves, Fed assets, Treasury holdings, and repo plumbing.",
+        },
+        {
+            "job_id": "tdc_component_state_dep_ru_acquisition_low_reserves",
+            "lane": "state_probe",
+            "title": "RU acquisition under low reserves",
+            "description": "State-interaction probe for RU-acquisition effects under reserve scarcity.",
+        },
+        {
+            "job_id": "tdc_component_state_dep_treasury_cash_drain_on_rrp_drain",
+            "lane": "state_probe",
+            "title": "Treasury cash under ON RRP drain",
+            "description": "State-interaction probe for Treasury-cash effects during ON RRP drain episodes.",
+        },
+    ]
+
+    signal_rows: list[dict[str, Any]] = []
+    lane_blocks: list[dict[str, Any]] = []
+    jobs_summarized = 0
+    for spec in job_specs:
+        path = models_dir / f"{spec['job_id']}__lp_estimates.csv"
+        if not path.exists():
+            continue
+        jobs_summarized += 1
+        rows = _read_csv(path)
+        signals = []
+        if spec["lane"] == "state_probe":
+            grouped_rows: dict[tuple[str, int], dict[str, Any]] = {}
+            for row in rows:
+                outcome = str(row.get("outcome", "")).strip()
+                horizon = _safe_int(row.get("horizon"))
+                interaction_beta = _safe_float(row.get("state_interaction_beta"))
+                interaction_se = _safe_float(row.get("state_interaction_se"))
+                interaction_p_value = _normal_p_value(interaction_beta, interaction_se)
+                if interaction_p_value is None or interaction_p_value >= 0.10:
+                    continue
+                key = (outcome, horizon)
+                grouped = grouped_rows.setdefault(
+                    key,
+                    {
+                        "job_id": spec["job_id"],
+                        "lane": spec["lane"],
+                        "outcome": outcome,
+                        "horizon": horizon,
+                        "n": _safe_int(row.get("n")),
+                        "state_id": str(row.get("state_id", "")).strip(),
+                        "state_interaction_beta": interaction_beta,
+                        "state_interaction_se": interaction_se,
+                        "state_interaction_p_value_normal": interaction_p_value,
+                        "low_state_beta": None,
+                        "low_state_p_value_normal": None,
+                        "high_state_beta": None,
+                        "high_state_p_value_normal": None,
+                        "warning_flags": str(row.get("warning_flags", "")).strip(),
+                    },
+                )
+                state_profile = str(row.get("state_profile", "")).strip()
+                profile_beta = _safe_float(row.get("beta"))
+                profile_p_value = _safe_float(row.get("p_value_normal"))
+                if state_profile == "low_state":
+                    grouped["low_state_beta"] = profile_beta
+                    grouped["low_state_p_value_normal"] = profile_p_value
+                elif state_profile == "high_state":
+                    grouped["high_state_beta"] = profile_beta
+                    grouped["high_state_p_value_normal"] = profile_p_value
+            signals.extend(grouped_rows.values())
+        else:
+            for row in rows:
+                p_value = _safe_float(row.get("p_value_normal"))
+                if p_value is None or p_value >= 0.10:
+                    continue
+                signal = {
+                    "job_id": spec["job_id"],
+                    "lane": spec["lane"],
+                    "outcome": str(row.get("outcome", "")).strip(),
+                    "horizon": _safe_int(row.get("horizon")),
+                    "beta": _safe_float(row.get("beta")),
+                    "p_value_normal": p_value,
+                    "n": _safe_int(row.get("n")),
+                    "state_profile": str(row.get("state_profile", "")).strip(),
+                    "state_id": str(row.get("state_id", "")).strip(),
+                    "state_interaction_beta": _safe_float(row.get("state_interaction_beta")),
+                    "state_interaction_se": _safe_float(row.get("state_interaction_se")),
+                    "state_interaction_p_value_normal": _normal_p_value(
+                        _safe_float(row.get("state_interaction_beta")),
+                        _safe_float(row.get("state_interaction_se")),
+                    ),
+                    "warning_flags": str(row.get("warning_flags", "")).strip(),
+                }
+                signals.append(signal)
+        signal_rows.extend(signals)
+        signals.sort(
+            key=lambda item: (
+                item.get("state_interaction_p_value_normal")
+                if item.get("state_interaction_p_value_normal") is not None
+                else item.get("p_value_normal", 1.0),
+                item["horizon"],
+                item["outcome"],
+                item.get("state_profile", ""),
+            )
+        )
+        lane_blocks.append(
+            {
+                "job_id": spec["job_id"],
+                "lane": spec["lane"],
+                "title": spec["title"],
+                "description": spec["description"],
+                "signals": signals,
+            }
+        )
+    return signal_rows, lane_blocks, jobs_summarized
+
+
+def build_component_sidecar_screening(paths: ProjectPaths) -> ComponentSidecarScreeningResult:
+    signal_rows, lane_blocks, jobs_summarized = _component_sidecar_lane_blocks(paths)
+
+    summary_csv_path = paths.reports / "component_sidecar_screening.csv"
+    with summary_csv_path.open("w", encoding="utf-8", newline="") as handle:
+        fieldnames = [
+            "job_id",
+            "lane",
+            "outcome",
+            "horizon",
+            "beta",
+            "p_value_normal",
+            "n",
+            "state_profile",
+            "state_id",
+            "low_state_beta",
+            "low_state_p_value_normal",
+            "high_state_beta",
+            "high_state_p_value_normal",
+            "state_interaction_beta",
+            "state_interaction_se",
+            "state_interaction_p_value_normal",
+            "warning_flags",
+        ]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(signal_rows)
+
+    lines = [
+        "# Component Sidecar Screening",
+        "",
+        "## Verdict",
+        "",
+        "The component lane is the strongest explanatory sidecar in the public package.",
+        "RU acquisition is the clearest long-sample component across deposits and liquidity,",
+        "Treasury cash is more informative for liquidity accounting than headline deposits,",
+        "and positive remittances matter for deposits plus Fed-assets-relative liquidity.",
+        "Coefficients are responses of quarterly outcomes to the GDP-scaled component flow unless noted otherwise.",
+        "",
+    ]
+    for block in lane_blocks:
+        lines.extend(
+            [
+                f"## {block['title']}",
+                "",
+                block["description"],
+                "",
+            ]
+        )
+        if not block["signals"]:
+            lines.append("- No `p < 0.10` signals in the current estimate file.")
+            lines.append("")
+            continue
+        for signal in block["signals"]:
+            if block["lane"] == "state_probe":
+                low_beta = signal.get("low_state_beta")
+                high_beta = signal.get("high_state_beta")
+                low_p = signal.get("low_state_p_value_normal")
+                high_p = signal.get("high_state_p_value_normal")
+                interaction_beta = signal.get("state_interaction_beta")
+                interaction_p = signal.get("state_interaction_p_value_normal")
+                low_text = (
+                    f"`low-state beta ≈ {low_beta:.6g}`, `p ≈ {low_p:.4g}`"
+                    if low_beta is not None and low_p is not None
+                    else "`low-state beta unavailable`"
+                )
+                high_text = (
+                    f"`high-state beta ≈ {high_beta:.6g}`, `p ≈ {high_p:.4g}`"
+                    if high_beta is not None and high_p is not None
+                    else "`high-state beta unavailable`"
+                )
+                lines.append(
+                    f"- `{signal['outcome']}` at `h={signal['horizon']}`: "
+                    f"`interaction beta ≈ {interaction_beta:.6g}`, `interaction p ≈ {interaction_p:.4g}`, "
+                    f"{low_text}, {high_text}"
+                )
+            else:
+                lines.append(
+                    f"- `{signal['outcome']}` at `h={signal['horizon']}`: "
+                    f"`beta ≈ {signal['beta']:.6g}`, `p ≈ {signal['p_value_normal']:.4g}`"
+                )
+        lines.append("")
+    lines.extend(
+        [
+            "## Interpretation",
+            "",
+            "- The component reduced forms are the clearest public summary of which Treasury legs move deposits in the long sample.",
+            "- The liquidity decomposition is the companion view for how each component transmits through reserves, Fed assets, and repo conditions.",
+            "- The narrow state results are secondary context rather than a standalone public claim.",
+            "",
+        ]
+    )
+    summary_path = paths.reports / "component_sidecar_screening.md"
+    summary_path.write_text("\n".join(lines), encoding="utf-8")
+
+    return ComponentSidecarScreeningResult(
+        summary_path=summary_path,
+        summary_csv_path=summary_csv_path,
+        signal_count=len(signal_rows),
+        jobs_summarized=jobs_summarized,
+    )
+
+
+def build_component_sidecar_artifact_pack(paths: ProjectPaths) -> ComponentSidecarArtifactPackResult:
+    screening = build_component_sidecar_screening(paths)
+    signal_rows, lane_blocks, _ = _component_sidecar_lane_blocks(paths)
+
+    reduced_form_rows = [row for row in signal_rows if row["lane"] == "component_reduced_form"]
+    liquidity_rows = [row for row in signal_rows if row["lane"] == "liquidity_decomposition"]
+    state_probe_rows = [row for row in signal_rows if row["lane"] == "state_probe"]
+    reduced_form_csv_path = paths.reports / "component_sidecar_reduced_form_table.csv"
+    liquidity_csv_path = paths.reports / "component_sidecar_liquidity_table.csv"
+    state_probe_csv_path = paths.reports / "component_sidecar_state_probe_table.csv"
+    fieldnames = [
+        "job_id",
+        "lane",
+        "outcome",
+        "horizon",
+        "beta",
+        "p_value_normal",
+        "n",
+        "state_profile",
+        "state_id",
+        "low_state_beta",
+        "low_state_p_value_normal",
+        "high_state_beta",
+        "high_state_p_value_normal",
+        "state_interaction_beta",
+        "state_interaction_se",
+        "state_interaction_p_value_normal",
+        "warning_flags",
+    ]
+    for target_path, rows in (
+        (reduced_form_csv_path, reduced_form_rows),
+        (liquidity_csv_path, liquidity_rows),
+        (state_probe_csv_path, state_probe_rows),
+    ):
+        with target_path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+
+    lines = [
+        "# Component Sidecar Artifact Pack",
+        "",
+        "## Purpose",
+        "",
+        "This pack is the compact public sidecar surface for the component-treatment evidence.",
+        "Use it to compare RU acquisition, Treasury operating cash, and positive remittances without expanding the claim beyond the baseline deposit result.",
+        "Coefficients are responses of quarterly outcomes to the GDP-scaled component flow unless noted otherwise.",
+        "",
+    ]
+    table_lookup = {
+        "component_reduced_form": "component_sidecar_reduced_form_table.csv",
+        "liquidity_decomposition": "component_sidecar_liquidity_table.csv",
+        "state_probe": "component_sidecar_state_probe_table.csv",
+    }
+    for block in lane_blocks:
+        lines.extend(
+            [
+                f"## {block['title']}",
+                "",
+                block["description"],
+                "",
+                f"Table export: `{table_lookup.get(block['lane'], '')}`",
+                "",
+            ]
+        )
+        if not block["signals"]:
+            lines.append("- No retained signal rows in the current estimate file.")
+            lines.append("")
+            continue
+        for signal in block["signals"]:
+            if block["lane"] == "state_probe":
+                lines.append(
+                    f"- `{signal['outcome']}` at `h={signal['horizon']}`: "
+                    f"`interaction beta ≈ {signal['state_interaction_beta']:.6g}`, "
+                    f"`interaction p ≈ {signal['state_interaction_p_value_normal']:.4g}`"
+                )
+            else:
+                lines.append(
+                    f"- `{signal['outcome']}` at `h={signal['horizon']}`: "
+                    f"`beta ≈ {signal['beta']:.6g}`, `p ≈ {signal['p_value_normal']:.4g}`"
+                )
+        lines.append("")
+    lines.extend(
+        [
+            "## Caption language",
+            "",
+            "- RU acquisition is the clearest live long-sample component across deposits and liquidity.",
+            "- Treasury operating cash belongs in the liquidity-accounting lane more than the headline deposit lane.",
+            "- The only retained state-dependent component result is Treasury cash during ON RRP drain episodes; the low-reserve RU branch stays watchlist-only.",
+            "",
+        ]
+    )
+    summary_path = paths.reports / "component_sidecar_artifact_pack.md"
+    summary_path.write_text("\n".join(lines), encoding="utf-8")
+
+    manifest_path = paths.manifests / "component_sidecar_artifact_pack_manifest.json"
+    write_json(
+        manifest_path,
+        {
+            "generated_at": utc_now_iso(),
+            "summary_path": _repo_relative_str(summary_path, paths.root),
+            "screening_path": _repo_relative_str(screening.summary_path, paths.root),
+            "reduced_form_csv_path": _repo_relative_str(reduced_form_csv_path, paths.root),
+            "liquidity_csv_path": _repo_relative_str(liquidity_csv_path, paths.root),
+            "state_probe_csv_path": _repo_relative_str(state_probe_csv_path, paths.root),
+            "signal_count": len(signal_rows),
+        },
+    )
+    return ComponentSidecarArtifactPackResult(
+        summary_path=summary_path,
+        reduced_form_csv_path=reduced_form_csv_path,
+        liquidity_csv_path=liquidity_csv_path,
+        state_probe_csv_path=state_probe_csv_path,
+        manifest_path=manifest_path,
+        signal_count=len(signal_rows),
+    )
+
+
 def _event_sidecar_lane_blocks(paths: ProjectPaths) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
     models_dir = paths.output / "models"
     job_specs = [
@@ -1108,6 +1505,7 @@ def build_event_sidecar_artifact_pack(paths: ProjectPaths) -> EventSidecarArtifa
 
 
 def build_stage_completion_closeout(paths: ProjectPaths) -> StageCompletionCloseoutResult:
+    component_pack = build_component_sidecar_artifact_pack(paths)
     event_pack = build_event_sidecar_artifact_pack(paths)
     completion_path = paths.reports / "stage_completion_closeout.md"
     completion_path.write_text(
@@ -1117,22 +1515,65 @@ def build_stage_completion_closeout(paths: ProjectPaths) -> StageCompletionClose
                 "",
                 "## Completed package",
                 "",
-                "- Headline lane: `baseline_tdc_lp_deposits` on the selected screened branch.",
-                "- Mechanism lane: accounting alignment and closeout artifacts.",
-                "- Sidecar lane: event rates and plumbing benchmark artifacts.",
+                "- Headline lane: `baseline_tdc_lp_deposits` remains the main empirical result.",
+                "- Coherence lane: accounting alignment and corrected-identity artifacts stay in the package as cross-checks, not independent confirmation.",
+                "- Component sidecar lane: RU acquisition, Treasury operating cash, and positive-remittance artifacts now carry the main explanatory sidecar role.",
+                "- Additional sidecar lane: event rates and plumbing benchmark artifacts remain useful, but they are no longer the only sidecar frame.",
                 "",
                 "## Deferred package",
                 "",
-                "- Macro-price confirmatory trees remain internal-only and paused.",
+                "- Macro-price confirmatory trees remain outside the public evidence package and paused.",
                 "- IV remains deferred.",
                 "- TMLE remains excluded from public evidence.",
+                "- Corrected Tier 2 / Tier 3 treatments remain sensitivity rows only.",
                 "",
                 "## Recommended finalization step",
                 "",
-                "- Treat the repo as empirically scoped for completion.",
-                "- Use the event sidecar artifact pack for any final site/report integration rather than reopening exploratory modeling.",
+                "- Treat the repo as empirically complete in a baseline-plus-sidecar posture.",
+                "- Do not widen the public claim beyond the current baseline-plus-sidecar boundary unless genuinely new same-scope incidence evidence appears.",
+                "- Keep the public claim hierarchy explicit: baseline deposit response, accounting coherence, component sidecar interpretation, corrected measurement sensitivity.",
+                "- Use the component sidecar artifact pack as the main closeout companion, with event artifacts as additional context.",
+                "",
+                "## `tdcpass` boundary",
+                "",
+                "- The broad Treasury-attributed TDC object is not the same thing as a strict independently validated deposit component.",
+                "- Residual/accounting closure is alignment and diagnostics, not independent channel proof.",
+                "- That boundary supports closing EA-TDC on the baseline headline plus narrower sidecars, rather than widening the public claim.",
+                "",
+                f"Component sidecar artifact pack: `{_repo_relative_str(component_pack.summary_path, paths.root)}`",
                 "",
                 f"Event sidecar artifact pack: `{_repo_relative_str(event_pack.summary_path, paths.root)}`",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    final_interpretation_path = paths.reports / "final_interpretation_closeout.md"
+    final_interpretation_path.write_text(
+        "\n".join(
+            [
+                "# Final Interpretation Closeout",
+                "",
+                "EA-TDC should now be closed as a **baseline-plus-sidecar** package.",
+                "",
+                "## Final claim hierarchy",
+                "",
+                "1. `baseline_tdc_lp_deposits` is the main empirical result.",
+                "2. Accounting identity work is coherence evidence only.",
+                "3. Component evidence is the main explanatory sidecar.",
+                "4. Corrected Tier 2 / Tier 3 treatments stay in the repo as sensitivity rows only.",
+                "",
+                "## Boundary reinforced by `tdcpass`",
+                "",
+                "- The broad Treasury-attributed TDC object is not the same thing as a strict independently validated deposit component.",
+                "- Residual/accounting closure remains diagnostic rather than independent proof.",
+                "- The right public posture is therefore a narrow headline claim with supporting sidecars.",
+                "",
+                "## Companion artifacts",
+                "",
+                "- `component_sidecar_artifact_pack.md`",
+                "- `component_sidecar_screening.md`",
+                "- `release_scorecard.json`",
                 "",
             ]
         ),
@@ -1144,6 +1585,8 @@ def build_stage_completion_closeout(paths: ProjectPaths) -> StageCompletionClose
         {
             "generated_at": utc_now_iso(),
             "summary_path": _repo_relative_str(completion_path, paths.root),
+            "final_interpretation_path": _repo_relative_str(final_interpretation_path, paths.root),
+            "component_artifact_pack_path": _repo_relative_str(component_pack.summary_path, paths.root),
             "event_artifact_pack_path": _repo_relative_str(event_pack.summary_path, paths.root),
         },
     )

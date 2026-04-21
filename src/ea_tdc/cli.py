@@ -30,6 +30,8 @@ from .iv_lab import build_iv_lab
 from .ml_extensions import build_negative_control_mining, build_quarterly_dml, build_quarterly_forest, build_quarterly_tmle
 from .paths import project_paths
 from .reporting import (
+    build_component_sidecar_artifact_pack,
+    build_component_sidecar_screening,
     build_event_sidecar_artifact_pack,
     build_event_sidecar_screening,
     build_release_artifact_contract,
@@ -172,6 +174,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Build a compact rates/plumbing event benchmark summary from live event estimate tables",
     )
     event_sidecar_parser.add_argument("--repo-root", default=None, help="Override the repository root")
+
+    component_sidecar_parser = subparsers.add_parser(
+        "build-component-sidecar-screening",
+        help="Build a compact component-treatment summary from live quarterly estimate tables",
+    )
+    component_sidecar_parser.add_argument("--repo-root", default=None, help="Override the repository root")
+
+    component_pack_parser = subparsers.add_parser(
+        "build-component-sidecar-artifacts",
+        help="Build compact component-treatment artifact tables and summary markdown",
+    )
+    component_pack_parser.add_argument("--repo-root", default=None, help="Override the repository root")
 
     event_pack_parser = subparsers.add_parser(
         "build-event-sidecar-artifacts",
@@ -543,6 +557,28 @@ def main(argv: Sequence[str] | None = None) -> int:
             "jobs_summarized": built.jobs_summarized,
             "summary_csv_path": str(built.summary_csv_path),
             "summary_path": str(built.summary_path),
+        }
+    elif args.command == "build-component-sidecar-screening":
+        runtime = load_runtime_config(repo_root)
+        paths = project_paths(repo_root, data_root=runtime.data_root, output_root=runtime.output_root)
+        built = build_component_sidecar_screening(paths)
+        result = {
+            "signal_count": built.signal_count,
+            "jobs_summarized": built.jobs_summarized,
+            "summary_csv_path": str(built.summary_csv_path),
+            "summary_path": str(built.summary_path),
+        }
+    elif args.command == "build-component-sidecar-artifacts":
+        runtime = load_runtime_config(repo_root)
+        paths = project_paths(repo_root, data_root=runtime.data_root, output_root=runtime.output_root)
+        built = build_component_sidecar_artifact_pack(paths)
+        result = {
+            "signal_count": built.signal_count,
+            "summary_path": str(built.summary_path),
+            "reduced_form_csv_path": str(built.reduced_form_csv_path),
+            "liquidity_csv_path": str(built.liquidity_csv_path),
+            "state_probe_csv_path": str(built.state_probe_csv_path),
+            "manifest_path": str(built.manifest_path),
         }
     elif args.command == "build-event-sidecar-artifacts":
         runtime = load_runtime_config(repo_root)

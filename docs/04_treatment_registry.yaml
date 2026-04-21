@@ -32,7 +32,7 @@ treatments:
   - treatment_id: tdc_ru_acquisition_component_qoq
     family: component_treatment
     source_repo: tdcest
-    upstream_object: ru_net_acquisition_marketable_treasuries
+    upstream_object: ru_bank_only_tsy_tx
     freq: quarterly
     units: usd_flow
     scaling: divide_by_nominal_gdp
@@ -41,12 +41,12 @@ treatments:
     cutoff_rule: quarter_start_default
     instrument_ok: false
     direct_effect_risk: medium
-    notes: Component decomposition lane.
+    notes: Current live RU-acquisition lane exported by the upstream bundle as the bank-only Treasury transaction block.
 
   - treatment_id: tdc_treasury_cash_drain_component_qoq
     family: component_treatment
     source_repo: tdcest
-    upstream_object: treasury_operating_cash_drain
+    upstream_object: minus_treasury_operating_cash_tx
     freq: quarterly
     units: usd_flow
     scaling: divide_by_nominal_gdp
@@ -55,12 +55,12 @@ treatments:
     cutoff_rule: quarter_start_default
     instrument_ok: false
     direct_effect_risk: medium
-    notes: Include sign normalization if used directly in IRFs.
+    notes: Current live cash-drag lane. The upstream bundle already exports the sign-normalized negative Treasury operating cash term.
 
   - treatment_id: tdc_positive_remit_component_qoq
     family: component_treatment
     source_repo: tdcest
-    upstream_object: clipped_positive_fed_remittances
+    upstream_object: fed_remit_positive
     freq: quarterly
     units: usd_flow
     scaling: divide_by_nominal_gdp
@@ -69,7 +69,63 @@ treatments:
     cutoff_rule: quarter_start_default
     instrument_ok: false
     direct_effect_risk: low
-    notes: Likely small but important for decomposition.
+    notes: Current live positive-remittance add-back exported by the upstream bundle.
+
+  - treatment_id: tdc_tier2_interest_corrected_bank_only_ru_flow
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_interest_corrected_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Interest-corrected bank-only treatment for ladder comparisons against the baseline public approximation.
+
+  - treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier3_fiscal_corrected_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Fiscal-corrected bank-only treatment; strongest current live corrected estimate in the upstream measurement ladder.
+
+  - treatment_id: tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Interest-corrected broad-depository perimeter comparison that adds natural-person credit unions.
+
+  - treatment_id: tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Fiscal-corrected broad-depository perimeter comparison used to test whether corrected results survive broader holder coverage.
 
   - treatment_id: qra_maturity_tilt_level
     family: debt_management_treatment

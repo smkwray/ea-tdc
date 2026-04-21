@@ -96,6 +96,191 @@ def test_quarterly_design_builder_writes_manifests(tmp_path: Path) -> None:
     assert sample_manifest["rows"][-1]["reason"] == "required outcomes available within usable treatment-anchor sample"
 
 
+def test_quarterly_design_builder_supports_corrected_treatment_residuals_and_identity_gaps(tmp_path: Path) -> None:
+    _write_text(
+        tmp_path / "config" / "dass_job_blueprint.yaml",
+        "\n".join(
+            [
+                "jobs:",
+                "  - job_id: custom_tier3_identity_job",
+                "    estimator: lp",
+                "    treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow",
+                "    outcomes:",
+                "      - other_component_tier3_bank_only_qoq",
+                "      - accounting_identity_total_qoq",
+                "      - accounting_identity_gap_tier3_bank_only_qoq",
+                "    horizons: [0, 1, 2, 4]",
+                "    output_family: supporting_descriptive",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "bundles" / "tdcest" / "standardized_series.csv",
+        "\n".join(
+            [
+                "series_id,series_label,source_family,source_repo,source_table,freq,period_end,release_date,available_at,vintage_policy,units,value,transform_default,seasonal_adjustment_flag,interpolated_flag,component_group,role,notes",
+                "tdc_tier3_fiscal_corrected_bank_only_ru_flow,tdc_tier3_fiscal_corrected_bank_only_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,95,none,unknown,false,estimate_variant,treatment,fixture",
+                "gdp_deflator,gdp_deflator,repo_seed_bundle,tdcest,references,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,index,120,none,unknown,false,reference,control,reference",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "bundles" / "accounting" / "standardized_series.csv",
+        "\n".join(
+            [
+                "series_id,series_label,source_family,source_repo,source_table,freq,period_end,release_date,available_at,vintage_policy,units,value,transform_default,seasonal_adjustment_flag,interpolated_flag,component_group,role,notes",
+                "accounting_deposit_substitution_qoq,accounting_deposit_substitution_qoq,repo_seed_bundle,accounting,standardized,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,2,none,unknown,false,component,outcome,fixture",
+                "accounting_bank_balance_sheet_qoq,accounting_bank_balance_sheet_qoq,repo_seed_bundle,accounting,standardized,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,3,none,unknown,false,component,outcome,fixture",
+                "accounting_public_liquidity_qoq,accounting_public_liquidity_qoq,repo_seed_bundle,accounting,standardized,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,4,none,unknown,false,component,outcome,fixture",
+                "accounting_external_flow_qoq,accounting_external_flow_qoq,repo_seed_bundle,accounting,standardized,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,1,none,unknown,false,component,outcome,fixture",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "raw" / "fred" / "BOGZ1FL764100005Q.csv",
+        "\n".join(
+            [
+                "date,value",
+                "2023-10-01,900",
+                "2024-01-01,1010",
+            ]
+        ),
+    )
+
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    result = build_quarterly_design(paths, job_id="custom_tier3_identity_job")
+
+    with result.bundle_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    row = rows[1]
+    assert row["other_component_tier3_bank_only_qoq"] == "15.0"
+    assert row["accounting_identity_total_qoq"] == "10.0"
+    assert row["accounting_identity_gap_tier3_bank_only_qoq"] == "5.0"
+
+    design_manifest = json.loads(result.design_manifest_path.read_text(encoding="utf-8"))
+    assert design_manifest["treatment_id"] == "tdc_tier3_fiscal_corrected_bank_only_ru_flow"
+    assert design_manifest["missing_required_series"] == []
+    assert design_manifest["status"] == "ready_for_estimation"
+
+    sample_manifest = json.loads(result.sample_manifest_path.read_text(encoding="utf-8"))
+    assert sample_manifest["rows"][-1]["observations_remaining"] == 1
+    assert sample_manifest["rows"][-1]["reason"] == "required outcomes available within usable treatment sample"
+
+
+def test_quarterly_design_builder_supports_corrected_tier3_identity_pct_gdp_outputs(tmp_path: Path) -> None:
+    _write_text(
+        tmp_path / "config" / "dass_job_blueprint.yaml",
+        "\n".join(
+            [
+                "jobs:",
+                "  - job_id: custom_tier3_identity_pct_gdp_job",
+                "    estimator: lp",
+                "    treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow",
+                "    outcomes:",
+                "      - other_component_tier3_bank_only_qoq_pct_gdp",
+                "      - accounting_identity_total_qoq_pct_gdp",
+                "      - accounting_identity_gap_tier3_bank_only_qoq_pct_gdp",
+                "    horizons: [0, 1, 2, 4]",
+                "    output_family: supporting_descriptive",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "bundles" / "tdcest" / "standardized_series.csv",
+        "\n".join(
+            [
+                "series_id,series_label,source_family,source_repo,source_table,freq,period_end,release_date,available_at,vintage_policy,units,value,transform_default,seasonal_adjustment_flag,interpolated_flag,component_group,role,notes",
+                "tdc_tier3_fiscal_corrected_bank_only_ru_flow,tdc_tier3_fiscal_corrected_bank_only_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,85,none,unknown,false,measurement_variant,treatment,fixture",
+                "gdp_deflator,gdp_deflator,repo_seed_bundle,tdcest,references,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,index,120,none,unknown,false,reference,control,fixture",
+                "accounting_deposit_substitution_qoq,accounting_deposit_substitution_qoq,repo_seed_bundle,accounting,identity,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,4,none,unknown,false,identity_component,outcome,fixture",
+                "accounting_bank_balance_sheet_qoq,accounting_bank_balance_sheet_qoq,repo_seed_bundle,accounting,identity,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,3,none,unknown,false,identity_component,outcome,fixture",
+                "accounting_public_liquidity_qoq,accounting_public_liquidity_qoq,repo_seed_bundle,accounting,identity,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,2,none,unknown,false,identity_component,outcome,fixture",
+                "accounting_external_flow_qoq,accounting_external_flow_qoq,repo_seed_bundle,accounting,identity,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,1,none,unknown,false,identity_component,outcome,fixture",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "raw" / "fred" / "BOGZ1FL764100005Q.csv",
+        "\n".join(
+            [
+                "date,value",
+                "2023-10-01,900",
+                "2024-01-01,1000",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "raw" / "fred" / "GDP.csv",
+        "\n".join(
+            [
+                "date,value",
+                "2024-01-01,10000",
+            ]
+        ),
+    )
+
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    result = build_quarterly_design(paths, job_id="custom_tier3_identity_pct_gdp_job")
+
+    with result.bundle_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    row = rows[1]
+    assert row["other_component_tier3_bank_only_qoq_pct_gdp"] == "0.15"
+    assert row["accounting_identity_total_qoq_pct_gdp"] == "0.1"
+    assert row["accounting_identity_gap_tier3_bank_only_qoq_pct_gdp"] == "0.05"
+
+    design_manifest = json.loads(result.design_manifest_path.read_text(encoding="utf-8"))
+    assert design_manifest["missing_required_series"] == []
+    assert design_manifest["status"] == "ready_for_estimation"
+
+
+def test_quarterly_design_builder_maps_component_treatment_ids_to_upstream_series(tmp_path: Path) -> None:
+    _write_text(
+        tmp_path / "config" / "dass_job_blueprint.yaml",
+        "\n".join(
+            [
+                "jobs:",
+                "  - job_id: custom_component_job",
+                "    estimator: lp",
+                "    treatment_id: tdc_positive_remit_component_qoq",
+                "    outcomes: [matched_total_deposits]",
+                "    horizons: [0, 1, 2, 4]",
+                "    output_family: supporting_descriptive",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "bundles" / "tdcest" / "standardized_series.csv",
+        "\n".join(
+            [
+                "series_id,series_label,source_family,source_repo,source_table,freq,period_end,release_date,available_at,vintage_policy,units,value,transform_default,seasonal_adjustment_flag,interpolated_flag,component_group,role,notes",
+                "fed_remit_positive,fed_remit_positive,repo_seed_bundle,tdcest,components,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,5,none,unknown,false,component,treatment,fixture",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "raw" / "fred" / "BOGZ1FL764100005Q.csv",
+        "\n".join(
+            [
+                "date,value",
+                "2023-10-01,900",
+                "2024-01-01,1010",
+            ]
+        ),
+    )
+
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    result = build_quarterly_design(paths, job_id="custom_component_job")
+
+    design_manifest = json.loads(result.design_manifest_path.read_text(encoding="utf-8"))
+    assert design_manifest["treatment_id"] == "fed_remit_positive"
+    assert design_manifest["status"] == "ready_for_estimation"
+    assert result.usable_rows == 1
+
+
 def test_quarterly_design_builder_supports_funding_and_credit_outcomes(tmp_path: Path) -> None:
     _write_text(
         tmp_path / "config" / "dass_job_blueprint.yaml",

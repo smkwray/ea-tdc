@@ -78,19 +78,22 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     assert 'src="assets/js/theme.js?v=' in index_text
     assert 'src="assets/js/main.js?v=' in index_text
     assert 'cdn.plot.ly/plotly-2.35.2.min.js' in index_text
-    assert "Treasury component of deposits: estimates and transmission." in index_text
+    assert "Treasury contribution to deposits: estimates and transmission." in index_text
     assert "Research questions." in index_text
     assert "View equations" in index_text
     assert "Results that still need stronger identification." in index_text
     assert "Federal Reserve net transactions in marketable Treasury securities." in index_text
-    assert "Treasury component of deposits." in index_text
+    assert "Treasury Deposit Contribution." in index_text
+    assert "Treasury Deposit Contribution: the contribution of Treasury-related cash flows and Treasury-security transactions to changes in domestic nonbank deposits." in index_text
     assert "Fed-net reserve responses." not in index_text
     assert "Raw reserves are not treated as a headline result here" not in index_text
-    assert "Deposits come first." in index_text
-    assert "The deposit result and the accounting reconstruction line up." in index_text
-    assert "Inflation, FX, private balance sheets, and low-reserve state dependence." in index_text
+    assert "What the release claims." in index_text
+    assert "Deposits are the clearest headline response." in index_text
+    assert "Accounting reconstruction supports coherence, not independent validation." in index_text
+    assert "Inflation, FX, and private balance sheets." in index_text
     assert "Which indicators dominate the screened control set?" not in index_text
     assert "Did the IV search find stronger instruments?" not in index_text
+    assert "Change in Treasury operating cash transactions; higher Treasury cash drains deposits before they reach domestic nonbank deposits." in index_text
     assert 'href="#additional-evidence"' in index_text
     assert 'data-page="home"' in index_text
     sidecar_text = result.sidecar_index_path.read_text(encoding="utf-8")
@@ -129,6 +132,10 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     main_js = (paths.root / "docs" / "assets" / "js" / "main.js").read_text(encoding="utf-8")
     assert r"\\[" in main_js
     assert "Lpiv" not in json.dumps(site_data)
+    home_html = (paths.root / "docs" / "index.html").read_text(encoding="utf-8")
+    assert 'id="component-evidence"' in home_html
+    assert "Open component summary" in home_html
+    assert "Final interpretation" in home_html
     if site_data["robustness"]["jobs"]:
         assert site_data["robustness"]["jobs"][0]["ml_public_branch"] in {"none", "dml", "forest", "tmle"}
         assert site_data["robustness"]["jobs"][0]["ml_public_branch_label"]
@@ -139,7 +146,11 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
 
     copied_preview = paths.root / "docs" / "site_assets" / "artifacts" / "main_text" / "main_figure_1" / "main_figure_1.html"
     assert copied_preview.exists()
+    assert (paths.root / "docs" / "site_assets" / "reports" / "component_sidecar_screening.md").exists()
+    assert (paths.root / "docs" / "site_assets" / "reports" / "final_interpretation_closeout.md").exists()
     assert not (paths.root / "docs" / "site_assets" / "reports" / "macro_prices_secret_screening.md").exists()
+    assert not (paths.root / "docs" / "site_assets" / "reports" / "release_snapshot.json").exists()
+    assert not (paths.root / "docs" / "site_assets" / "reports" / "site_build.json").exists()
     public_bundle_text = (paths.root / "docs" / "site_assets" / "reports" / "release_scorecard.json").read_text(encoding="utf-8")
     assert "/Users/" not in public_bundle_text
     assert str(paths.root) not in public_bundle_text

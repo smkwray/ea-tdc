@@ -4,16 +4,18 @@ Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 
 
 Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.
 
-Generated at: 2026-04-14T11:17:30+00:00
+Generated at: 2026-04-21T09:59:54+00:00
 
 ## Notes
 - Treatment: Baseline TDC estimate
 - Response: Direct response at horizon h
-- Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves
+- Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Dflmx K100 F1, Dflmx K100 F2, Dflmx K100 F3, Dflmx K100 F4
 - Covariance: Newey-West HAC
 - Sample span: 1946Q4 to 2026Q2
 - Observations: 86 to 93
+- Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.
 - Displayed branch: K=100 screened branch
+- Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-21 and may reflect an in-progress quarter endpoint.
 - Artifact source: Credit-spread responses to the baseline TDC estimate
 
 | Outcome | Horizon | Beta | Se | Lower 95% | Upper 95% | P-value | Observations | R-squared |

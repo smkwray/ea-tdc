@@ -2,8 +2,14 @@
   "artifact_gallery": [
     {
       "artifact_id": "main_figure_1",
-      "caption": "Impulse responses for Matched total deposits, Other component (q/q), M2 to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
-      "horizons": [],
+      "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
       "job_id": "baseline_tdc_lp_deposits",
       "kind": "figure",
       "links": [
@@ -16,17 +22,26 @@
           "label": "Raw"
         }
       ],
-      "outcome_ids": [],
+      "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
       "release_channel": "main_text",
       "slot_label": "Main Figure 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 3 outcomes | 85-93 obs",
+      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
       "table_rows": [],
       "title": "Deposit responses to the baseline TDC estimate"
     },
     {
       "artifact_id": "main_table_1",
-      "caption": "Coefficient table for Matched total deposits, Other component (q/q), M2 in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
-      "horizons": [],
+      "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
       "job_id": "baseline_tdc_lp_deposits",
       "kind": "table",
       "links": [
@@ -43,10 +58,13 @@
           "label": "Raw"
         }
       ],
-      "outcome_ids": [],
+      "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
       "release_channel": "main_text",
       "slot_label": "Main Table 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 3 outcomes | 85-93 obs",
+      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
       "table_rows": [
         {
           "beta": "0.4712",
@@ -164,7 +182,13 @@
     {
       "artifact_id": "appendix_table_1",
       "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
-      "horizons": [],
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
       "job_id": "baseline_tdc_lp_credit_spreads",
       "kind": "table",
       "links": [
@@ -181,7 +205,11 @@
           "label": "Raw"
         }
       ],
-      "outcome_ids": [],
+      "outcome_ids": [
+        "baa_aaa",
+        "investment_grade_oas",
+        "high_yield_oas"
+      ],
       "release_channel": "appendix",
       "slot_label": "Appendix Table 1",
       "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
@@ -353,129 +381,19 @@
         }
       ],
       "title": "Credit-spread responses to the baseline TDC estimate estimates"
-    },
-    {
-      "artifact_id": "appendix_table_2",
-      "caption": "Coefficient table for Matched total deposits, M2, Repo spread in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4 with the corresponding standard errors and confidence intervals.",
-      "horizons": [],
-      "job_id": "tdc_state_dep_low_reserves",
-      "kind": "table",
-      "links": [
-        {
-          "href": "artifacts/appendix_table_2/index.html",
-          "label": "Open"
-        },
-        {
-          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.csv",
-          "label": "CSV"
-        },
-        {
-          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.md",
-          "label": "Raw"
-        }
-      ],
-      "outcome_ids": [],
-      "release_channel": "appendix",
-      "slot_label": "Appendix Table 2",
-      "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 69-73 obs",
-      "table_rows": [
-        {
-          "beta": "0.4463",
-          "horizon": "0",
-          "lower95": "-0.0739",
-          "n": "93",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0927",
-          "se": "0.2654",
-          "upper95": "0.9665"
-        },
-        {
-          "beta": "0.3153",
-          "horizon": "1",
-          "lower95": "-0.2680",
-          "n": "92",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.2894",
-          "se": "0.2976",
-          "upper95": "0.8987"
-        },
-        {
-          "beta": "-0.0234",
-          "horizon": "2",
-          "lower95": "-0.2713",
-          "n": "91",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.8535",
-          "se": "0.1265",
-          "upper95": "0.2246"
-        },
-        {
-          "beta": "0.3172",
-          "horizon": "4",
-          "lower95": "0.0331",
-          "n": "89",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0286",
-          "se": "0.1450",
-          "upper95": "0.6013"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "0",
-          "lower95": "-0.0000",
-          "n": "31",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0697",
-          "se": "0.0000",
-          "upper95": "0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "1",
-          "lower95": "-0.0000",
-          "n": "32",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0004",
-          "se": "0.0000",
-          "upper95": "-0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "2",
-          "lower95": "-0.0000",
-          "n": "33",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0086",
-          "se": "0.0000",
-          "upper95": "-0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "4",
-          "lower95": "-0.0000",
-          "n": "33",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.2302",
-          "se": "0.0000",
-          "upper95": "0.0000"
-        }
-      ],
-      "title": "State dependence under low-reserve conditions estimates"
     }
   ],
   "artifacts": {
     "appendix_table_1": {
       "artifact_id": "appendix_table_1",
       "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
-      "horizons": [],
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
       "job_id": "baseline_tdc_lp_credit_spreads",
       "kind": "table",
       "links": [
@@ -492,7 +410,11 @@
           "label": "Raw"
         }
       ],
-      "outcome_ids": [],
+      "outcome_ids": [
+        "baa_aaa",
+        "investment_grade_oas",
+        "high_yield_oas"
+      ],
       "release_channel": "appendix",
       "slot_label": "Appendix Table 1",
       "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
@@ -665,126 +587,16 @@
       ],
       "title": "Credit-spread responses to the baseline TDC estimate estimates"
     },
-    "appendix_table_2": {
-      "artifact_id": "appendix_table_2",
-      "caption": "Coefficient table for Matched total deposits, M2, Repo spread in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4 with the corresponding standard errors and confidence intervals.",
-      "horizons": [],
-      "job_id": "tdc_state_dep_low_reserves",
-      "kind": "table",
-      "links": [
-        {
-          "href": "artifacts/appendix_table_2/index.html",
-          "label": "Open"
-        },
-        {
-          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.csv",
-          "label": "CSV"
-        },
-        {
-          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.md",
-          "label": "Raw"
-        }
-      ],
-      "outcome_ids": [],
-      "release_channel": "appendix",
-      "slot_label": "Appendix Table 2",
-      "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 69-73 obs",
-      "table_rows": [
-        {
-          "beta": "0.4463",
-          "horizon": "0",
-          "lower95": "-0.0739",
-          "n": "93",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0927",
-          "se": "0.2654",
-          "upper95": "0.9665"
-        },
-        {
-          "beta": "0.3153",
-          "horizon": "1",
-          "lower95": "-0.2680",
-          "n": "92",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.2894",
-          "se": "0.2976",
-          "upper95": "0.8987"
-        },
-        {
-          "beta": "-0.0234",
-          "horizon": "2",
-          "lower95": "-0.2713",
-          "n": "91",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.8535",
-          "se": "0.1265",
-          "upper95": "0.2246"
-        },
-        {
-          "beta": "0.3172",
-          "horizon": "4",
-          "lower95": "0.0331",
-          "n": "89",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0286",
-          "se": "0.1450",
-          "upper95": "0.6013"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "0",
-          "lower95": "-0.0000",
-          "n": "31",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0697",
-          "se": "0.0000",
-          "upper95": "0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "1",
-          "lower95": "-0.0000",
-          "n": "32",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0004",
-          "se": "0.0000",
-          "upper95": "-0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "2",
-          "lower95": "-0.0000",
-          "n": "33",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0086",
-          "se": "0.0000",
-          "upper95": "-0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "4",
-          "lower95": "-0.0000",
-          "n": "33",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.2302",
-          "se": "0.0000",
-          "upper95": "0.0000"
-        }
-      ],
-      "title": "State dependence under low-reserve conditions estimates"
-    },
     "main_figure_1": {
       "artifact_id": "main_figure_1",
-      "caption": "Impulse responses for Matched total deposits, Other component (q/q), M2 to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
-      "horizons": [],
+      "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
       "job_id": "baseline_tdc_lp_deposits",
       "kind": "figure",
       "links": [
@@ -797,17 +609,26 @@
           "label": "Raw"
         }
       ],
-      "outcome_ids": [],
+      "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
       "release_channel": "main_text",
       "slot_label": "Main Figure 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 3 outcomes | 85-93 obs",
+      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
       "table_rows": [],
       "title": "Deposit responses to the baseline TDC estimate"
     },
     "main_table_1": {
       "artifact_id": "main_table_1",
-      "caption": "Coefficient table for Matched total deposits, Other component (q/q), M2 in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
-      "horizons": [],
+      "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
       "job_id": "baseline_tdc_lp_deposits",
       "kind": "table",
       "links": [
@@ -824,10 +645,13 @@
           "label": "Raw"
         }
       ],
-      "outcome_ids": [],
+      "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
       "release_channel": "main_text",
       "slot_label": "Main Table 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 3 outcomes | 85-93 obs",
+      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
       "table_rows": [
         {
           "beta": "0.4712",
@@ -943,33 +767,20 @@
       "title": "Deposit responses to the baseline TDC estimate coefficient table"
     }
   },
-  "deferred_jobs": [
-    {
-      "meta": [
-        "lp iv",
-        "64 obs"
-      ],
-      "reason": "deferred weak instrument",
-      "tag": "Needs more evidence",
-      "title": "TDC LP-IV Deposits QRA Bank Absorption"
-    },
-    {
-      "meta": [
-        "lp iv",
-        "64 obs"
-      ],
-      "reason": "deferred weak instrument",
-      "tag": "Needs more evidence",
-      "title": "TDC LP-IV Deposits QRA Ru Gap"
-    }
-  ],
-  "generated_at": "2026-04-15T17:45:08+00:00",
+  "deferred_jobs": [],
+  "generated_at": "2026-04-21T09:59:56+00:00",
   "home": {
     "appendix_artifacts": [
       {
         "artifact_id": "appendix_table_1",
         "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
-        "horizons": [],
+        "horizons": [
+          "0",
+          "1",
+          "2",
+          "4",
+          "8"
+        ],
         "job_id": "baseline_tdc_lp_credit_spreads",
         "kind": "table",
         "links": [
@@ -986,7 +797,11 @@
             "label": "Raw"
           }
         ],
-        "outcome_ids": [],
+        "outcome_ids": [
+          "baa_aaa",
+          "investment_grade_oas",
+          "high_yield_oas"
+        ],
         "release_channel": "appendix",
         "slot_label": "Appendix Table 1",
         "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
@@ -1158,122 +973,6 @@
           }
         ],
         "title": "Credit-spread responses to the baseline TDC estimate estimates"
-      },
-      {
-        "artifact_id": "appendix_table_2",
-        "caption": "Coefficient table for Matched total deposits, M2, Repo spread in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4 with the corresponding standard errors and confidence intervals.",
-        "horizons": [],
-        "job_id": "tdc_state_dep_low_reserves",
-        "kind": "table",
-        "links": [
-          {
-            "href": "artifacts/appendix_table_2/index.html",
-            "label": "Open"
-          },
-          {
-            "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.csv",
-            "label": "CSV"
-          },
-          {
-            "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.md",
-            "label": "Raw"
-          }
-        ],
-        "outcome_ids": [],
-        "release_channel": "appendix",
-        "slot_label": "Appendix Table 2",
-        "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 69-73 obs",
-        "table_rows": [
-          {
-            "beta": "0.4463",
-            "horizon": "0",
-            "lower95": "-0.0739",
-            "n": "93",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.0927",
-            "se": "0.2654",
-            "upper95": "0.9665"
-          },
-          {
-            "beta": "0.3153",
-            "horizon": "1",
-            "lower95": "-0.2680",
-            "n": "92",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.2894",
-            "se": "0.2976",
-            "upper95": "0.8987"
-          },
-          {
-            "beta": "-0.0234",
-            "horizon": "2",
-            "lower95": "-0.2713",
-            "n": "91",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.8535",
-            "se": "0.1265",
-            "upper95": "0.2246"
-          },
-          {
-            "beta": "0.3172",
-            "horizon": "4",
-            "lower95": "0.0331",
-            "n": "89",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.0286",
-            "se": "0.1450",
-            "upper95": "0.6013"
-          },
-          {
-            "beta": "-0.0000",
-            "horizon": "0",
-            "lower95": "-0.0000",
-            "n": "31",
-            "outcome": "repo_spread",
-            "outcome_label": "Repo spread",
-            "p_value_normal": "0.0697",
-            "se": "0.0000",
-            "upper95": "0.0000"
-          },
-          {
-            "beta": "-0.0000",
-            "horizon": "1",
-            "lower95": "-0.0000",
-            "n": "32",
-            "outcome": "repo_spread",
-            "outcome_label": "Repo spread",
-            "p_value_normal": "0.0004",
-            "se": "0.0000",
-            "upper95": "-0.0000"
-          },
-          {
-            "beta": "-0.0000",
-            "horizon": "2",
-            "lower95": "-0.0000",
-            "n": "33",
-            "outcome": "repo_spread",
-            "outcome_label": "Repo spread",
-            "p_value_normal": "0.0086",
-            "se": "0.0000",
-            "upper95": "-0.0000"
-          },
-          {
-            "beta": "-0.0000",
-            "horizon": "4",
-            "lower95": "-0.0000",
-            "n": "33",
-            "outcome": "repo_spread",
-            "outcome_label": "Repo spread",
-            "p_value_normal": "0.2302",
-            "se": "0.0000",
-            "upper95": "0.0000"
-          }
-        ],
-        "title": "State dependence under low-reserve conditions estimates"
       }
     ],
     "deposit_accounting": {
@@ -1343,12 +1042,12 @@
           "definitions": [
             [
               "\\Delta D^{\\text{public}}_t",
-              "Interpretive proxy bucket `public_liquidity_proxy_block_qoq`, constructed as `- tga_balance_qoq - on_rrp_balance_qoq`.",
+              "Interpretive proxy bucket `public_liquidity_proxy_block_qoq`, constructed as `- tga_balance_qoq - on_rrp_balance_qoq`. This is narrower than the full Treasury operating cash concept used in the theory identities.",
               "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub>"
             ],
             [
               "\\Delta TGA_t",
-              "Treasury General Account balance: outcome `tga_balance_qoq`, FRED `WDTGAL`, quarter-over-quarter change.",
+              "Treasury General Account balance: outcome `tga_balance_qoq`, FRED `WDTGAL`, quarter-over-quarter change. Useful as a diagnostic cash proxy, but not the full TOC term when TT&L and related balances matter.",
               "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">TGA</span><sub class=\"eq-sub\">t</sub>"
             ],
             [
@@ -1363,7 +1062,7 @@
             "Treasury General Account balance (`tga_balance_qoq`; FRED `WDTGAL`)",
             "ON RRP balance (`on_rrp_balance_qoq`; FRED `RRPONTSYD`)"
           ],
-          "summary": "This bucket tracks public cash balances that pull money into or out of the private deposit base.",
+          "summary": "This proxy bucket tracks public cash balances that pull money into or out of the private deposit base. It is a diagnostic liquidity-plumbing surface, not the full historical Treasury operating cash leg.",
           "title": "Public-liquidity plumbing"
         },
         {
@@ -1447,10 +1146,6 @@
         {
           "href": "site_assets/models/baseline_tdc_lp_deposit_source_identity__lp_estimates.csv",
           "label": "Accounting comparison CSV"
-        },
-        {
-          "href": "site_assets/reports/accounting_identity_alignment.md",
-          "label": "Alignment note"
         }
       ],
       "outcomes": [
@@ -1606,7 +1301,7 @@
     },
     "insights": [
       {
-        "body": "The baseline reduced-form work asks whether the Treasury component of deposits first shows up in deposits before it shows up anywhere else.",
+        "body": "The baseline reduced-form work asks whether Treasury Deposit Contribution produces an early, robust deposit response in the selected public quarterly specification.",
         "kicker": "Question 1",
         "title": "Where does Treasury financing show up first?"
       },
@@ -1624,8 +1319,14 @@
     "main_artifacts": [
       {
         "artifact_id": "main_figure_1",
-        "caption": "Impulse responses for Matched total deposits, Other component (q/q), M2 to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
-        "horizons": [],
+        "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+        "horizons": [
+          "0",
+          "1",
+          "2",
+          "4",
+          "8"
+        ],
         "job_id": "baseline_tdc_lp_deposits",
         "kind": "figure",
         "links": [
@@ -1638,17 +1339,26 @@
             "label": "Raw"
           }
         ],
-        "outcome_ids": [],
+        "outcome_ids": [
+          "matched_total_deposits",
+          "other_component_qoq"
+        ],
         "release_channel": "main_text",
         "slot_label": "Main Figure 1",
-        "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 3 outcomes | 85-93 obs",
+        "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
         "table_rows": [],
         "title": "Deposit responses to the baseline TDC estimate"
       },
       {
         "artifact_id": "main_table_1",
-        "caption": "Coefficient table for Matched total deposits, Other component (q/q), M2 in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
-        "horizons": [],
+        "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+        "horizons": [
+          "0",
+          "1",
+          "2",
+          "4",
+          "8"
+        ],
         "job_id": "baseline_tdc_lp_deposits",
         "kind": "table",
         "links": [
@@ -1665,10 +1375,13 @@
             "label": "Raw"
           }
         ],
-        "outcome_ids": [],
+        "outcome_ids": [
+          "matched_total_deposits",
+          "other_component_qoq"
+        ],
         "release_channel": "main_text",
         "slot_label": "Main Table 1",
-        "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 3 outcomes | 85-93 obs",
+        "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
         "table_rows": [
           {
             "beta": "0.4712",
@@ -1804,14 +1517,6 @@
         {
           "href": "site_assets/models/baseline_tdc_lp_credit_spreads__lp_estimates.csv",
           "label": "Baseline CSV"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_credit_spreads__robustness_ladder.csv",
-          "label": "Control ladder"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_credit_spreads__treatment_sensitivity.csv",
-          "label": "Treatment variants"
         }
       ],
       "observation_label": "86-93 obs",
@@ -2130,14 +1835,6 @@
         {
           "href": "site_assets/models/baseline_tdc_lp_deposits__lp_estimates.csv",
           "label": "Baseline CSV"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_deposits__robustness_ladder.csv",
-          "label": "Control ladder"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_deposits__treatment_sensitivity.csv",
-          "label": "Treatment variants"
         }
       ],
       "observation_label": "85-93 obs",
@@ -2359,14 +2056,6 @@
         {
           "href": "site_assets/models/baseline_tdc_lp_fx__lp_estimates.csv",
           "label": "Baseline CSV"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_fx__robustness_ladder.csv",
-          "label": "Control ladder"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_fx__treatment_sensitivity.csv",
-          "label": "Treatment variants"
         }
       ],
       "observation_label": "Sample varies by horizon",
@@ -2491,14 +2180,6 @@
         {
           "href": "site_assets/models/baseline_tdc_lp_inflation__lp_estimates.csv",
           "label": "Baseline CSV"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_inflation__robustness_ladder.csv",
-          "label": "Control ladder"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_inflation__treatment_sensitivity.csv",
-          "label": "Treatment variants"
         }
       ],
       "observation_label": "Sample varies by horizon",
@@ -2817,14 +2498,6 @@
         {
           "href": "site_assets/models/baseline_tdc_lp_private_assets__lp_estimates.csv",
           "label": "Baseline CSV"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_private_assets__robustness_ladder.csv",
-          "label": "Control ladder"
-        },
-        {
-          "href": "site_assets/reports/baseline_tdc_lp_private_assets__treatment_sensitivity.csv",
-          "label": "Treatment variants"
         }
       ],
       "observation_label": "Sample varies by horizon",
@@ -3321,208 +2994,23 @@
       ],
       "title": "Private-asset responses look mixed",
       "treatment_label": "Baseline TDC estimate"
-    },
-    "tdc_state_dep_low_reserves": {
-      "anchor": "tdc-state-dep-low-reserves",
-      "branch_label": "Expanded control set",
-      "branch_note": "Selected public version uses the expanded control set built from a screened pool of K=200 lagged indicators.",
-      "estimator_label": "lp | newey west",
-      "job_id": "tdc_state_dep_low_reserves",
-      "kicker": "State dependence",
-      "links": [
-        {
-          "href": "site_assets/models/tdc_state_dep_low_reserves__robustness_k200_estimates.csv",
-          "label": "Selected CSV"
-        },
-        {
-          "href": "site_assets/models/tdc_state_dep_low_reserves__lp_estimates.csv",
-          "label": "Baseline CSV"
-        }
-      ],
-      "observation_label": "69-73 obs",
-      "outcomes": [
-        {
-          "chart_dom_id": "chart-tdc-state-dep-low-reserves-matched-total-deposits",
-          "key": "matched_total_deposits",
-          "label": "Matched total deposits",
-          "points": [
-            {
-              "beta": 0.4463108010098289,
-              "horizon": 0,
-              "lower95": -0.0739135682055605,
-              "p_value": 0.09266139968222831,
-              "upper95": 0.9665351702252183
-            },
-            {
-              "beta": 0.31534021547477886,
-              "horizon": 1,
-              "lower95": -0.26802716566179385,
-              "p_value": 0.2893806482316359,
-              "upper95": 0.8987075966113516
-            },
-            {
-              "beta": -0.023356691826978526,
-              "horizon": 2,
-              "lower95": -0.2712695489914626,
-              "p_value": 0.8534972160232166,
-              "upper95": 0.22455616533750555
-            },
-            {
-              "beta": 0.31721640729767275,
-              "horizon": 4,
-              "lower95": 0.03309220502015081,
-              "p_value": 0.028648995308133918,
-              "upper95": 0.6013406095751948
-            }
-          ]
-        },
-        {
-          "chart_dom_id": "chart-tdc-state-dep-low-reserves-repo-spread",
-          "key": "repo_spread",
-          "label": "Repo spread",
-          "points": [
-            {
-              "beta": -6.70855319487697e-06,
-              "horizon": 0,
-              "lower95": -1.3958868972520735e-05,
-              "p_value": 0.06974800999492992,
-              "upper95": 5.417625827667931e-07
-            },
-            {
-              "beta": -1.2228052471507085e-05,
-              "horizon": 1,
-              "lower95": -1.8968225990222543e-05,
-              "p_value": 0.0003767724338421541,
-              "upper95": -5.487878952791627e-06
-            },
-            {
-              "beta": -7.164244853246678e-06,
-              "horizon": 2,
-              "lower95": -1.2512292032282147e-05,
-              "p_value": 0.008649225267326699,
-              "upper95": -1.8161976742112097e-06
-            },
-            {
-              "beta": -6.261041531064495e-06,
-              "horizon": 4,
-              "lower95": -1.6488019034816487e-05,
-              "p_value": 0.23016712447204224,
-              "upper95": 3.965935972687498e-06
-            }
-          ]
-        }
-      ],
-      "subtitle": "This is the only public heterogeneity check still left on the site.",
-      "summary": "The low-reserve branch is still only supporting evidence. It is kept as a suggestive heterogeneity check, not as a headline mechanism result.",
-      "table_rows": [
-        {
-          "beta": "0.4463",
-          "horizon": "0",
-          "lower95": "-0.0739",
-          "n": "93",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0927",
-          "se": "0.2654",
-          "upper95": "0.9665"
-        },
-        {
-          "beta": "0.3153",
-          "horizon": "1",
-          "lower95": "-0.2680",
-          "n": "92",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.2894",
-          "se": "0.2976",
-          "upper95": "0.8987"
-        },
-        {
-          "beta": "-0.0234",
-          "horizon": "2",
-          "lower95": "-0.2713",
-          "n": "91",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.8535",
-          "se": "0.1265",
-          "upper95": "0.2246"
-        },
-        {
-          "beta": "0.3172",
-          "horizon": "4",
-          "lower95": "0.0331",
-          "n": "89",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0286",
-          "se": "0.1450",
-          "upper95": "0.6013"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "0",
-          "lower95": "-0.0000",
-          "n": "31",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0697",
-          "se": "0.0000",
-          "upper95": "0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "1",
-          "lower95": "-0.0000",
-          "n": "32",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0004",
-          "se": "0.0000",
-          "upper95": "-0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "2",
-          "lower95": "-0.0000",
-          "n": "33",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.0086",
-          "se": "0.0000",
-          "upper95": "-0.0000"
-        },
-        {
-          "beta": "-0.0000",
-          "horizon": "4",
-          "lower95": "-0.0000",
-          "n": "33",
-          "outcome": "repo_spread",
-          "outcome_label": "Repo spread",
-          "p_value_normal": "0.2302",
-          "se": "0.0000",
-          "upper95": "0.0000"
-        }
-      ],
-      "title": "State dependence under low-reserve conditions",
-      "treatment_label": "Baseline TDC estimate"
     }
   },
   "metrics": [
     {
       "label": "Baseline jobs",
       "note": "Core public result blocks in the current release.",
-      "value": "6"
+      "value": "2"
     },
     {
-      "label": "Open jobs",
-      "note": "Visible branches that still need stronger identification or more usable events.",
-      "value": "2"
+      "label": "Appendix jobs",
+      "note": "Supporting public jobs that stay below the headline claim.",
+      "value": "1"
     },
     {
       "label": "Estimated jobs",
       "note": "Tracked jobs with nonempty estimate outputs.",
-      "value": "8"
+      "value": "2"
     }
   ],
   "robustness": {
@@ -3555,28 +3043,7 @@
             "rows_written": 10
           }
         ],
-        "links": [
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__robustness_ladder.csv",
-            "label": "Ladder CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__treatment_sensitivity.csv",
-            "label": "Treatment CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__regime_sensitivity.csv",
-            "label": "Regime CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__dml_summary.json",
-            "label": "Quoted DML summary"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__forest_summary.json",
-            "label": "Forest cross-check"
-          }
-        ],
+        "links": [],
         "ml_public_branch": "dml",
         "ml_public_branch_label": "DML",
         "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
@@ -3621,28 +3088,7 @@
             "rows_written": 15
           }
         ],
-        "links": [
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_credit_spreads__robustness_ladder.csv",
-            "label": "Ladder CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_credit_spreads__treatment_sensitivity.csv",
-            "label": "Treatment CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_credit_spreads__regime_sensitivity.csv",
-            "label": "Regime CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_credit_spreads__dml_summary.json",
-            "label": "Quoted DML summary"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_credit_spreads__forest_summary.json",
-            "label": "Forest cross-check"
-          }
-        ],
+        "links": [],
         "ml_public_branch": "dml",
         "ml_public_branch_label": "DML",
         "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
@@ -3687,28 +3133,7 @@
             "rows_written": 15
           }
         ],
-        "links": [
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_inflation__robustness_ladder.csv",
-            "label": "Ladder CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_inflation__treatment_sensitivity.csv",
-            "label": "Treatment CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_inflation__regime_sensitivity.csv",
-            "label": "Regime CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_inflation__dml_summary.json",
-            "label": "Quoted DML summary"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_inflation__forest_summary.json",
-            "label": "Forest cross-check"
-          }
-        ],
+        "links": [],
         "ml_public_branch": "dml",
         "ml_public_branch_label": "DML",
         "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
@@ -3753,28 +3178,7 @@
             "rows_written": 5
           }
         ],
-        "links": [
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_fx__robustness_ladder.csv",
-            "label": "Ladder CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_fx__treatment_sensitivity.csv",
-            "label": "Treatment CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_fx__regime_sensitivity.csv",
-            "label": "Regime CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_fx__dml_summary.json",
-            "label": "Quoted DML summary"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_fx__forest_summary.json",
-            "label": "Forest cross-check"
-          }
-        ],
+        "links": [],
         "ml_public_branch": "dml",
         "ml_public_branch_label": "DML",
         "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
@@ -3819,28 +3223,7 @@
             "rows_written": 25
           }
         ],
-        "links": [
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_private_assets__robustness_ladder.csv",
-            "label": "Ladder CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_private_assets__treatment_sensitivity.csv",
-            "label": "Treatment CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_private_assets__regime_sensitivity.csv",
-            "label": "Regime CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_private_assets__dml_summary.json",
-            "label": "Quoted DML summary"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_private_assets__forest_summary.json",
-            "label": "Forest cross-check"
-          }
-        ],
+        "links": [],
         "ml_public_branch": "dml",
         "ml_public_branch_label": "DML",
         "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
@@ -3885,28 +3268,7 @@
             "rows_written": 25
           }
         ],
-        "links": [
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_liquidity_decomposition__robustness_ladder.csv",
-            "label": "Ladder CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_liquidity_decomposition__treatment_sensitivity.csv",
-            "label": "Treatment CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_liquidity_decomposition__regime_sensitivity.csv",
-            "label": "Regime CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_liquidity_decomposition__dml_summary.json",
-            "label": "Quoted DML summary"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_liquidity_decomposition__forest_summary.json",
-            "label": "Forest cross-check"
-          }
-        ],
+        "links": [],
         "ml_public_branch": "dml",
         "ml_public_branch_label": "DML",
         "ml_public_branch_reason": "Quoted ML branch uses cross-fitted ridge DML because it is the most stable live learner. Forest remains the conservative cross-check; TMLE remains experimental.",
@@ -3931,14 +3293,6 @@
         {
           "href": "site_assets/reports/robustness_snapshot.json",
           "label": "Universe JSON"
-        },
-        {
-          "href": "",
-          "label": "Universe columns"
-        },
-        {
-          "href": "",
-          "label": "Panel CSV"
         }
       ],
       "recommended_k_mode": 100,
@@ -3950,19 +3304,19 @@
   "sidecar": {
     "insights": [
       {
-        "body": "Inflation is included to test whether Treasury-composition shocks reach prices after they first pass through bank balance sheets and liquidity.",
+        "body": "Inflation is included as a secondary check on whether the baseline TDC flow reaches prices after it passes through balance sheets and liquidity.",
         "kicker": "Inflation",
         "title": "Inflation moves later than deposits and reserves"
       },
       {
-        "body": "The dollar branch asks whether Treasury-composition shocks spill into exchange-rate pricing as well as domestic balance sheets.",
+        "body": "The dollar branch asks whether the baseline TDC flow also shows up in exchange-rate pricing as well as domestic balance sheets.",
         "kicker": "FX",
         "title": "FX tracks the external pricing margin"
       },
       {
-        "body": "The restored low-reserve branch asks whether the deposit response is stronger when reserve scarcity is already in place.",
-        "kicker": "State dependence",
-        "title": "Low-reserve states help identify when deposits matter most"
+        "body": "The private-asset branch stays below the headline claim, but it helps show where composition effects matter more than a single expansion story.",
+        "kicker": "Private assets",
+        "title": "Private balance sheets remain secondary context"
       }
     ],
     "iv_lab": {
@@ -4031,11 +3385,11 @@
       "jobs_scanned": 5,
       "links": [
         {
-          "href": "site_assets/reports/iv_lab.json",
+          "href": "",
           "label": "IV lab JSON"
         },
         {
-          "href": "site_assets/reports/iv_lab.csv",
+          "href": "",
           "label": "IV lab CSV"
         }
       ],
@@ -4045,17 +3399,12 @@
       "baseline_tdc_lp_credit_spreads",
       "baseline_tdc_lp_inflation",
       "baseline_tdc_lp_fx",
-      "baseline_tdc_lp_private_assets",
-      "tdc_state_dep_low_reserves"
+      "baseline_tdc_lp_private_assets"
     ],
     "treatment_comparisons": [
       {
         "job_id": "baseline_tdc_lp_deposits",
         "links": [
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__treatment_sensitivity_estimates.csv",
-            "label": "Treatment variants CSV"
-          },
           {
             "href": "site_assets/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
             "label": "Selected CSV"
@@ -4063,14 +3412,6 @@
           {
             "href": "site_assets/models/baseline_tdc_lp_deposits__lp_estimates.csv",
             "label": "Baseline CSV"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__robustness_ladder.csv",
-            "label": "Control ladder"
-          },
-          {
-            "href": "site_assets/reports/baseline_tdc_lp_deposits__treatment_sensitivity.csv",
-            "label": "Treatment variants"
           }
         ],
         "outcomes": [

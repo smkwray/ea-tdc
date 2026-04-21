@@ -12,6 +12,54 @@ jobs:
     cutoff_rule: quarter_start_default
     output_family: headline_identified
 
+  - job_id: baseline_tdc_lp_deposits_tier2_bank_only
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_interest_corrected_bank_only_ru_flow
+    research_status: sensitivity_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier2_bank_only_qoq
+      - m2
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: baseline_tdc_lp_deposits_tier3_bank_only
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow
+    research_status: sensitivity_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier3_bank_only_qoq
+      - m2
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: baseline_tdc_lp_deposits_tier3_broad_depository
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow
+    research_status: sensitivity_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier3_broad_depository_qoq
+      - m2
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
   - job_id: baseline_tdc_lp_funding
     estimator: lp
     freq: quarterly
@@ -25,6 +73,8 @@ jobs:
     controls_block: headline_core
     cutoff_rule: quarter_start_default
     output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: baseline_tdc_lp_credit_spreads
     estimator: lp
@@ -90,6 +140,117 @@ jobs:
     freq: quarterly
     treatment_id: tdc_bank_only_qoq
     outcomes:
+      - reserve_balances_qoq
+      - fed_total_assets_qoq
+      - fed_treasury_holdings_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - reserve_balances_net_fed_treasury_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_lp_ru_acquisition
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_ru_acquisition_component_qoq
+    research_status: explanatory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_qoq
+      - repo_spread
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_lp_treasury_cash_drain
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_treasury_cash_drain_component_qoq
+    research_status: explanatory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_qoq
+      - repo_spread
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_lp_positive_remit
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_positive_remit_component_qoq
+    research_status: explanatory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_qoq
+      - repo_spread
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_lp_ru_acquisition_liquidity_decomposition
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_ru_acquisition_component_qoq
+    research_status: explanatory_sidecar
+    outcomes:
+      - repo_spread
+      - reserve_balances_qoq
+      - fed_total_assets_qoq
+      - fed_treasury_holdings_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - reserve_balances_net_fed_treasury_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_lp_treasury_cash_drain_liquidity_decomposition
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_treasury_cash_drain_component_qoq
+    research_status: explanatory_sidecar
+    outcomes:
+      - repo_spread
+      - reserve_balances_qoq
+      - fed_total_assets_qoq
+      - fed_treasury_holdings_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - reserve_balances_net_fed_treasury_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_lp_positive_remit_liquidity_decomposition
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_positive_remit_component_qoq
+    research_status: explanatory_sidecar
+    outcomes:
+      - repo_spread
       - reserve_balances_qoq
       - fed_total_assets_qoq
       - fed_treasury_holdings_qoq
@@ -210,6 +371,7 @@ jobs:
     estimator: lp
     freq: quarterly
     treatment_id: tdc_bank_only_qoq
+    research_status: coherence_only
     outcomes:
       - other_component_qoq
       - accounting_deposit_substitution_qoq
@@ -225,10 +387,31 @@ jobs:
     track_in_release_snapshot: false
     track_in_estimation_snapshot: false
 
+  - job_id: baseline_tdc_lp_deposit_source_identity_tier3_bank_only
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow
+    research_status: coherence_only
+    outcomes:
+      - other_component_tier3_bank_only_qoq
+      - accounting_deposit_substitution_qoq
+      - accounting_bank_balance_sheet_qoq
+      - accounting_public_liquidity_qoq
+      - accounting_external_flow_qoq
+      - accounting_identity_total_qoq
+      - accounting_identity_gap_tier3_bank_only_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
   - job_id: baseline_tdc_lp_deposit_source_identity_pct_gdp
     estimator: lp
     freq: quarterly
     treatment_id: tdc_bank_only_qoq
+    research_status: coherence_only
     outcomes:
       - other_component_qoq_pct_gdp
       - accounting_deposit_substitution_qoq_pct_gdp
@@ -237,6 +420,26 @@ jobs:
       - accounting_external_flow_qoq_pct_gdp
       - accounting_identity_total_qoq_pct_gdp
       - accounting_identity_gap_qoq_pct_gdp
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: baseline_tdc_lp_deposit_source_identity_tier3_bank_only_pct_gdp
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow
+    research_status: coherence_only
+    outcomes:
+      - other_component_tier3_bank_only_qoq_pct_gdp
+      - accounting_deposit_substitution_qoq_pct_gdp
+      - accounting_bank_balance_sheet_qoq_pct_gdp
+      - accounting_public_liquidity_qoq_pct_gdp
+      - accounting_external_flow_qoq_pct_gdp
+      - accounting_identity_total_qoq_pct_gdp
+      - accounting_identity_gap_tier3_bank_only_qoq_pct_gdp
     horizons: [0, 1, 2, 4, 8]
     controls_block: headline_core
     cutoff_rule: quarter_start_default
@@ -261,6 +464,8 @@ jobs:
     cutoff_rule: quarter_start_default
     output_family: headline_identified
     release1_scope: deferred
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: tdc_lpiv_deposits_qra_bank_absorption
     estimator: lp_iv
@@ -279,6 +484,8 @@ jobs:
     cutoff_rule: quarter_start_default
     output_family: headline_identified
     release1_scope: deferred
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: tdc_lpiv_deposits_qra_bank_foreign_private_corr
     estimator: lp_iv
@@ -341,6 +548,7 @@ jobs:
     estimator: lp
     freq: quarterly
     treatment_id: tdcpass_tdc_residual_z
+    research_status: boundary_comparison_only
     outcomes:
       - tdcpass_tdc_bank_only_qoq
       - tdcpass_total_deposits_bank_qoq
@@ -375,6 +583,8 @@ jobs:
     horizons_bd: [1, 5, 21, 63]
     cutoff_rule: event_close_with_embargo
     output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: qra_event_rates_63bd_expanded_descriptive
     estimator: event_lp
@@ -393,6 +603,7 @@ jobs:
     cutoff_rule: event_close_with_embargo
     output_family: supporting_descriptive
     track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: qra_event_risk_21bd
     estimator: event_lp
@@ -412,6 +623,8 @@ jobs:
     horizons_bd: [1, 5, 21]
     cutoff_rule: event_close_with_embargo
     output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: qra_event_risk_21bd_expanded_descriptive
     estimator: event_lp
@@ -432,6 +645,7 @@ jobs:
     cutoff_rule: event_close_with_embargo
     output_family: supporting_descriptive
     track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: tdc_state_dep_low_reserves
     estimator: lp
@@ -445,6 +659,8 @@ jobs:
     horizons: [0, 1, 2, 4]
     cutoff_rule: quarter_start_default
     output_family: supporting_reduced_form
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
 
   - job_id: tdc_state_dep_on_rrp_drain
     estimator: lp
@@ -503,5 +719,39 @@ jobs:
     horizons: [0, 1, 2, 4]
     cutoff_rule: quarter_start_default
     output_family: supporting_reduced_form
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_state_dep_ru_acquisition_low_reserves
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_ru_acquisition_component_qoq
+    state_id: coord_low_reserve_state_l1
+    research_status: watchlist_only
+    outcomes:
+      - matched_total_deposits
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - repo_spread
+    horizons: [0, 1, 2, 4]
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_component_state_dep_treasury_cash_drain_on_rrp_drain
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_treasury_cash_drain_component_qoq
+    state_id: coord_on_rrp_drain_state_l1
+    research_status: retained_active_probe
+    outcomes:
+      - matched_total_deposits
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - repo_spread
+    horizons: [0, 1, 2, 4]
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
     track_in_release_snapshot: false
     track_in_estimation_snapshot: false

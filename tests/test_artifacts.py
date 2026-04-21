@@ -117,6 +117,7 @@ def test_build_release_artifacts_renders_svg_and_tables(tmp_path: Path) -> None:
     assert "Custom Lp Job" in figure_path.read_text(encoding="utf-8")
     assert "Treatment:" in figure_path.read_text(encoding="utf-8")
     assert "GDP deflator" in figure_path.read_text(encoding="utf-8")
+    assert "Scale:" in figure_path.read_text(encoding="utf-8")
     assert figure_html_path.exists()
     assert "<img src=" in figure_html_path.read_text(encoding="utf-8")
     assert "Local projection" in figure_html_path.read_text(encoding="utf-8")
@@ -137,6 +138,8 @@ def test_build_release_artifacts_renders_svg_and_tables(tmp_path: Path) -> None:
     assert appendix_csv_path.exists()
     assert appendix_csv_path.read_text(encoding="utf-8").splitlines()[0].startswith("outcome,horizon,beta,se")
     assert rows["main_figure_1"]["source_estimates_path"].endswith("custom_lp_job__robustness_k200_estimates.csv")
+    assert rows["main_figure_1"]["outcome_ids"] == "matched_total_deposits"
+    assert rows["main_figure_1"]["horizons"] == "0,1"
     assert "Main Text" in result.gallery_path.read_text(encoding="utf-8")
     assert "Committed Release 1 artifacts" in result.gallery_path.read_text(encoding="utf-8")
     assert "Rendered artifacts" in result.gallery_path.read_text(encoding="utf-8")

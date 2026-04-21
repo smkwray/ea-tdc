@@ -1,5 +1,0 @@
-job_id,run_type,k_screened,factor_count,control_ids_used,dropped_controls,estimates_path,rows_written,warning_rows,weak_instrument_rows,avg_abs_beta,avg_n
-tdc_state_dep_bank_short_share,baseline_core,0,0,GDP;gdp_deflator;FEDFUNDS;TOTRESNS,,/output/models/tdc_state_dep_bank_short_share__robustness_baseline_estimates.csv,8,0,0,0.106107,61.75
-tdc_state_dep_bank_short_share,factor_screen,100,4,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,/output/models/tdc_state_dep_bank_short_share__robustness_k100_estimates.csv,8,0,0,0.139556,61.75
-tdc_state_dep_bank_short_share,factor_screen,200,4,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,/output/models/tdc_state_dep_bank_short_share__robustness_k200_estimates.csv,8,0,0,0.137782,61.75
-tdc_state_dep_bank_short_share,factor_screen,300,4,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k300_f1;dflmx_k300_f2;dflmx_k300_f3;dflmx_k300_f4,,/output/models/tdc_state_dep_bank_short_share__robustness_k300_estimates.csv,8,0,0,0.139932,61.75

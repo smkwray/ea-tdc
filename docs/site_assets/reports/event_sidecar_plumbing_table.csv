@@ -1,6 +1,0 @@
-job_id,lane,outcome,horizon,beta,p_value_normal,n,warning_flags
-qra_event_risk_21bd,risk_plumbing,sp500_return,1,-0.04443491748613124,0.00029892167520495505,14,
-qra_event_risk_21bd,risk_plumbing,tga_balance_change,21,3513.9461476950532,0.006407554255856596,14,
-qra_event_risk_21bd,risk_plumbing,reserve_balances_change,1,915.158737371939,9.410539788357042e-05,14,
-qra_event_risk_21bd,risk_plumbing,rrp_balance_change,21,-4.086276025382035,0.02243441716220773,14,
-qra_event_risk_21bd,risk_plumbing,fed_balance_sheet_change,21,-862.2467555198384,0.025966879461417625,14,

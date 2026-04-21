@@ -3,6 +3,8 @@ from __future__ import annotations
 import csv
 import html
 import json
+import shutil
+from datetime import date
 from dataclasses import dataclass
 from pathlib import Path
 from textwrap import wrap
@@ -271,20 +273,92 @@ def _robustness_selected_estimates_path(paths: ProjectPaths, job_id: str) -> Pat
     return None
 
 
+def _dedupe_text(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for item in items:
+        normalized = str(item or "").strip()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        ordered.append(normalized)
+    return ordered
+
+
+def _current_quarter_label(today: date | None = None) -> str:
+    current = today or date.today()
+    quarter = ((current.month - 1) // 3) + 1
+    return f"{current.year}Q{quarter}"
+
+
+def _selected_control_ids(
+    *,
+    paths: ProjectPaths,
+    job_id: str,
+    estimation_summary: dict[str, Any],
+    source_estimates_path: Path,
+) -> list[str]:
+    controls = [str(item) for item in estimation_summary.get("control_ids", []) if str(item).strip()]
+    estimates_name = source_estimates_path.name
+    if "__robustness_k" not in estimates_name:
+        return _dedupe_text(controls)
+    robustness_summary_path = paths.manifests / f"{job_id}__robustness_summary.json"
+    if not robustness_summary_path.exists():
+        return _dedupe_text(controls)
+    robustness_summary = _read_json(robustness_summary_path)
+    base_controls = [str(item) for item in robustness_summary.get("base_controls", []) if str(item).strip()]
+    factor_controls = [str(item) for item in robustness_summary.get("recommended_factor_ids", []) if str(item).strip()]
+    combined = base_controls + factor_controls
+    return _dedupe_text(combined or controls)
+
+
+def _observed_outcome_ids(rows: list[dict[str, str]], preferred_order: list[str]) -> list[str]:
+    observed = {
+        str(row.get("outcome", "")).strip()
+        for row in rows
+        if str(row.get("outcome", "")).strip()
+    }
+    ordered = [outcome for outcome in preferred_order if outcome in observed]
+    extras = sorted(observed.difference(ordered))
+    return ordered + extras
+
+
+def _observed_horizons(rows: list[dict[str, str]], preferred_order: list[str]) -> list[str]:
+    observed = {
+        str(row.get("horizon", "")).strip()
+        for row in rows
+        if str(row.get("horizon", "")).strip()
+    }
+    ordered = [horizon for horizon in preferred_order if horizon in observed]
+    extras = sorted(observed.difference(ordered), key=lambda item: int(item))
+    return ordered + extras
+
+
 def _artifact_notes(
     *,
+    paths: ProjectPaths,
     design_manifest: dict[str, Any],
     estimation_summary: dict[str, Any],
     artifact_row: dict[str, str],
     source_estimates_path: Path,
 ) -> list[str]:
+    job_id = str(artifact_row.get("job_id", "")).strip()
+    sample_start = str(design_manifest.get("sample_start", "")).strip()
+    sample_end = str(design_manifest.get("sample_end", "")).strip()
+    control_ids = _selected_control_ids(
+        paths=paths,
+        job_id=job_id,
+        estimation_summary=estimation_summary,
+        source_estimates_path=source_estimates_path,
+    )
     notes = [
         f"Treatment: {_humanize(str(design_manifest.get('treatment_id', '')).strip())}",
         f"Response: {_humanize(str(estimation_summary.get('response_type', '')).strip() or str(design_manifest.get('response_type', '')).strip())}",
-        f"Controls: {', '.join(_humanize(str(item)) for item in estimation_summary.get('control_ids', []) if str(item).strip()) or 'none'}",
+        f"Controls: {', '.join(_humanize(str(item)) for item in control_ids) or 'none'}",
         f"Covariance: {', '.join(_humanize(str(item)) for item in estimation_summary.get('covariance_estimators_used', []) if str(item).strip()) or 'unknown'}",
-        f"Sample span: {str(design_manifest.get('sample_start', '')).strip()} to {str(design_manifest.get('sample_end', '')).strip()}",
+        f"Sample span: {sample_start} to {sample_end}",
         f"Observations: {estimation_summary.get('min_observations', 0)} to {estimation_summary.get('max_observations', 0)}",
+        "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.",
     ]
     warning_rows = int(estimation_summary.get("warning_rows", 0) or 0)
     if warning_rows > 0:
@@ -295,6 +369,10 @@ def _artifact_notes(
         notes.append(f"Displayed branch: K={selected_k} screened branch")
     elif "__robustness_baseline" in estimates_name:
         notes.append("Displayed branch: baseline macro block")
+    if sample_end and sample_end == _current_quarter_label():
+        notes.append(
+            f"Sample endpoint note: {sample_end} is the latest labeled quarter as of {date.today().isoformat()} and may reflect an in-progress quarter endpoint."
+        )
     notes.append(f"Artifact source: {_job_display_name(str(artifact_row.get('job_id', '')).strip())}")
     return [note for note in notes if note.split(": ", 1)[-1]]
 
@@ -332,13 +410,19 @@ def _artifact_subtitle(
     artifact_row: dict[str, str],
     design_manifest: dict[str, Any],
     estimation_summary: dict[str, Any],
+    selected_rows: list[dict[str, str]],
 ) -> str:
     estimator = ESTIMATOR_LABELS.get(str(artifact_row.get("estimator", "")).strip(), str(artifact_row.get("estimator", "")).strip())
     family_label = _humanize(str(artifact_row.get("output_family", "")).strip())
     sample_start = str(design_manifest.get("sample_start", "")).strip()
     sample_end = str(design_manifest.get("sample_end", "")).strip()
-    outcome_count = len(design_manifest.get("outcome_ids", []) or _split_csv(str(artifact_row.get("outcome_ids", ""))))
-    observation_range = f"{estimation_summary.get('min_observations', 0)}-{estimation_summary.get('max_observations', 0)} obs"
+    preferred_outcomes = _split_csv(str(artifact_row.get("outcome_ids", "")))
+    outcome_count = len(_observed_outcome_ids(selected_rows, preferred_outcomes))
+    n_values = [int(str(row.get("n", "0") or "0")) for row in selected_rows if str(row.get("n", "")).strip()]
+    if n_values:
+        observation_range = f"{min(n_values)}-{max(n_values)} obs"
+    else:
+        observation_range = f"{estimation_summary.get('min_observations', 0)}-{estimation_summary.get('max_observations', 0)} obs"
     pieces = [estimator]
     if family_label:
         pieces.append(family_label)
@@ -353,9 +437,12 @@ def _artifact_caption(
     *,
     artifact_row: dict[str, str],
     design_manifest: dict[str, Any],
+    selected_rows: list[dict[str, str]],
 ) -> str:
-    outcomes = [_humanize(item) for item in _split_csv(str(artifact_row.get("outcome_ids", "")))]
-    horizons = _split_csv(str(artifact_row.get("horizons", "")))
+    preferred_outcomes = _split_csv(str(artifact_row.get("outcome_ids", "")))
+    preferred_horizons = _split_csv(str(artifact_row.get("horizons", "")))
+    outcomes = [_humanize(item) for item in _observed_outcome_ids(selected_rows, preferred_outcomes)]
+    horizons = _observed_horizons(selected_rows, preferred_horizons)
     treatment = _humanize(str(design_manifest.get("treatment_id", "")).strip())
     horizon_text = ", ".join(horizons)
     if str(artifact_row.get("artifact_kind", "")).strip() == "figure":
@@ -664,6 +751,8 @@ def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
     artifact_contract = build_release_artifact_contract(paths)
     contract_rows = _read_json(artifact_contract.summary_path).get("rows", [])
     artifacts_root = paths.output / "artifacts"
+    if artifacts_root.exists():
+        shutil.rmtree(artifacts_root)
     rows: list[dict[str, str]] = []
     figure_artifacts = 0
     table_artifacts = 0
@@ -681,7 +770,21 @@ def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
         artifact_dir.mkdir(parents=True, exist_ok=True)
         estimates_path = _estimates_path_for_job(paths, job_id)
         design_manifest, estimation_summary = _artifact_context(paths, job_id)
+        estimate_rows = _read_csv(estimates_path)
+        outcomes_order = _split_csv(str(artifact_row.get("outcome_ids", "")))
+        selected_horizons = set(_split_csv(str(artifact_row.get("horizons", ""))))
+        selected_rows = [
+            row
+            for row in estimate_rows
+            if str(row.get("outcome", "")).strip() in set(outcomes_order)
+            and str(row.get("horizon", "")).strip() in selected_horizons
+        ]
+        outcome_rank = {outcome: index for index, outcome in enumerate(outcomes_order)}
+        selected_rows.sort(key=lambda row: (outcome_rank.get(str(row.get("outcome", "")), 999), int(str(row.get("horizon", "0")))))
+        observed_outcomes = _observed_outcome_ids(selected_rows, outcomes_order)
+        observed_horizons = _observed_horizons(selected_rows, _split_csv(str(artifact_row.get("horizons", ""))))
         notes = _artifact_notes(
+            paths=paths,
             design_manifest=design_manifest,
             estimation_summary=estimation_summary,
             artifact_row=artifact_row,
@@ -691,21 +794,13 @@ def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
             artifact_row=artifact_row,
             design_manifest=design_manifest,
             estimation_summary=estimation_summary,
+            selected_rows=selected_rows,
         )
         caption = _artifact_caption(
             artifact_row=artifact_row,
             design_manifest=design_manifest,
+            selected_rows=selected_rows,
         )
-        estimate_rows = _read_csv(estimates_path)
-        outcomes_order = _split_csv(str(artifact_row.get("outcome_ids", "")))
-        selected_rows = [
-            row
-            for row in estimate_rows
-            if str(row.get("outcome", "")).strip() in set(outcomes_order)
-            and str(row.get("horizon", "")).strip() in set(_split_csv(str(artifact_row.get("horizons", ""))))
-        ]
-        outcome_rank = {outcome: index for index, outcome in enumerate(outcomes_order)}
-        selected_rows.sort(key=lambda row: (outcome_rank.get(str(row.get("outcome", "")), 999), int(str(row.get("horizon", "0")))))
         manifest_path = artifact_dir / "artifact_manifest.json"
         primary_path: Path
         html_path: Path
@@ -772,6 +867,8 @@ def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
             "slot_label": slot_label,
             "subtitle": subtitle,
             "caption": caption,
+            "outcome_ids": observed_outcomes,
+            "horizons": observed_horizons,
             "source_estimates_path": str(estimates_path),
             "primary_path": str(primary_path),
             "html_path": str(html_path),
@@ -790,6 +887,8 @@ def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
                 "title": title,
                 "subtitle": subtitle,
                 "caption": caption,
+                "outcome_ids": ",".join(observed_outcomes),
+                "horizons": ",".join(observed_horizons),
                 "preview_href": str(html_path.relative_to(artifacts_root)),
                 "primary_href": str(primary_path.relative_to(artifacts_root)),
                 "secondary_href": str(secondary_path.relative_to(artifacts_root)) if secondary_path else "",
@@ -807,6 +906,8 @@ def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
                 "slot_label": slot_label,
                 "subtitle": subtitle,
                 "caption": caption,
+                "outcome_ids": ",".join(observed_outcomes),
+                "horizons": ",".join(observed_horizons),
                 "primary_path": str(primary_path),
                 "html_path": str(html_path),
                 "secondary_path": str(secondary_path) if secondary_path else "",

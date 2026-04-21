@@ -23,6 +23,11 @@ REQUIRED_BUNDLE_KEYS = {
     "references",
 }
 
+SUPPORTED_BUNDLE_FORMATS = {
+    "tdc_site_bundle_v2",
+    "tdc_site_bundle_v4",
+}
+
 
 @dataclass(frozen=True)
 class AdapterResult:
@@ -66,7 +71,7 @@ def read_raw(bundle_path: Path) -> dict[str, Any]:
     missing = REQUIRED_BUNDLE_KEYS.difference(payload)
     if missing:
         raise KeyError(f"Missing required keys in tdcest bundle: {sorted(missing)}")
-    if payload.get("bundle_format") != "tdc_site_bundle_v2":
+    if payload.get("bundle_format") not in SUPPORTED_BUNDLE_FORMATS:
         raise ValueError(f"Unexpected tdcest bundle format: {payload.get('bundle_format')!r}")
     return payload
 
