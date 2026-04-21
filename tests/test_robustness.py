@@ -147,6 +147,12 @@ def test_build_quarterly_robustness_writes_ladder_regime_and_treatment_reports(t
             f"tdc_base_broad_depository_np_cu_ru_flow,alt,repo_seed_bundle,tdcest,estimates,quarterly,{period_end},{period_end},{period_end},seed,usd,{idx * 1.1},none,false,false,canonical_headline,treatment,fixture"
         )
         tdcest_lines.append(
+            f"tdc_tier2_interest_corrected_bank_only_ru_flow,alt,repo_seed_bundle,tdcest,estimates,quarterly,{period_end},{period_end},{period_end},seed,usd,{idx * 1.02},none,false,false,estimate_variant,treatment,fixture"
+        )
+        tdcest_lines.append(
+            f"tdc_tier3_fiscal_corrected_bank_only_ru_flow,alt,repo_seed_bundle,tdcest,estimates,quarterly,{period_end},{period_end},{period_end},seed,usd,{idx * 0.98},none,false,false,estimate_variant,treatment,fixture"
+        )
+        tdcest_lines.append(
             f"tdc_no_remit_bank_only,alt,repo_seed_bundle,tdcest,estimates,quarterly,{period_end},{period_end},{period_end},seed,usd,{idx * 0.9},none,false,false,canonical_headline,treatment,fixture"
         )
     _write_text(paths.bundles / "tdcest" / "standardized_series.csv", "\n".join(tdcest_lines))
@@ -195,3 +201,4 @@ def test_build_quarterly_robustness_writes_ladder_regime_and_treatment_reports(t
     with result.treatment_path.open("r", encoding="utf-8", newline="") as handle:
         treatment_rows = list(csv.DictReader(handle))
     assert any(row["treatment_variant"] == "tdc_base_broad_depository_np_cu_ru_flow" for row in treatment_rows)
+    assert any(row["treatment_variant"] == "tdc_tier3_fiscal_corrected_bank_only_ru_flow" for row in treatment_rows)

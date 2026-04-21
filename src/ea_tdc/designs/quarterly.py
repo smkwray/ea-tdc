@@ -58,6 +58,16 @@ BASELINE_SERIES_MAP = {
 
 TREATMENT_COLUMN_MAP = {
     "tdc_bank_only_shock": "tdc_bank_only_qoq",
+    "tdc_ru_acquisition_component_qoq": "ru_bank_only_tsy_tx",
+    "tdc_treasury_cash_drain_component_qoq": "minus_treasury_operating_cash_tx",
+    "tdc_positive_remit_component_qoq": "fed_remit_positive",
+}
+
+ALTERNATIVE_OTHER_COMPONENT_SERIES = {
+    "other_component_tier2_bank_only_qoq": "tdc_tier2_interest_corrected_bank_only_ru_flow",
+    "other_component_tier3_bank_only_qoq": "tdc_tier3_fiscal_corrected_bank_only_ru_flow",
+    "other_component_tier2_broad_depository_qoq": "tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow",
+    "other_component_tier3_broad_depository_qoq": "tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow",
 }
 
 BASELINE_REQUIRED_OUTPUTS = {
@@ -202,8 +212,20 @@ OUTCOME_ALIASES = {
     "accounting_external_flow_qoq": ["accounting_external_flow_qoq"],
     "accounting_identity_total_qoq": ["accounting_identity_total_qoq"],
     "accounting_identity_gap_qoq": ["accounting_identity_gap_qoq"],
+    "other_component_tier2_bank_only_qoq": ["other_component_tier2_bank_only_qoq"],
+    "other_component_tier3_bank_only_qoq": ["other_component_tier3_bank_only_qoq"],
+    "other_component_tier2_broad_depository_qoq": ["other_component_tier2_broad_depository_qoq"],
+    "other_component_tier3_broad_depository_qoq": ["other_component_tier3_broad_depository_qoq"],
+    "accounting_identity_gap_tier2_bank_only_qoq": ["accounting_identity_gap_tier2_bank_only_qoq"],
+    "accounting_identity_gap_tier3_bank_only_qoq": ["accounting_identity_gap_tier3_bank_only_qoq"],
+    "accounting_identity_gap_tier2_broad_depository_qoq": ["accounting_identity_gap_tier2_broad_depository_qoq"],
+    "accounting_identity_gap_tier3_broad_depository_qoq": ["accounting_identity_gap_tier3_broad_depository_qoq"],
     "matched_total_deposits_pct_gdp": ["matched_total_deposits_pct_gdp"],
     "other_component_qoq_pct_gdp": ["other_component_qoq_pct_gdp"],
+    "other_component_tier2_bank_only_qoq_pct_gdp": ["other_component_tier2_bank_only_qoq_pct_gdp"],
+    "other_component_tier3_bank_only_qoq_pct_gdp": ["other_component_tier3_bank_only_qoq_pct_gdp"],
+    "other_component_tier2_broad_depository_qoq_pct_gdp": ["other_component_tier2_broad_depository_qoq_pct_gdp"],
+    "other_component_tier3_broad_depository_qoq_pct_gdp": ["other_component_tier3_broad_depository_qoq_pct_gdp"],
     "large_time_deposits_qoq_pct_gdp": ["large_time_deposits_qoq_pct_gdp"],
     "retail_mmf_assets_qoq_pct_gdp": ["retail_mmf_assets_qoq_pct_gdp"],
     "institutional_mmf_assets_qoq_pct_gdp": ["institutional_mmf_assets_qoq_pct_gdp"],
@@ -235,11 +257,19 @@ OUTCOME_ALIASES = {
     "accounting_external_flow_qoq_pct_gdp": ["accounting_external_flow_qoq_pct_gdp"],
     "accounting_identity_total_qoq_pct_gdp": ["accounting_identity_total_qoq_pct_gdp"],
     "accounting_identity_gap_qoq_pct_gdp": ["accounting_identity_gap_qoq_pct_gdp"],
+    "accounting_identity_gap_tier2_bank_only_qoq_pct_gdp": ["accounting_identity_gap_tier2_bank_only_qoq_pct_gdp"],
+    "accounting_identity_gap_tier3_bank_only_qoq_pct_gdp": ["accounting_identity_gap_tier3_bank_only_qoq_pct_gdp"],
+    "accounting_identity_gap_tier2_broad_depository_qoq_pct_gdp": ["accounting_identity_gap_tier2_broad_depository_qoq_pct_gdp"],
+    "accounting_identity_gap_tier3_broad_depository_qoq_pct_gdp": ["accounting_identity_gap_tier3_broad_depository_qoq_pct_gdp"],
 }
 
 PCT_GDP_SOURCE_OUTCOME_MAP = {
     "matched_total_deposits_pct_gdp": "matched_total_deposits",
     "other_component_qoq_pct_gdp": "other_component_qoq",
+    "other_component_tier2_bank_only_qoq_pct_gdp": "other_component_tier2_bank_only_qoq",
+    "other_component_tier3_bank_only_qoq_pct_gdp": "other_component_tier3_bank_only_qoq",
+    "other_component_tier2_broad_depository_qoq_pct_gdp": "other_component_tier2_broad_depository_qoq",
+    "other_component_tier3_broad_depository_qoq_pct_gdp": "other_component_tier3_broad_depository_qoq",
     "large_time_deposits_qoq_pct_gdp": "large_time_deposits_qoq",
     "retail_mmf_assets_qoq_pct_gdp": "retail_mmf_assets_qoq",
     "institutional_mmf_assets_qoq_pct_gdp": "institutional_mmf_assets_qoq",
@@ -271,6 +301,10 @@ PCT_GDP_SOURCE_OUTCOME_MAP = {
     "accounting_external_flow_qoq_pct_gdp": "accounting_external_flow_qoq",
     "accounting_identity_total_qoq_pct_gdp": "accounting_identity_total_qoq",
     "accounting_identity_gap_qoq_pct_gdp": "accounting_identity_gap_qoq",
+    "accounting_identity_gap_tier2_bank_only_qoq_pct_gdp": "accounting_identity_gap_tier2_bank_only_qoq",
+    "accounting_identity_gap_tier3_bank_only_qoq_pct_gdp": "accounting_identity_gap_tier3_bank_only_qoq",
+    "accounting_identity_gap_tier2_broad_depository_qoq_pct_gdp": "accounting_identity_gap_tier2_broad_depository_qoq",
+    "accounting_identity_gap_tier3_broad_depository_qoq_pct_gdp": "accounting_identity_gap_tier3_broad_depository_qoq",
 }
 
 ROW_LINEAR_COMBO_SERIES = {
@@ -309,6 +343,22 @@ ROW_LINEAR_COMBO_SERIES = {
     ),
     "accounting_identity_gap_qoq": (
         ("other_component_qoq", 1.0),
+        ("accounting_identity_total_qoq", -1.0),
+    ),
+    "accounting_identity_gap_tier2_bank_only_qoq": (
+        ("other_component_tier2_bank_only_qoq", 1.0),
+        ("accounting_identity_total_qoq", -1.0),
+    ),
+    "accounting_identity_gap_tier3_bank_only_qoq": (
+        ("other_component_tier3_bank_only_qoq", 1.0),
+        ("accounting_identity_total_qoq", -1.0),
+    ),
+    "accounting_identity_gap_tier2_broad_depository_qoq": (
+        ("other_component_tier2_broad_depository_qoq", 1.0),
+        ("accounting_identity_total_qoq", -1.0),
+    ),
+    "accounting_identity_gap_tier3_broad_depository_qoq": (
+        ("other_component_tier3_broad_depository_qoq", 1.0),
         ("accounting_identity_total_qoq", -1.0),
     ),
 }
@@ -1230,22 +1280,6 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
                 components=components,
             )
 
-        gdp_value = _coerce_float(row.get("GDP", ""))
-        gdp_available_at = _conservative_quarterly_available_at(quarter, lag_days=30) if gdp_value else ""
-        for output_name, base_output in PCT_GDP_SOURCE_OUTCOME_MAP.items():
-            base_value = _coerce_float(row.get(base_output, ""))
-            if base_value is None or gdp_value is None or gdp_value == 0:
-                row[output_name] = ""
-                row[f"{output_name}__available_at"] = ""
-                row[f"{output_name}__source_repo"] = "derived"
-                continue
-            row[output_name] = _stable_float_text((100.0 * base_value) / gdp_value)
-            row[f"{output_name}__available_at"] = _max_available_iso(
-                row.get(f"{base_output}__available_at", ""),
-                gdp_available_at,
-            )
-            row[f"{output_name}__source_repo"] = "derived"
-
         for instrument_id, component in INSTRUMENT_COMPONENTS.items():
             shock_id = str(component.get("shock", "")).strip()
             state_id = str(component.get("state", "")).strip()
@@ -1278,6 +1312,48 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
             available = _parse_available_at(standardized.get("available_at", ""))
             if available and (earliest_cutoff is None or available < earliest_cutoff):
                 earliest_cutoff = available
+
+        matched_total = row.get("matched_total_deposits", "")
+        for output_name, treatment_series in ALTERNATIVE_OTHER_COMPONENT_SERIES.items():
+            alternative_tdc = row.get(treatment_series, "")
+            if matched_total and alternative_tdc:
+                row[output_name] = _stable_float_text(float(matched_total) - float(alternative_tdc))
+                matched_available = _parse_available_at(row.get("matched_total_deposits__available_at", ""))
+                treatment_available = _parse_available_at(row.get(f"{treatment_series}__available_at", ""))
+                derived_available = max(
+                    [item for item in [matched_available, treatment_available] if item is not None],
+                    default=None,
+                )
+                row[f"{output_name}__available_at"] = derived_available.isoformat() if derived_available else ""
+                row[f"{output_name}__source_repo"] = "derived"
+            else:
+                row[output_name] = ""
+                row[f"{output_name}__available_at"] = ""
+                row[f"{output_name}__source_repo"] = "derived"
+
+        for output_name, components in ROW_LINEAR_COMBO_SERIES.items():
+            if output_name.startswith("accounting_identity_gap_tier"):
+                _set_row_linear_combo(
+                    row,
+                    output_name=output_name,
+                    components=components,
+                )
+
+        gdp_value = _coerce_float(row.get("GDP", ""))
+        gdp_available_at = _conservative_quarterly_available_at(quarter, lag_days=30) if gdp_value else ""
+        for output_name, base_output in PCT_GDP_SOURCE_OUTCOME_MAP.items():
+            base_value = _coerce_float(row.get(base_output, ""))
+            if base_value is None or gdp_value is None or gdp_value == 0:
+                row[output_name] = ""
+                row[f"{output_name}__available_at"] = ""
+                row[f"{output_name}__source_repo"] = "derived"
+                continue
+            row[output_name] = _stable_float_text((100.0 * base_value) / gdp_value)
+            row[f"{output_name}__available_at"] = _max_available_iso(
+                row.get(f"{base_output}__available_at", ""),
+                gdp_available_at,
+            )
+            row[f"{output_name}__source_repo"] = "derived"
 
         row["cutoff_timestamp"] = earliest_cutoff.isoformat() if earliest_cutoff else ""
         bundle_rows.append(row)

@@ -1,26 +1,39 @@
 {
   "artifact_id": "main_table_1",
   "artifact_kind": "table",
-  "caption": "Coefficient table for Matched total deposits, Other component (q/q), M2 in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+  "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
   "display_spec": "coefficient_table",
-  "generated_at": "2026-04-14T11:17:30+00:00",
+  "generated_at": "2026-04-21T09:59:54+00:00",
+  "horizons": [
+    "0",
+    "1",
+    "2",
+    "4",
+    "8"
+  ],
   "html_path": "output/artifacts/main_text/main_table_1/main_table_1.html",
   "job_id": "baseline_tdc_lp_deposits",
   "notes": [
     "Treatment: Baseline TDC estimate",
     "Response: Direct response at horizon h",
-    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves",
+    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Dflmx K200 F1, Dflmx K200 F2, Dflmx K200 F3, Dflmx K200 F4",
     "Covariance: Newey-West HAC",
     "Sample span: 1946Q4 to 2026Q2",
     "Observations: 85 to 93",
+    "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.",
     "Displayed branch: K=200 screened branch",
+    "Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-21 and may reflect an in-progress quarter endpoint.",
     "Artifact source: Deposit responses to the baseline TDC estimate"
+  ],
+  "outcome_ids": [
+    "matched_total_deposits",
+    "other_component_qoq"
   ],
   "primary_path": "output/artifacts/main_text/main_table_1/main_table_1.md",
   "release_channel": "main_text",
   "secondary_path": "output/artifacts/main_text/main_table_1/main_table_1.csv",
   "slot_label": "Main Table 1",
   "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
-  "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 3 outcomes | 85-93 obs",
+  "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
   "title": "Deposit responses to the baseline TDC estimate coefficient table"
 }

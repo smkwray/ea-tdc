@@ -41,6 +41,10 @@ DEFAULT_REGIME_STATES = [
 ]
 ALTERNATIVE_TREATMENTS = [
     "tdc_base_broad_depository_np_cu_ru_flow",
+    "tdc_tier2_interest_corrected_bank_only_ru_flow",
+    "tdc_tier3_fiscal_corrected_bank_only_ru_flow",
+    "tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow",
+    "tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow",
     "tdc_no_remit_bank_only",
     "tdc_domestic_bank_only_ru_flow",
     "tdc_bank_only_extended_1990",

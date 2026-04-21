@@ -12,7 +12,7 @@ from typing import Any
 
 from ea_tdc.artifacts import build_release_artifacts
 from ea_tdc.paths import ProjectPaths
-from ea_tdc.reporting import build_robustness_snapshot
+from ea_tdc.reporting import build_component_sidecar_screening, build_robustness_snapshot, build_stage_completion_closeout
 from ea_tdc.sanitize import sanitize_output_paths
 from ea_tdc.utils import utc_now_iso, write_json
 
@@ -36,7 +36,6 @@ SIDECAR_JOB_IDS = [
     "baseline_tdc_lp_inflation",
     "baseline_tdc_lp_fx",
     "baseline_tdc_lp_private_assets",
-    "tdc_state_dep_low_reserves",
 ]
 
 ROBUSTNESS_JOB_IDS = [
@@ -118,7 +117,7 @@ JOB_META: dict[str, dict[str, str]] = {
     "tdc_state_dep_bank_short_share": {
         "title": "State dependence under high bank short-share exposure",
         "subtitle": "Short-duration bank positioning may change deposit transmission.",
-        "summary": "This state branch asks whether the Treasury component of deposits matters differently when banks are tilted toward short-maturity holdings.",
+        "summary": "This state branch asks whether Treasury Deposit Contribution matters differently when banks are tilted toward short-maturity holdings.",
         "kicker": "State dependence",
     },
     "tdc_state_dep_bank_foreign_private_corr": {
@@ -130,7 +129,7 @@ JOB_META: dict[str, dict[str, str]] = {
     "tdc_state_dep_slr_bank_leverage_pressure": {
         "title": "State dependence under SLR leverage pressure",
         "subtitle": "Leverage constraints can change how Treasury absorption feeds into deposits.",
-        "summary": "This state branch asks whether stronger SLR pressure changes the balance-sheet transmission of the Treasury component of deposits.",
+        "summary": "This state branch asks whether stronger SLR pressure changes the balance-sheet transmission of Treasury Deposit Contribution.",
         "kicker": "State dependence",
     },
 }
@@ -267,8 +266,11 @@ TOKEN_TITLE_OVERRIDES = {
 }
 
 ABBREVIATION_GLOSSARY = [
-    ("TDC", "Treasury component of deposits."),
+    ("TDC", "Treasury Deposit Contribution."),
+    ("DU", "Domestic nonbank deposit-using sector."),
     ("Fed", "Federal Reserve."),
+    ("RU", "Reserve-side sector."),
+    ("TOC", "Treasury operating cash."),
     ("ROW", "Rest of world."),
     ("TGA", "Treasury General Account."),
     ("ON RRP", "Overnight reverse repurchase facility."),
@@ -280,6 +282,10 @@ TREATMENT_LABELS = {
     "tdc_bank_only_shock": "Baseline TDC estimate",
     "tdc_base_bank_only_ru_flow": "Baseline TDC estimate",
     "tdc_base_broad_depository_np_cu_ru_flow": "Broad-depository variant",
+    "tdc_tier2_interest_corrected_bank_only_ru_flow": "Interest-corrected bank-only variant",
+    "tdc_tier3_fiscal_corrected_bank_only_ru_flow": "Fiscal-corrected bank-only variant",
+    "tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow": "Interest-corrected broad-depository variant",
+    "tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow": "Fiscal-corrected broad-depository variant",
     "tdc_no_remit_bank_only": "No-remittance variant",
     "tdc_domestic_bank_only_ru_flow": "Domestic-bank-only variant",
     "tdc_bank_only_extended_1990": "Extended-bank variant",
@@ -293,61 +299,59 @@ TDC_EQUATIONS = [
     {
         "kicker": "Headline estimator",
         "title": "Baseline TDC estimate used in the quarterly results",
-        "body": "This is the empirical TDC estimate used in the main quarterly work. It includes Federal Reserve, bank-sector, and rest-of-world Treasury transactions, subtracts Treasury operating cash, and adds positive Federal Reserve remittances.",
+        "body": "This is the implemented quarterly approximation used in the main EA-TDC results. It includes Federal Reserve, bank-sector, and rest-of-world Treasury transactions, subtracts Treasury operating cash, and adds positive Federal Reserve remittances.",
         "latex": r"\widehat{\Delta D}^{mkt,bank}_{TDC,t} = \left(\Delta TS^{tx}_{Fed,t} + \Delta TS^{tx}_{Banks,t} + \Delta TS^{tx}_{ROW,t}\right) - \Delta Cash^{tx}_{Treasury,t} + Remit^{+}_{Fed,t}",
         "definitions": [
-            (r"\widehat{\Delta D}^{mkt,bank}_{TDC,t}", "Estimated baseline TDC used in period t."),
+            (r"\widehat{\Delta D}^{mkt,bank}_{TDC,t}", "Estimated quarterly approximation to Treasury Deposit Contribution used in period t."),
             (r"\Delta TS^{tx}_{Fed,t}", "Federal Reserve net transactions in marketable Treasury securities."),
             (r"\Delta TS^{tx}_{Banks,t}", "Bank-sector net transactions in marketable Treasury securities."),
             (r"\Delta TS^{tx}_{ROW,t}", "Rest-of-world net transactions in marketable Treasury securities."),
-            (r"\Delta Cash^{tx}_{Treasury,t}", "Change in Treasury operating cash transactions; higher Treasury cash drains deposits."),
+            (r"\Delta Cash^{tx}_{Treasury,t}", "Change in Treasury operating cash transactions; higher Treasury cash drains deposits before they reach domestic nonbank deposits."),
             (r"Remit^{+}_{Fed,t}", "Positive Federal Reserve remittances to Treasury, summed within the period."),
         ],
     },
     {
         "kicker": "Theory identity 1",
-        "title": "Deposit-user flow identity",
-        "body": "TDC can be read as Treasury injections into deposit users plus net Treasury-security redistribution toward reserve users.",
-        "latex": r"\Delta D_{TDC} = \left(G_{dep} - T_{dep}\right) + \left(D_{sales} - D_{purch}\right) + D_{yield}",
+        "title": "DU-facing definition",
+        "body": "The theory object is Treasury Deposit Contribution to domestic nonbank deposits: net Treasury payments to DUs, plus Treasury debt service to DUs, plus net Treasury-security sales from DUs to RUs.",
+        "latex": r"\Delta D^{TDC}_{DU} = \left(G^{ND}_{DU} - R^T_{DU}\right) + DS^T_{DU} + \left(Q^T_{DU\to RU} - Q^T_{RU\to DU}\right)",
         "definitions": [
-            (r"\Delta D_{TDC}", "Treasury-attributed change in deposits."),
-            (r"G_{dep}", "Treasury spending paid to agents that hold deposits."),
-            (r"T_{dep}", "Taxes and other Treasury receipts collected from deposit-holding agents."),
-            (r"D_{sales}", "Deposit inflow created when Treasury securities are sold into deposit-holding sectors."),
-            (r"D_{purch}", "Deposit outflow created when deposit-holding sectors buy Treasury securities."),
-            (r"D_{yield}", "Net Treasury interest and related cash-flow support to deposits."),
+            (r"\Delta D^{TDC}_{DU}", "Treasury Deposit Contribution to domestic nonbank deposits."),
+            (r"G^{ND}_{DU}", "Non-debt-service Treasury spending paid into DU deposits."),
+            (r"R^T_{DU}", "Taxes and other non-Treasury-security receipts paid from DU deposits."),
+            (r"DS^T_{DU}", "Treasury-security debt service paid into DU deposits."),
+            (r"Q^T_{DU\to RU}", "Cash settlement value of Treasury securities sold by DUs to RUs."),
+            (r"Q^T_{RU\to DU}", "Cash settlement value of Treasury securities sold by RUs to DUs."),
         ],
     },
     {
         "kicker": "Theory identity 2",
-        "title": "Reserve-user flow identity",
-        "body": "The same object can be re-expressed through Treasury issuance, reserve-user cash flows, positive Fed remittances, and the Treasury cash balance.",
-        "latex": r"\Delta D_{TDC} = \left(D_{sales} - D_{purch}\right) + \left(T_{AV} - T_{Rx} - R_{yield} + R_{Tx}\right) + \max(0, F_{PY} + M_{MT} - F_{OE}) - \Delta TGA",
+        "title": "Treasury-cash constraint",
+        "body": "The same theory object can be re-expressed through reserve-side Treasury-security settlement, RU-facing Treasury cash flows, actual positive Fed remittances, and Treasury operating cash.",
+        "latex": r"\Delta D^{TDC}_{DU} = \left(Q^T_{DU\to RU} - Q^T_{RU\to DU}\right) + \left(I^T + R^T_{RU} + \Pi^F_T - G^{ND}_{RU} - DS^T_{RU}\right) - \Delta TOC",
         "definitions": [
-            (r"T_{AV}", "Treasury issuance absorbed by reserve-using sectors."),
-            (r"T_{Rx}", "Treasury receipts paid by reserve-using sectors."),
-            (r"R_{yield}", "Yield flows paid out by reserve users on the Treasury side of the balance sheet."),
-            (r"R_{Tx}", "Other Treasury-related transfers that move cash back toward deposit users."),
-            (r"F_{PY}", "Federal Reserve income available for remittance."),
-            (r"M_{MT}", "Maturity-related Treasury cash support that reaches Treasury from the Fed side."),
-            (r"F_{OE}", "Federal Reserve operating expenses and other deductions from remittable income."),
-            (r"\Delta TGA", "Change in the Treasury General Account balance."),
+            (r"I^T", "Treasury-security issuance proceeds received by Treasury at cash settlement value."),
+            (r"R^T_{RU}", "Taxes and other non-Treasury-security receipts paid by RU sectors."),
+            (r"\Pi^F_T", "Actual Federal Reserve remittances transferred to Treasury during the period."),
+            (r"G^{ND}_{RU}", "Non-debt-service Treasury spending to RU sectors."),
+            (r"DS^T_{RU}", "Treasury-security debt service paid to RU sectors."),
+            (r"\Delta TOC", "Change in Treasury operating cash, including the TGA, TT&L, and related operating balances."),
         ],
     },
     {
         "kicker": "Theory identity 3",
-        "title": "Money-balance decomposition",
-        "body": "A rough decomposition view reads TDC as the part of money growth left after stripping out non-deposit money and non-Treasury balance-sheet channels.",
-        "latex": r"\Delta D_{TDC} = (\Delta M - \Delta C - \Delta X) - (\Delta L_{B,DU} + \Delta S_{B,DU} - \Delta CB_B) - \Delta CB_{NB} - \Delta FI_{NonTS}",
+        "title": "Residual deposit decomposition",
+        "body": "This is a diagnostic cross-check rather than the headline estimator: start from deposit change, subtract the major non-Treasury deposit drivers, and treat the remainder as TDC.",
+        "latex": r"\Delta D^{TDC}_{DU} = (\Delta M - \Delta C - \Delta X) - (\Delta L^B_{DU} + \Delta A^{B,NT}_{DU}) - \Delta A^{CB,NT}_{DU} - \Delta F^{NT}_{DU} - \varepsilon",
         "definitions": [
-            (r"\Delta M", "Broad money growth."),
-            (r"\Delta C", "Currency growth outside deposits."),
-            (r"\Delta X", "Other money-like components excluded from deposits."),
-            (r"\Delta L_{B,DU}", "Bank lending to deposit users."),
-            (r"\Delta S_{B,DU}", "Bank purchases of private securities from deposit users."),
-            (r"\Delta CB_B", "Central-bank liquidity support flowing through banks."),
-            (r"\Delta CB_{NB}", "Central-bank liquidity support flowing through nonbanks."),
-            (r"\Delta FI_{NonTS}", "Non-Treasury financial-asset channel that also moves deposits."),
+            (r"\Delta M", "Change in the chosen money aggregate that includes DU deposits."),
+            (r"\Delta C", "Change in currency held outside DU deposits."),
+            (r"\Delta X", "Other non-deposit money components included in the selected aggregate."),
+            (r"\Delta L^B_{DU}", "Net bank lending to DUs."),
+            (r"\Delta A^{B,NT}_{DU}", "Domestic-bank non-Treasury asset flows to DUs."),
+            (r"\Delta A^{CB,NT}_{DU}", "Central-bank non-Treasury asset flows to DUs."),
+            (r"\Delta F^{NT}_{DU}", "Foreign non-Treasury flows to DUs."),
+            (r"\varepsilon", "Timing, reclassification, and other residual measurement error."),
         ],
     },
 ]
@@ -356,7 +360,7 @@ INSIGHTS_HOME = [
     {
         "kicker": "Question 1",
         "title": "Where does Treasury financing show up first?",
-        "body": "The baseline reduced-form work asks whether the Treasury component of deposits first shows up in deposits before it shows up anywhere else.",
+        "body": "The baseline reduced-form work asks whether Treasury Deposit Contribution produces an early, robust deposit response in the selected public quarterly specification.",
     },
     {
         "kicker": "Question 2",
@@ -374,17 +378,17 @@ INSIGHTS_SIDECAR = [
     {
         "kicker": "Inflation",
         "title": "Inflation moves later than deposits and reserves",
-        "body": "Inflation is included to test whether Treasury-composition shocks reach prices after they first pass through bank balance sheets and liquidity.",
+        "body": "Inflation is included as a secondary check on whether the baseline TDC flow reaches prices after it passes through balance sheets and liquidity.",
     },
     {
         "kicker": "FX",
         "title": "FX tracks the external pricing margin",
-        "body": "The dollar branch asks whether Treasury-composition shocks spill into exchange-rate pricing as well as domestic balance sheets.",
+        "body": "The dollar branch asks whether the baseline TDC flow also shows up in exchange-rate pricing as well as domestic balance sheets.",
     },
     {
-        "kicker": "State dependence",
-        "title": "Low-reserve states help identify when deposits matter most",
-        "body": "The restored low-reserve branch asks whether the deposit response is stronger when reserve scarcity is already in place.",
+        "kicker": "Private assets",
+        "title": "Private balance sheets remain secondary context",
+        "body": "The private-asset branch stays below the headline claim, but it helps show where composition effects matter more than a single expansion story.",
     },
 ]
 
@@ -479,12 +483,12 @@ DEPOSIT_ACCOUNTING_BUCKETS = [
     },
     {
         "title": "Public-liquidity plumbing",
-        "summary": "This bucket tracks public cash balances that pull money into or out of the private deposit base.",
+        "summary": "This proxy bucket tracks public cash balances that pull money into or out of the private deposit base. It is a diagnostic liquidity-plumbing surface, not the full historical Treasury operating cash leg.",
         "equation": r"\Delta D^{\text{public}}_t = - \Delta TGA_t - \Delta ONRRP_t",
         "equation_html": f"{PUBLIC_SYMBOL_HTML} = - {TGA_SYMBOL_HTML} - {ON_RRP_SYMBOL_HTML}",
         "definitions": [
-            _eq_def(r"\Delta D^{\text{public}}_t", "Interpretive proxy bucket `public_liquidity_proxy_block_qoq`, constructed as `- tga_balance_qoq - on_rrp_balance_qoq`.", PUBLIC_SYMBOL_HTML),
-            _eq_def(r"\Delta TGA_t", "Treasury General Account balance: outcome `tga_balance_qoq`, FRED `WDTGAL`, quarter-over-quarter change.", TGA_SYMBOL_HTML),
+            _eq_def(r"\Delta D^{\text{public}}_t", "Interpretive proxy bucket `public_liquidity_proxy_block_qoq`, constructed as `- tga_balance_qoq - on_rrp_balance_qoq`. This is narrower than the full Treasury operating cash concept used in the theory identities.", PUBLIC_SYMBOL_HTML),
+            _eq_def(r"\Delta TGA_t", "Treasury General Account balance: outcome `tga_balance_qoq`, FRED `WDTGAL`, quarter-over-quarter change. Useful as a diagnostic cash proxy, but not the full TOC term when TT&L and related balances matter.", TGA_SYMBOL_HTML),
             _eq_def(r"\Delta ONRRP_t", "ON RRP balance: outcome `on_rrp_balance_qoq`, FRED `RRPONTSYD`, quarter-over-quarter change.", ON_RRP_SYMBOL_HTML),
         ],
         "series": [
@@ -2270,27 +2274,43 @@ def _copy_tree(source: Path, target: Path) -> int:
     return sum(1 for path in target.rglob("*") if path.is_file())
 
 
-_PUBLIC_REPORT_EXCLUDE_PATTERNS = (
-    "stage_next_phase_*.md",
-    "stage_closeout_accounting.md",
-    "stage_completion_closeout.md",
-    "macro_prices_*_screening.md",
-    "event_sidecar_screening.*",
-    "accounting_identity_seed_review.*",
-    "accounting_identity_seed_summary.md",
-    "accounting_identity_external_flow_rewrite.*",
-    "accounting_seed_candidate_zero_external_high.csv",
-    "accounting_identity_proxy_reference.csv",
-    "accounting_identity_alignment.md",
-    "accounting_identity_alignment.csv",
-)
+def _copy_selected_files(paths: list[Path], target: Path) -> int:
+    if target.exists():
+        shutil.rmtree(target)
+    target.mkdir(parents=True, exist_ok=True)
+    copied = 0
+    seen_names: set[str] = set()
+    for path in paths:
+        if not path.exists() or not path.is_file():
+            continue
+        if path.name in seen_names:
+            continue
+        shutil.copy2(path, target / path.name)
+        seen_names.add(path.name)
+        copied += 1
+    return copied
+
+
+_PUBLIC_REPORT_ALLOWLIST = {
+    "component_sidecar_artifact_pack.md",
+    "component_sidecar_liquidity_table.csv",
+    "component_sidecar_reduced_form_table.csv",
+    "component_sidecar_screening.csv",
+    "component_sidecar_screening.md",
+    "component_sidecar_state_probe_table.csv",
+    "final_interpretation_closeout.md",
+    "release_contract.json",
+    "release_scorecard.json",
+    "robustness_snapshot.json",
+}
 
 
 def _prune_public_reports(target: Path) -> None:
-    for pattern in _PUBLIC_REPORT_EXCLUDE_PATTERNS:
-        for path in target.glob(pattern):
-            if path.is_file():
-                path.unlink()
+    for path in target.iterdir():
+        if not path.is_file():
+            continue
+        if path.name not in _PUBLIC_REPORT_ALLOWLIST:
+            path.unlink()
 
 
 def _sanitize_public_tree(target: Path, repo_root: Path) -> None:
@@ -2447,7 +2467,35 @@ def _copied_report_href(path_text: str, paths: ProjectPaths) -> str:
     path = _resolve_repo_path(path_text, paths)
     if not path_text or not path.exists():
         return ""
+    if path.name not in _PUBLIC_REPORT_ALLOWLIST:
+        return ""
     return f"site_assets/reports/{path.name}"
+
+
+def _site_model_paths(site_data: dict[str, Any], paths: ProjectPaths) -> list[Path]:
+    model_paths: list[Path] = []
+    seen: set[Path] = set()
+
+    def add_from_href(href: str) -> None:
+        text = str(href or "").strip()
+        if not text.startswith("site_assets/models/"):
+            return
+        filename = text.split("/")[-1]
+        candidate = paths.output / "models" / filename
+        if candidate not in seen:
+            seen.add(candidate)
+            model_paths.append(candidate)
+
+    jobs = site_data.get("jobs", {}) or {}
+    for job in jobs.values():
+        for link in job.get("links", []) or []:
+            add_from_href(str((link or {}).get("href", "")))
+
+    deposit_accounting = site_data.get("home", {}).get("deposit_accounting", {}) or {}
+    for link in deposit_accounting.get("links", []) or []:
+        add_from_href(str((link or {}).get("href", "")))
+
+    return model_paths
 
 
 def _robustness_summary_for_job(paths: ProjectPaths, job_id: str) -> dict[str, Any]:
@@ -2642,7 +2690,11 @@ def _treatment_comparison_payload(
                 "subtitle": meta["subtitle"],
                 "summary": meta["summary"],
                 "links": [
-                    {"label": "Treatment variants CSV", "href": _copied_report_href(str(report_path), paths)},
+                    *(
+                        [{"label": "Treatment variants CSV", "href": _copied_report_href(str(report_path), paths)}]
+                        if _copied_report_href(str(report_path), paths)
+                        else []
+                    ),
                     *list(selected_job.get("links", [])),
                 ],
                 "outcomes": outcomes,
@@ -2946,6 +2998,12 @@ def _robustness_payload(
     recommended_k_mode = 0
     if recommended_k_values:
         recommended_k_mode = max(sorted(set(recommended_k_values)), key=recommended_k_values.count)
+    overview_links = [
+        {"label": "Universe JSON", "href": "site_assets/reports/robustness_snapshot.json"},
+        {"label": "Universe columns", "href": _copied_report_href(str(control_universe.get("columns_path", "")), paths)},
+        {"label": "Panel CSV", "href": _copied_report_href(str(control_universe.get("panel_path", "")), paths)},
+    ]
+    overview_links = [link for link in overview_links if link["href"]]
     return {
         "overview": {
             "title": "Larger control set",
@@ -2954,11 +3012,7 @@ def _robustness_payload(
             "feature_count": int(control_universe.get("feature_count", 0) or 0),
             "daily_lags": int(((control_universe.get("lag_structure", {}) or {}).get("daily_lags", 0)) or 0),
             "recommended_k_mode": recommended_k_mode,
-            "links": [
-                {"label": "Universe JSON", "href": "site_assets/reports/robustness_snapshot.json"},
-                {"label": "Universe columns", "href": _copied_report_href(str(control_universe.get("columns_path", "")), paths)},
-                {"label": "Panel CSV", "href": _copied_report_href(str(control_universe.get("panel_path", "")), paths)},
-            ],
+            "links": overview_links,
         },
         "jobs": jobs,
     }
@@ -3074,9 +3128,15 @@ def _site_data_payload(
                 "note": "Core public result blocks in the current release.",
             },
             {
-                "label": "Open jobs",
-                "value": str(scorecard.get("deferred_public_jobs", 0)),
-                "note": "Visible branches that still need stronger identification or more usable events.",
+                "label": "Appendix jobs",
+                "value": str(
+                    sum(
+                        1
+                        for row in contract_rows
+                        if str(row.get("contract_tier", "")).strip() == "release1_appendix_candidate"
+                    )
+                ),
+                "note": "Supporting public jobs that stay below the headline claim.",
             },
             {
                 "label": "Estimated jobs",
@@ -3125,6 +3185,13 @@ def _head(relative_assets: str, title: str, include_math: bool = False, asset_ve
     asset_version = quote(asset_version, safe="")
     asset_suffix = f"?v={asset_version}" if asset_version else ""
     math_script = '<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>' if include_math else ""
+    favicon_href = (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E"
+        "%3Crect width='64' height='64' rx='14' fill='%230d1117'/%3E"
+        "%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' "
+        "font-family='Arial' font-size='28' fill='white'%3EEA%3C/text%3E%3C/svg%3E"
+    )
     return "\n".join(
         [
             "<head>",
@@ -3134,6 +3201,7 @@ def _head(relative_assets: str, title: str, include_math: bool = False, asset_ve
             '<meta name="theme-color" content="#fafbfd" media="(prefers-color-scheme: light)">',
             '<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">',
             f"<title>{html.escape(title)}</title>",
+            f'<link rel="icon" href="{favicon_href}">',
             '<link rel="preconnect" href="https://fonts.googleapis.com">',
             '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
             '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">',
@@ -3154,6 +3222,7 @@ def _nav(page: str) -> str:
             ("#definitions", "TDC definition"),
             ("#headline-results", "Results"),
             ("#additional-evidence", "Additional evidence"),
+            ("#component-evidence", "Component evidence"),
             ("#robustness", "Robustness"),
             ("#release-package", "Artifacts"),
         ]
@@ -3163,6 +3232,7 @@ def _nav(page: str) -> str:
             ("../index.html#definitions", "TDC definition"),
             ("../index.html#headline-results", "Results"),
             ("../index.html#additional-evidence", "Additional evidence"),
+            ("../index.html#component-evidence", "Component evidence"),
             ("../index.html#robustness", "Robustness"),
             ("../index.html#release-package", "Artifacts"),
         ]
@@ -3172,6 +3242,7 @@ def _nav(page: str) -> str:
             ("../index.html#definitions", "TDC definition"),
             ("../index.html#headline-results", "Results"),
             ("../index.html#additional-evidence", "Additional evidence"),
+            ("../index.html#component-evidence", "Component evidence"),
             ("#top", "Artifacts"),
         ]
     else:
@@ -3180,6 +3251,7 @@ def _nav(page: str) -> str:
             ("../../index.html#definitions", "TDC definition"),
             ("../../index.html#headline-results", "Results"),
             ("../../index.html#additional-evidence", "Additional evidence"),
+            ("../../index.html#component-evidence", "Component evidence"),
             ("../index.html", "Artifact gallery"),
         ]
     return "\n".join(
@@ -3255,14 +3327,14 @@ def _equation_markup() -> str:
             '<details class="definition-shell reveal" id="definitions">',
             '<summary><div><div class="eyebrow">TDC definition</div><h2>Equations and notation.</h2></div><p>View equations</p></summary>',
             '<div class="definition-body">',
-            '<p>The baseline treatment is the marketable-Treasury, transaction-based estimate of the Treasury component of deposits. In the upstream estimator its short name includes "bank" because it excludes credit unions, not because it excludes the rest of world. The actual baseline formula below includes Federal Reserve, bank-sector, and rest-of-world Treasury transactions.</p>',
+            '<p>The baseline treatment is the marketable-Treasury, transaction-based quarterly approximation to Treasury Deposit Contribution. In the upstream estimator its short name includes "bank" because it excludes credit unions, not because it excludes the rest of world. The implemented baseline formula below still includes Federal Reserve, bank-sector, and rest-of-world Treasury transactions.</p>',
             '<div class="notation-grid">',
             *notation_cards,
             "</div>",
             '<div class="equation-grid">',
             *cards,
             "</div>",
-            '<p>TDC means the Treasury-attributed component of deposits: the part of deposit change traced to Treasury cash operations, Treasury security transactions, and related official-balance-sheet channels.</p>',
+            '<p>TDC means Treasury Deposit Contribution: the contribution of Treasury-related cash flows and Treasury-security transactions to changes in domestic nonbank deposits. The quarterly headline on this site is an implemented approximation to that theory object, not a full direct DU ledger.</p>',
             "</div>",
             "</details>",
         ]
@@ -3281,8 +3353,8 @@ def _home_html(generated_at: str) -> str:
             '<section class="hero container">',
             '<div class="hero-copy reveal">',
             '<div class="eyebrow">EA-TDC</div>',
-            '<h1>Treasury component of deposits: estimates and transmission.</h1>',
-            '<p>This work asks how the baseline estimate of the Treasury component of deposits moves deposits first, how the remaining deposit component adjusts, and how much of that adjustment can be reconstructed with a simple accounting breakdown.</p>',
+            '<h1>Treasury contribution to deposits: estimates and transmission.</h1>',
+            '<p>This work asks whether the baseline estimate of Treasury Deposit Contribution produces an early deposit response, how the remaining deposit component adjusts, and how much of that adjustment can be reconstructed with a simple accounting breakdown.</p>',
             '<div class="button-row">',
             '<a class="button primary" href="#headline-results">Read the results</a>',
             '<a class="button" href="#definitions">See the TDC definition</a>',
@@ -3291,10 +3363,17 @@ def _home_html(generated_at: str) -> str:
             "</div>",
             '<div id="metric-grid" class="metric-grid"></div>',
             "</section>",
+            '<section class="section container" id="claim-hierarchy">',
+            '<div class="section-header reveal">',
+            '<div><div class="eyebrow">Claim hierarchy</div><h2>What the release claims.</h2></div>',
+            '<p>The public package is intentionally narrow: baseline deposits are the headline, accounting is a coherence check, component regressions are explanatory sidecars, and corrected Tier 2 / Tier 3 treatments stay sensitivity-only.</p>',
+            "</div>",
+            '<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Baseline deposit response.</h3><p>The selected quarterly baseline delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Coherence</div><h3>Accounting alignment.</h3><p>The deposit-source reconstruction is a consistency check, not independent validation.</p></article><article class="insight-card reveal"><div class="eyebrow">Explanation</div><h3>Component sidecars.</h3><p>RU acquisition, Treasury cash, and remittances help interpret the deposit result.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Corrected variants.</h3><p>Tier 2 and Tier 3 treatments remain public sensitivity branches only.</p></article></div>',
+            "</section>",
             '<section class="section container" id="questions">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Questions</div><h2>Research questions.</h2></div>',
-            '<p>The central questions are whether the Treasury component of deposits first shows up in deposits, whether that result survives broader holder definitions, and whether the non-TDC deposit component can be reconstructed in a sensible way.</p>',
+            '<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives broader holder definitions, and whether the non-TDC deposit component can be reconstructed in a sensible way.</p>',
             "</div>",
             '<div id="questions-grid" class="insight-grid"></div>',
             "</section>",
@@ -3303,31 +3382,41 @@ def _home_html(generated_at: str) -> str:
             "</section>",
             '<section class="section container" id="headline-results">',
             '<div class="section-header reveal">',
-            '<div><div class="eyebrow">Results</div><h2>Deposits come first.</h2></div>',
+            '<div><div class="eyebrow">Results</div><h2>Deposits are the clearest headline response.</h2></div>',
             '<p>This figure traces the main deposit response to the baseline TDC estimate using the selected public version of the quarterly model.</p>',
             "</div>",
             '<div id="headline-job-list" class="job-list"></div>',
             "</section>",
             '<section class="section container" id="deposit-accounting-section">',
             '<div class="section-header reveal">',
-            '<div><div class="eyebrow">Deposit accounting</div><h2>The deposit result and the accounting reconstruction line up.</h2></div>',
-            '<p>This section ties the main deposit result to the residual non-TDC deposit component and then rebuilds that residual with four accounting buckets.</p>',
+            '<div><div class="eyebrow">Deposit accounting</div><h2>Accounting reconstruction supports coherence, not independent validation.</h2></div>',
+            '<p>This section ties the main deposit result to the residual non-TDC deposit component and then rebuilds that residual with four accounting buckets as a coherence check.</p>',
             "</div>",
             '<div id="deposit-accounting" class="job-list"></div>',
             "</section>",
             '<section class="section container" id="additional-evidence">',
             '<div class="section-header reveal">',
-            '<div><div class="eyebrow">Additional evidence</div><h2>Inflation, FX, private balance sheets, and low-reserve state dependence.</h2></div>',
-            '<p>These branches extend the same baseline TDC estimate into prices, exchange rates, private non-Treasury balance sheets, and the one restored state-dependent branch that currently looks interpretable.</p>',
+            '<div><div class="eyebrow">Additional evidence</div><h2>Inflation, FX, and private balance sheets.</h2></div>',
+            '<p>These branches extend the same baseline TDC estimate into prices, exchange rates, and private non-Treasury balance sheets without changing the main public claim hierarchy.</p>',
             "</div>",
             '<div id="additional-evidence-grid" class="insight-grid"></div>',
             '<div style="height:18px"></div>',
             '<div id="job-list-sidecar" class="job-list"></div>',
             "</section>",
+            '<section class="section container" id="component-evidence">',
+            '<div class="section-header reveal">',
+            '<div><div class="eyebrow">Component evidence</div><h2>Which Treasury leg is actually moving deposits and liquidity?</h2></div>',
+            '<p>This summary collects the live component regressions for RU acquisition, Treasury operating cash, and positive remittances, along with the narrow state-probe results that still look worth watching.</p>',
+            "</div>",
+            '<div class="section-block reveal">',
+            '<div class="button-row"><a class="button primary" href="site_assets/reports/component_sidecar_screening.md">Open component summary</a><a class="button" href="site_assets/reports/final_interpretation_closeout.md">Final interpretation</a><a class="button" href="site_assets/reports/component_sidecar_screening.csv" download>Download component CSV</a><a class="button" href="#robustness">Open robustness</a></div>',
+            '<p class="section-note">Current read: RU acquisition is the strongest long-sample component, Treasury cash is mainly a liquidity-accounting channel, and remittances matter for deposits plus Fed-assets-relative liquidity. The only retained state probe with a clear interaction signal is Treasury cash during ON RRP drain.</p>',
+            "</div>",
+            "</section>",
             '<section class="section container" id="treatment-variants">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Treatment variants</div><h2>Does the result survive a broader deposit-holder definition?</h2></div>',
-            '<p>This comparison asks whether the public deposit result looks similar when mutual funds and the broader depository perimeter are folded into the TDC construction.</p>',
+            '<p>This comparison asks whether the public deposit result looks similar when the construction broadens from the baseline bank-focused perimeter to a broader depository and credit-union-inclusive perimeter.</p>',
             "</div>",
             '<div id="treatment-comparisons" class="job-list"></div>',
             "</section>",
@@ -3358,7 +3447,7 @@ def _home_html(generated_at: str) -> str:
             "</section>",
             '<footer class="site-footer container">',
             '<div class="footer-grid reveal">',
-            '<div><div class="eyebrow">About EA-TDC</div><h2>Treasury component of deposits: definitions, estimates, and evidence.</h2><p>Definitions, estimates, figures, and downloadable result files are collected here together.</p></div>',
+            '<div><div class="eyebrow">About EA-TDC</div><h2>Treasury contribution to deposits: definitions, estimates, and evidence.</h2><p>Definitions, estimates, figures, and downloadable result files are collected here together.</p></div>',
             f'<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="site_assets/reports/release_scorecard.json" download>Scorecard JSON</a><a class="link-chip" href="site_assets/reports/release_contract.json" download>Contract JSON</a><a class="link-chip" href="#robustness">Robustness</a></div><p class="footer-note">Generated {html.escape(generated_at)}</p></div>',
             "</div>",
             "</footer>",
@@ -3385,6 +3474,7 @@ def _sidecar_html(generated_at: str) -> str:
             '<p>The additional evidence and robustness checks are now integrated into the main site so the project reads as one continuous research product.</p>',
             '<div class="button-row">',
             '<a class="button primary" href="../index.html#additional-evidence">Open additional evidence</a>',
+            '<a class="button" href="../index.html#component-evidence">Open component evidence</a>',
             '<a class="button" href="../index.html#robustness">Open robustness</a>',
             '<a class="button" href="../artifacts/index.html">Figures and tables</a>',
             "</div>",
@@ -3393,7 +3483,7 @@ def _sidecar_html(generated_at: str) -> str:
             '<footer class="site-footer container">',
             '<div class="footer-grid reveal">',
             '<div><div class="eyebrow">One-page layout</div><h2>The public site now uses a single continuous narrative.</h2><p>Use the main page sections for additional evidence and robustness rather than a separate secondary page.</p></div>',
-            f'<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="../index.html#additional-evidence">Additional evidence</a><a class="link-chip" href="../index.html#robustness">Robustness</a><a class="link-chip" href="../site_assets/reports/robustness_snapshot.json" download>Robustness JSON</a></div><p class="footer-note">Generated {html.escape(generated_at)}</p></div>',
+            f'<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="../index.html#additional-evidence">Additional evidence</a><a class="link-chip" href="../index.html#component-evidence">Component evidence</a><a class="link-chip" href="../index.html#robustness">Robustness</a><a class="link-chip" href="../site_assets/reports/component_sidecar_screening.md">Component summary</a><a class="link-chip" href="../site_assets/reports/robustness_snapshot.json" download>Robustness JSON</a></div><p class="footer-note">Generated {html.escape(generated_at)}</p></div>',
             "</div>",
             "</footer>",
             "</main>",
@@ -3465,6 +3555,8 @@ def _artifact_page_html(artifact: dict[str, Any], generated_at: str) -> str:
 def build_site(paths: ProjectPaths) -> SiteBuildResult:
     artifact_result = build_release_artifacts(paths)
     robustness_result = build_robustness_snapshot(paths, job_ids=ROBUSTNESS_JOB_IDS)
+    build_component_sidecar_screening(paths)
+    build_stage_completion_closeout(paths)
     sanitize_output_paths(paths)
     generated_at = utc_now_iso()
     scorecard = _read_json(paths.reports / "release_scorecard.json")
@@ -3488,9 +3580,19 @@ def build_site(paths: ProjectPaths) -> SiteBuildResult:
     artifacts_root.mkdir(parents=True, exist_ok=True)
     _write_text(site_root / ".nojekyll", "")
 
+    site_data = _site_data_payload(
+        paths=paths,
+        scorecard=scorecard,
+        contract=contract,
+        artifact_build=artifact_build,
+        robustness_snapshot=robustness_snapshot,
+        generated_at=generated_at,
+    )
+    model_paths = _site_model_paths(site_data, paths)
+
     copied_artifacts = _copy_tree(paths.output / "artifacts", site_artifacts)
     _copy_tree(paths.reports, site_reports)
-    copied_models = _copy_tree(paths.output / "models", site_models)
+    copied_models = _copy_selected_files(model_paths, site_models)
     _prune_public_reports(site_reports)
     _sanitize_public_tree(site_artifacts, paths.root)
     _sanitize_public_tree(site_reports, paths.root)
@@ -3500,14 +3602,6 @@ def build_site(paths: ProjectPaths) -> SiteBuildResult:
     _write_text(assets_root / "css" / "style.css", CSS_TEXT)
     _write_text(assets_root / "js" / "theme.js", THEME_JS_TEXT)
     _write_text(assets_root / "js" / "main.js", JS_TEXT)
-    site_data = _site_data_payload(
-        paths=paths,
-        scorecard=scorecard,
-        contract=contract,
-        artifact_build=artifact_build,
-        robustness_snapshot=robustness_snapshot,
-        generated_at=generated_at,
-    )
     write_json(assets_root / "data" / "site_data.json", site_data)
 
     index_path = site_root / "index.html"

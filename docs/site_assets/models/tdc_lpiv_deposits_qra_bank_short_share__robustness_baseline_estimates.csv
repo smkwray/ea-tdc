@@ -1,1 +1,0 @@
-job_id,outcome,horizon,beta,se,lower95,upper95,z_score,p_value_normal,n,treatment_id,control_ids_used,response_type,inference_method,covariance_estimator,covariance_lags,rsquared,warning_flags,dropped_control_ids

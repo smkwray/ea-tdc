@@ -1,5 +1,0 @@
-job_id,run_type,k_screened,factor_count,control_ids_used,dropped_controls,estimates_path,rows_written,warning_rows,weak_instrument_rows,avg_abs_beta,avg_n
-baseline_tdc_lp_credit_spreads,baseline_core,0,0,GDP;gdp_deflator;FEDFUNDS;TOTRESNS,,/output/models/baseline_tdc_lp_credit_spreads__robustness_baseline_estimates.csv,15,0,0,6e-06,91.2
-baseline_tdc_lp_credit_spreads,factor_screen,100,4,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k100_f1;dflmx_k100_f2;dflmx_k100_f3;dflmx_k100_f4,,/output/models/baseline_tdc_lp_credit_spreads__robustness_k100_estimates.csv,15,0,0,9e-06,91.2
-baseline_tdc_lp_credit_spreads,factor_screen,200,4,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k200_f1;dflmx_k200_f2;dflmx_k200_f3;dflmx_k200_f4,,/output/models/baseline_tdc_lp_credit_spreads__robustness_k200_estimates.csv,15,0,0,8e-06,91.2
-baseline_tdc_lp_credit_spreads,factor_screen,300,4,GDP;gdp_deflator;FEDFUNDS;TOTRESNS;dflmx_k300_f1;dflmx_k300_f2;dflmx_k300_f3;dflmx_k300_f4,,/output/models/baseline_tdc_lp_credit_spreads__robustness_k300_estimates.csv,15,0,0,7e-06,91.2
