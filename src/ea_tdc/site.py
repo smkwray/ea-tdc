@@ -164,6 +164,11 @@ ROBUSTNESS_META: dict[str, dict[str, str]] = {
 OUTCOME_LABELS = {
     "matched_total_deposits": "Matched total deposits",
     "other_component_qoq": "Other deposit component",
+    "tdcpass_other_component_qoq": "Residual non-TDC component (`tdcpass`)",
+    "tdcpass_strict_loan_core_min_qoq": "Strict loan-core minimum (`tdcpass`)",
+    "tdcpass_strict_non_treasury_securities_qoq": "Strict non-Treasury securities (`tdcpass`)",
+    "tdcpass_strict_identifiable_total_qoq": "Strict identifiable total (`tdcpass`)",
+    "tdcpass_strict_identifiable_gap_qoq": "Residual minus strict total (`tdcpass`)",
     "m2": "M2",
     "reserve_balances": "Raw reserve balances",
     "repo_spread": "Repo spread",
@@ -369,8 +374,8 @@ INSIGHTS_HOME = [
     },
     {
         "kicker": "Question 3",
-        "title": "Can the non-TDC deposit component be reconstructed?",
-        "body": "The accounting check asks whether the residual deposit component can be rebuilt from deposit substitution, bank balance-sheet adjustment, public-liquidity plumbing, and external flows.",
+        "title": "What survives under strict independent non-TDC measurement?",
+        "body": "The boundary check uses the narrower `tdcpass` strict source-side lane rather than residual closure, so independent evidence is limited to directly identifiable non-Treasury bank-asset support.",
     },
 ]
 
@@ -401,10 +406,13 @@ TREATMENT_COMPARISON_JOBS = {
     },
 }
 
-DEPOSIT_ACCOUNTING_OUTCOME_KEYS = [
-    "other_component_qoq",
-    "accounting_identity_total_qoq",
-    "accounting_identity_gap_qoq",
+INDEPENDENT_NON_TDC_JOB_ID = "tdcpass_strict_source_side_nontdc"
+INDEPENDENT_NON_TDC_OUTCOME_KEYS = [
+    "tdcpass_other_component_qoq",
+    "tdcpass_strict_loan_core_min_qoq",
+    "tdcpass_strict_non_treasury_securities_qoq",
+    "tdcpass_strict_identifiable_total_qoq",
+    "tdcpass_strict_identifiable_gap_qoq",
 ]
 
 
@@ -1712,36 +1720,24 @@ JS_TEXT = dedent(
       }
 
       function renderDepositAccounting() {
-        var target = document.getElementById('deposit-accounting');
-        if (!target || !SITE_DATA || !SITE_DATA.home || !SITE_DATA.home.deposit_accounting) return;
-        var block = SITE_DATA.home.deposit_accounting;
+        var target = document.getElementById('independent-evidence');
+        if (!target || !SITE_DATA || !SITE_DATA.home || !SITE_DATA.home.independent_evidence) return;
+        var block = SITE_DATA.home.independent_evidence;
         var html = '';
-          html += '<section class="section-block job-block reveal" id="deposit-accounting-block">';
-          html += '<div class="job-top"><div><div class="eyebrow">Deposit accounting</div><h3>' + escapeHtml(block.title) + '</h3><p>' + escapeHtml(block.subtitle) + '</p></div>';
+          html += '<section class="section-block job-block reveal" id="independent-evidence-block">';
+          html += '<div class="job-top"><div><div class="eyebrow">Independent non-TDC evidence</div><h3>' + escapeHtml(block.title) + '</h3><p>' + escapeHtml(block.subtitle) + '</p></div>';
           html += '<div><p>' + escapeHtml(block.summary) + '</p><p class="branch-note">' + escapeHtml(block.impact_summary || '') + '</p><div class="button-row" style="margin-top:14px;">' + buildLinkRow(block.links || []) + '</div></div></div>';
           html += '<div class="mini-grid">';
           for (var i = 0; i < block.outcomes.length; i++) {
             var outcome = block.outcomes[i];
-            html += '<article class="mini-chart-card"><div><h4>' + escapeHtml(outcome.label) + '</h4><p class="mini-note">Quarter-by-quarter response to the baseline TDC estimate.</p></div><div class="mini-chart" id="' + escapeHtml(outcome.chart_dom_id) + '"></div></article>';
+            html += '<article class="mini-chart-card"><div><h4>' + escapeHtml(outcome.label) + '</h4><p class="mini-note">Quarter-by-quarter response under the imported `tdcpass` strict-source comparison.</p></div><div class="mini-chart" id="' + escapeHtml(outcome.chart_dom_id) + '"></div></article>';
           }
           html += '</div>';
-          html += '<details class="definition-shell" style="margin-top:18px;"><summary><div><div class="eyebrow">How the accounting works</div><h2>Residual, reconstruction, and gap.</h2></div><p>Show details</p></summary>';
-          html += '<div class="definition-body">';
-          html += '<p>The residual non-TDC deposit component is defined first. The accounting reconstruction then adds the four bucket totals and compares that sum with the residual.</p>';
-          html += '<p class="mini-note">Notation: \u0394 denotes a quarter-over-quarter change, and t indexes the quarter.</p>';
-          html += '<div class="equation-grid">';
-          html += '<article class="equation-card"><div class="eyebrow">Residual</div><h3>Non-TDC deposit component</h3>' + renderEquationMarkup(block.residual_equation, block.residual_equation_html) + renderDefinitionList(block.residual_definitions) + '</article>';
-          html += '<article class="equation-card"><div class="eyebrow">Accounting identity</div><h3>Four-bucket reconstruction</h3>' + renderEquationMarkup(block.identity_equation, block.identity_equation_html) + renderDefinitionList(block.identity_definitions) + '</article>';
-          html += '<article class="equation-card"><div class="eyebrow">Closure check</div><h3>Remaining gap</h3>' + renderEquationMarkup(block.gap_equation, block.gap_equation_html) + renderDefinitionList(block.gap_definitions) + '</article>';
-          html += '</div>';
-          html += '<p>' + escapeHtml(block.bucket_intro) + '</p>';
-          html += '<div class="insight-grid">';
-          for (var j = 0; j < block.buckets.length; j++) {
-            var bucket = block.buckets[j];
-            html += '<article class="insight-card"><div class="slot-label">Bucket ' + escapeHtml(String(j + 1)) + '</div><h3>' + escapeHtml(bucket.title) + '</h3><p>' + escapeHtml(bucket.summary) + '</p>' + renderEquationMarkup(bucket.equation, bucket.equation_html) + renderDefinitionList(bucket.definitions) + '<p class="mini-note">Series used: ' + escapeHtml((bucket.series || []).join('; ')) + '.</p></article>';
+          html += '<div class="insight-grid" style="margin-top:18px;">';
+          for (var j = 0; j < (block.note_lines || []).length; j++) {
+            html += '<article class="insight-card"><div class="slot-label">Boundary</div><p>' + escapeHtml(block.note_lines[j]) + '</p></article>';
           }
           html += '</div>';
-          html += '</div></details>';
         html += '</section>';
         target.innerHTML = html;
       }
@@ -2133,10 +2129,10 @@ JS_TEXT = dedent(
               renderChart(homeOutcomes[j].chart_dom_id, homeOutcomes[j], j);
             }
           }
-          var depositAccounting = SITE_DATA.home.deposit_accounting;
-          if (depositAccounting && depositAccounting.outcomes) {
-            for (i = 0; i < depositAccounting.outcomes.length; i++) {
-              renderChart(depositAccounting.outcomes[i].chart_dom_id, depositAccounting.outcomes[i], i);
+          var independentEvidence = SITE_DATA.home.independent_evidence;
+          if (independentEvidence && independentEvidence.outcomes) {
+            for (i = 0; i < independentEvidence.outcomes.length; i++) {
+              renderChart(independentEvidence.outcomes[i].chart_dom_id, independentEvidence.outcomes[i], i);
             }
           }
           for (i = 0; i < SITE_DATA.sidecar.job_ids.length; i++) {
@@ -2491,8 +2487,8 @@ def _site_model_paths(site_data: dict[str, Any], paths: ProjectPaths) -> list[Pa
         for link in job.get("links", []) or []:
             add_from_href(str((link or {}).get("href", "")))
 
-    deposit_accounting = site_data.get("home", {}).get("deposit_accounting", {}) or {}
-    for link in deposit_accounting.get("links", []) or []:
+    independent_evidence = site_data.get("home", {}).get("independent_evidence", {}) or {}
+    for link in independent_evidence.get("links", []) or []:
         add_from_href(str((link or {}).get("href", "")))
 
     return model_paths
@@ -2717,66 +2713,49 @@ def _estimate_beta(rows: list[dict[str, str]], outcome: str, horizon: int) -> fl
     return None
 
 
-def _deposit_accounting_payload(paths: ProjectPaths) -> dict[str, Any] | None:
-    identity_path = paths.output / "models" / "baseline_tdc_lp_deposit_source_identity__lp_estimates.csv"
-    if not identity_path.exists():
+def _independent_nontdc_payload(paths: ProjectPaths) -> dict[str, Any] | None:
+    model_path = paths.output / "models" / f"{INDEPENDENT_NON_TDC_JOB_ID}__lp_estimates.csv"
+    if not model_path.exists():
         return None
-    rows = _read_csv(identity_path)
+    rows = _read_csv(model_path)
     if not rows:
         return None
-    outcome_map = _outcome_payload_map(rows, "baseline_tdc_lp_deposit_source_identity")
-    outcomes = [outcome_map[key] for key in DEPOSIT_ACCOUNTING_OUTCOME_KEYS if key in outcome_map]
+    outcome_map = _outcome_payload_map(rows, INDEPENDENT_NON_TDC_JOB_ID)
+    outcomes = [outcome_map[key] for key in INDEPENDENT_NON_TDC_OUTCOME_KEYS if key in outcome_map]
     if not outcomes:
         return None
-    residual_h0 = _estimate_beta(rows, "other_component_qoq", 0)
-    accounting_h0 = _estimate_beta(rows, "accounting_identity_total_qoq", 0)
-    gap_h0 = _estimate_beta(rows, "accounting_identity_gap_qoq", 0)
+    residual_h0 = _estimate_beta(rows, "tdcpass_other_component_qoq", 0)
+    core_h0 = _estimate_beta(rows, "tdcpass_strict_loan_core_min_qoq", 0)
+    securities_h0 = _estimate_beta(rows, "tdcpass_strict_non_treasury_securities_qoq", 0)
+    total_h0 = _estimate_beta(rows, "tdcpass_strict_identifiable_total_qoq", 0)
+    gap_h0 = _estimate_beta(rows, "tdcpass_strict_identifiable_gap_qoq", 0)
     parts: list[str] = []
     if residual_h0 is not None:
-        parts.append(f"the non-TDC deposit component falls by {residual_h0:.2f}")
-    if accounting_h0 is not None:
-        parts.append(f"the accounting reconstruction moves by {accounting_h0:.2f}")
+        parts.append(f"the residual comparison surface moves by {residual_h0:.2f}")
+    if core_h0 is not None:
+        parts.append(f"the strict loan-core minimum moves by {core_h0:.2f}")
+    if securities_h0 is not None:
+        parts.append(f"the strict non-Treasury securities add-on moves by {securities_h0:.2f}")
+    if total_h0 is not None:
+        parts.append(f"the strict identifiable total moves by {total_h0:.2f}")
     if gap_h0 is not None:
-        parts.append(f"the remaining gap is {gap_h0:.2f}")
+        parts.append(f"the remaining residual gap is {gap_h0:.2f}")
     impact_summary = "On impact, " + ", ".join(parts) + "." if parts else ""
-    links = [{"label": "Accounting comparison CSV", "href": _copied_model_href(identity_path)}]
-    alignment_href = _copied_report_href(str(paths.reports / "accounting_identity_alignment.md"), paths)
-    if alignment_href:
-        links.append({"label": "Alignment note", "href": alignment_href})
+    links = [{"label": "Strict-source comparison CSV", "href": _copied_model_href(model_path)}]
     return {
-        "title": "Deposits and the accounting reconstruction tell the same story",
-        "subtitle": "The residual deposit component and the accounting reconstruction move together rather than in opposite directions.",
+        "title": "Strict independent non-TDC evidence is narrower and source-side",
+        "subtitle": "EA-TDC no longer treats residual closure as an independent measurement lane; the valid comparison is the narrower `tdcpass` strict source-side block.",
         "summary": (
-            "The quarterly deposit result has two parts. Matched deposits rise with TDC, while the non-TDC deposit component moves the other way. "
-            "The accounting reconstruction checks whether that second piece can be rebuilt from deposit substitution, bank balance-sheet adjustment, public-liquidity plumbing, and external flows."
+            "This block imports the stricter `tdcpass` comparison surface built from direct non-Treasury bank-asset transactions. "
+            "It is intentionally narrower than the full non-TDC residual, so it should be read as independent source-side support rather than as a closure-by-construction total."
         ),
         "impact_summary": impact_summary,
-        "residual_equation": r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t = \Delta D^{\mathrm{matched}}_t - \widehat{\Delta D}^{\mathrm{TDC}}_t",
-        "residual_equation_html": f"{RESIDUAL_SYMBOL_HTML} = {MATCHED_SYMBOL_HTML} - {TDC_SYMBOL_HTML}",
-        "residual_definitions": [
-            _eq_def(r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t", "Residual outcome `other_component_qoq`, constructed in the quarterly design as `matched_total_deposits - tdc_bank_only_qoq`.", RESIDUAL_SYMBOL_HTML),
-            _eq_def(r"\Delta D^{\mathrm{matched}}_t", "Observed matched deposits outcome `matched_total_deposits`, quarter-over-quarter change in FRED `BOGZ1FL764100005Q`.", MATCHED_SYMBOL_HTML),
-            _eq_def(r"\widehat{\Delta D}^{\mathrm{TDC}}_t", "Baseline TDC treatment `tdc_bank_only_qoq`, mapped from the treatment source `tdc_base_bank_only_ru_flow` in the `tdcest` bundle.", TDC_SYMBOL_HTML),
+        "note_lines": [
+            "Independent evidence here means direct source-side non-Treasury bank-asset support, not residual closure.",
+            "The strict loan-core minimum is the narrow direct core; the strict identifiable total adds a separate direct securities leg.",
+            "The remaining gap stays nonzero by design because the strict lane does not try to close the whole non-TDC residual.",
         ],
-        "identity_equation": r"\Delta D^{\mathrm{recon}}_t = \Delta D^{\mathrm{sub}}_t + \Delta D^{\mathrm{bank}}_t + \Delta D^{\mathrm{public}}_t + \Delta D^{\mathrm{ext}}_t",
-        "identity_equation_html": f"{RECON_SYMBOL_HTML} = {SUB_SYMBOL_HTML} + {BANK_SYMBOL_HTML} + {PUBLIC_SYMBOL_HTML} + {EXT_SYMBOL_HTML}",
-        "identity_definitions": [
-            _eq_def(r"\Delta D^{\mathrm{recon}}_t", "Reconstruction outcome `accounting_identity_total_qoq`, defined as `accounting_deposit_substitution_qoq + accounting_bank_balance_sheet_qoq + accounting_public_liquidity_qoq + accounting_external_flow_qoq`.", RECON_SYMBOL_HTML),
-            _eq_def(r"\Delta D^{\mathrm{sub}}_t", "Deposit-substitution accounting channel `accounting_deposit_substitution_qoq`; the bucket card below shows the proxy construction `deposit_substitution_block_qoq`.", SUB_SYMBOL_HTML),
-            _eq_def(r"\Delta D^{\mathrm{bank}}_t", "Bank balance-sheet accounting channel `accounting_bank_balance_sheet_qoq`; the bucket card below shows the proxy construction `bank_balance_sheet_proxy_block_qoq`.", BANK_SYMBOL_HTML),
-            _eq_def(r"\Delta D^{\mathrm{public}}_t", "Public-liquidity accounting channel `accounting_public_liquidity_qoq`; the bucket card below shows the proxy construction `public_liquidity_proxy_block_qoq`.", PUBLIC_SYMBOL_HTML),
-            _eq_def(r"\Delta D^{\mathrm{ext}}_t", "External-flow accounting channel `accounting_external_flow_qoq`; the bucket card below shows the proxy construction `external_flow_proxy_block_qoq`.", EXT_SYMBOL_HTML),
-        ],
-        "gap_equation": r"\Delta D^{\mathrm{gap}}_t = \Delta D^{\mathrm{non\mbox{-}TDC}}_t - \Delta D^{\mathrm{recon}}_t",
-        "gap_equation_html": f"{GAP_SYMBOL_HTML} = {RESIDUAL_SYMBOL_HTML} - {RECON_SYMBOL_HTML}",
-        "gap_definitions": [
-            _eq_def(r"\Delta D^{\mathrm{gap}}_t", "Closure-gap outcome `accounting_identity_gap_qoq`, constructed as `other_component_qoq - accounting_identity_total_qoq`.", GAP_SYMBOL_HTML),
-            _eq_def(r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t", "Residual component `other_component_qoq`.", RESIDUAL_SYMBOL_HTML),
-            _eq_def(r"\Delta D^{\mathrm{recon}}_t", "Four-bucket reconstruction `accounting_identity_total_qoq`.", RECON_SYMBOL_HTML),
-        ],
-        "bucket_intro": "The accounting reconstruction groups the non-TDC deposit component into four buckets.",
         "outcomes": outcomes,
-        "buckets": DEPOSIT_ACCOUNTING_BUCKETS,
         "links": links,
     }
 
@@ -3116,7 +3095,7 @@ def _site_data_payload(
     artifact_lookup = {row["artifact_id"]: row for row in artifact_rows}
     main_artifacts = [row for row in artifact_rows if row["release_channel"] == "main_text"]
     appendix_artifacts = [row for row in artifact_rows if row["release_channel"] == "appendix"]
-    deposit_accounting_payload = _deposit_accounting_payload(paths)
+    independent_evidence_payload = _independent_nontdc_payload(paths)
     treatment_comparisons = _treatment_comparison_payload(paths=paths, jobs_by_id=jobs_by_id)
     iv_lab = _iv_lab_payload(paths)
     return {
@@ -3150,7 +3129,7 @@ def _site_data_payload(
             "main_job_ids": [job_id for job_id in MAIN_JOB_IDS if job_id in jobs_by_id],
             "main_artifacts": main_artifacts,
             "appendix_artifacts": appendix_artifacts,
-            "deposit_accounting": deposit_accounting_payload,
+            "independent_evidence": independent_evidence_payload,
         },
         "sidecar": {
             "insights": INSIGHTS_SIDECAR,
@@ -3221,6 +3200,7 @@ def _nav(page: str) -> str:
             ("#questions", "Questions"),
             ("#definitions", "TDC definition"),
             ("#headline-results", "Results"),
+            ("#independent-evidence-section", "Independent evidence"),
             ("#additional-evidence", "Additional evidence"),
             ("#component-evidence", "Component evidence"),
             ("#robustness", "Robustness"),
@@ -3231,6 +3211,7 @@ def _nav(page: str) -> str:
             ("../index.html#questions", "Questions"),
             ("../index.html#definitions", "TDC definition"),
             ("../index.html#headline-results", "Results"),
+            ("../index.html#independent-evidence-section", "Independent evidence"),
             ("../index.html#additional-evidence", "Additional evidence"),
             ("../index.html#component-evidence", "Component evidence"),
             ("../index.html#robustness", "Robustness"),
@@ -3241,6 +3222,7 @@ def _nav(page: str) -> str:
             ("../index.html#questions", "Questions"),
             ("../index.html#definitions", "TDC definition"),
             ("../index.html#headline-results", "Results"),
+            ("../index.html#independent-evidence-section", "Independent evidence"),
             ("../index.html#additional-evidence", "Additional evidence"),
             ("../index.html#component-evidence", "Component evidence"),
             ("#top", "Artifacts"),
@@ -3250,6 +3232,7 @@ def _nav(page: str) -> str:
             ("../../index.html#questions", "Questions"),
             ("../../index.html#definitions", "TDC definition"),
             ("../../index.html#headline-results", "Results"),
+            ("../../index.html#independent-evidence-section", "Independent evidence"),
             ("../../index.html#additional-evidence", "Additional evidence"),
             ("../../index.html#component-evidence", "Component evidence"),
             ("../index.html", "Artifact gallery"),
@@ -3354,7 +3337,7 @@ def _home_html(generated_at: str) -> str:
             '<div class="hero-copy reveal">',
             '<div class="eyebrow">EA-TDC</div>',
             '<h1>Treasury contribution to deposits: estimates and transmission.</h1>',
-            '<p>This work asks whether the baseline estimate of Treasury Deposit Contribution produces an early deposit response, how the remaining deposit component adjusts, and how much of that adjustment can be reconstructed with a simple accounting breakdown.</p>',
+            '<p>This work asks whether the baseline estimate of Treasury Deposit Contribution produces an early deposit response, how that result survives broader holder definitions, and what remains under a narrower independent source-side comparison imported from `tdcpass`.</p>',
             '<div class="button-row">',
             '<a class="button primary" href="#headline-results">Read the results</a>',
             '<a class="button" href="#definitions">See the TDC definition</a>',
@@ -3366,14 +3349,14 @@ def _home_html(generated_at: str) -> str:
             '<section class="section container" id="claim-hierarchy">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Claim hierarchy</div><h2>What the release claims.</h2></div>',
-            '<p>The public package is intentionally narrow: baseline deposits are the headline, accounting is a coherence check, component regressions are explanatory sidecars, and corrected Tier 2 / Tier 3 treatments stay sensitivity-only.</p>',
+            '<p>The public package is intentionally narrow: baseline deposits are the headline, strict independent non-TDC evidence comes from the narrower `tdcpass` source-side lane, component regressions are explanatory sidecars, and corrected Tier 2 / Tier 3 treatments stay sensitivity-only.</p>',
             "</div>",
-            '<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Baseline deposit response.</h3><p>The selected quarterly baseline delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Coherence</div><h3>Accounting alignment.</h3><p>The deposit-source reconstruction is a consistency check, not independent validation.</p></article><article class="insight-card reveal"><div class="eyebrow">Explanation</div><h3>Component sidecars.</h3><p>RU acquisition, Treasury cash, and remittances help interpret the deposit result.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Corrected variants.</h3><p>Tier 2 and Tier 3 treatments remain public sensitivity branches only.</p></article></div>',
+            '<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Baseline deposit response.</h3><p>The selected quarterly baseline delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Boundary</div><h3>Strict source-side comparison.</h3><p>The valid independent non-TDC comparison is the narrower `tdcpass` source-side lane, not residual closure.</p></article><article class="insight-card reveal"><div class="eyebrow">Explanation</div><h3>Component sidecars.</h3><p>RU acquisition, Treasury cash, and remittances help interpret the deposit result.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Corrected variants.</h3><p>Tier 2 and Tier 3 treatments remain public sensitivity branches only.</p></article></div>',
             "</section>",
             '<section class="section container" id="questions">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Questions</div><h2>Research questions.</h2></div>',
-            '<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives broader holder definitions, and whether the non-TDC deposit component can be reconstructed in a sensible way.</p>',
+            '<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives broader holder definitions, and what remains under the narrower strict independent non-TDC evidence surface imported from `tdcpass`.</p>',
             "</div>",
             '<div id="questions-grid" class="insight-grid"></div>',
             "</section>",
@@ -3387,12 +3370,12 @@ def _home_html(generated_at: str) -> str:
             "</div>",
             '<div id="headline-job-list" class="job-list"></div>',
             "</section>",
-            '<section class="section container" id="deposit-accounting-section">',
+            '<section class="section container" id="independent-evidence-section">',
             '<div class="section-header reveal">',
-            '<div><div class="eyebrow">Deposit accounting</div><h2>Accounting reconstruction supports coherence, not independent validation.</h2></div>',
-            '<p>This section ties the main deposit result to the residual non-TDC deposit component and then rebuilds that residual with four accounting buckets as a coherence check.</p>',
+            '<div><div class="eyebrow">Independent evidence</div><h2>Strict independent non-TDC evidence is narrower and source-side.</h2></div>',
+            '<p>EA-TDC does not use residual/accounting closure as an independent non-TDC measure. The relevant comparison here is the narrower `tdcpass` source-side lane built from direct non-Treasury bank-asset transactions.</p>',
             "</div>",
-            '<div id="deposit-accounting" class="job-list"></div>',
+            '<div id="independent-evidence" class="job-list"></div>',
             "</section>",
             '<section class="section container" id="additional-evidence">',
             '<div class="section-header reveal">',

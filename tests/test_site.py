@@ -89,7 +89,8 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     assert "Raw reserves are not treated as a headline result here" not in index_text
     assert "What the release claims." in index_text
     assert "Deposits are the clearest headline response." in index_text
-    assert "Accounting reconstruction supports coherence, not independent validation." in index_text
+    assert "Strict independent non-TDC evidence is narrower and source-side." in index_text
+    assert "The valid independent non-TDC comparison is the narrower `tdcpass` source-side lane, not residual closure." in index_text
     assert "Inflation, FX, and private balance sheets." in index_text
     assert "Which indicators dominate the screened control set?" not in index_text
     assert "Did the IV search find stronger instruments?" not in index_text
@@ -123,17 +124,14 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     assert site_data["jobs"]["custom_lp_job"]["branch_label"] == "Baseline controls"
     assert site_data["jobs"]["custom_lp_job"]["branch_note"] == "Selected public version uses the baseline quarterly control set."
     assert "jobs" in site_data["robustness"]
-    assert "deposit_accounting" in site_data["home"]
-    deposit_block = site_data["home"]["deposit_accounting"]
-    if deposit_block:
-        assert r"\Delta D^{\mathrm{non\mbox{-}TDC}}_t" in deposit_block["residual_equation"]
-        assert deposit_block["residual_definitions"][0][1].startswith("Residual outcome `other_component_qoq`")
-        assert deposit_block["buckets"][0]["definitions"][1][0] == r"\Delta LTD_t"
+    assert "deposit_accounting" not in site_data["home"]
+    assert "independent_evidence" in site_data["home"]
     main_js = (paths.root / "docs" / "assets" / "js" / "main.js").read_text(encoding="utf-8")
     assert r"\\[" in main_js
     assert "Lpiv" not in json.dumps(site_data)
     home_html = (paths.root / "docs" / "index.html").read_text(encoding="utf-8")
     assert 'id="component-evidence"' in home_html
+    assert 'id="independent-evidence-section"' in home_html
     assert "Open component summary" in home_html
     assert "Final interpretation" in home_html
     if site_data["robustness"]["jobs"]:

@@ -329,124 +329,6 @@ jobs:
     track_in_release_snapshot: false
     track_in_estimation_snapshot: false
 
-  - job_id: baseline_tdc_lp_deposit_source_blocks
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_bank_only_qoq
-    outcomes:
-      - other_component_qoq
-      - deposit_substitution_block_qoq
-      - bank_balance_sheet_proxy_block_qoq
-      - public_liquidity_proxy_block_qoq
-      - external_flow_proxy_block_qoq
-      - proxy_accounting_total_qoq
-      - proxy_unexplained_gap_qoq
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: supporting_descriptive
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
-  - job_id: baseline_tdc_lp_deposit_source_blocks_pct_gdp
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_bank_only_qoq
-    outcomes:
-      - other_component_qoq_pct_gdp
-      - deposit_substitution_block_qoq_pct_gdp
-      - bank_balance_sheet_proxy_block_qoq_pct_gdp
-      - public_liquidity_proxy_block_qoq_pct_gdp
-      - external_flow_proxy_block_qoq_pct_gdp
-      - proxy_accounting_total_qoq_pct_gdp
-      - proxy_unexplained_gap_qoq_pct_gdp
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: supporting_descriptive
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
-  - job_id: baseline_tdc_lp_deposit_source_identity
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_bank_only_qoq
-    research_status: coherence_only
-    outcomes:
-      - other_component_qoq
-      - accounting_deposit_substitution_qoq
-      - accounting_bank_balance_sheet_qoq
-      - accounting_public_liquidity_qoq
-      - accounting_external_flow_qoq
-      - accounting_identity_total_qoq
-      - accounting_identity_gap_qoq
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: supporting_descriptive
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
-  - job_id: baseline_tdc_lp_deposit_source_identity_tier3_bank_only
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow
-    research_status: coherence_only
-    outcomes:
-      - other_component_tier3_bank_only_qoq
-      - accounting_deposit_substitution_qoq
-      - accounting_bank_balance_sheet_qoq
-      - accounting_public_liquidity_qoq
-      - accounting_external_flow_qoq
-      - accounting_identity_total_qoq
-      - accounting_identity_gap_tier3_bank_only_qoq
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: supporting_descriptive
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
-  - job_id: baseline_tdc_lp_deposit_source_identity_pct_gdp
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_bank_only_qoq
-    research_status: coherence_only
-    outcomes:
-      - other_component_qoq_pct_gdp
-      - accounting_deposit_substitution_qoq_pct_gdp
-      - accounting_bank_balance_sheet_qoq_pct_gdp
-      - accounting_public_liquidity_qoq_pct_gdp
-      - accounting_external_flow_qoq_pct_gdp
-      - accounting_identity_total_qoq_pct_gdp
-      - accounting_identity_gap_qoq_pct_gdp
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: supporting_descriptive
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
-  - job_id: baseline_tdc_lp_deposit_source_identity_tier3_bank_only_pct_gdp
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_tier3_fiscal_corrected_bank_only_ru_flow
-    research_status: coherence_only
-    outcomes:
-      - other_component_tier3_bank_only_qoq_pct_gdp
-      - accounting_deposit_substitution_qoq_pct_gdp
-      - accounting_bank_balance_sheet_qoq_pct_gdp
-      - accounting_public_liquidity_qoq_pct_gdp
-      - accounting_external_flow_qoq_pct_gdp
-      - accounting_identity_total_qoq_pct_gdp
-      - accounting_identity_gap_tier3_bank_only_qoq_pct_gdp
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: supporting_descriptive
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
   - job_id: tdc_lpiv_deposits_qra_ru_gap
     estimator: lp_iv
     freq: quarterly
@@ -564,6 +446,29 @@ jobs:
     response_type: cumulative_sum_h0_to_h
     published_reference_artifact: data/bundles/tdcpass/published_identity_baseline.csv
     published_reference_outcome_prefix: tdcpass_
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdcpass_strict_source_side_nontdc
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdcpass_tdc_residual_z
+    research_status: boundary_comparison_only
+    outcomes:
+      - tdcpass_other_component_qoq
+      - tdcpass_strict_loan_core_min_qoq
+      - tdcpass_strict_non_treasury_securities_qoq
+      - tdcpass_strict_identifiable_total_qoq
+      - tdcpass_strict_identifiable_gap_qoq
+    controls_explicit:
+      - tdcpass_lag_tdc_bank_only_qoq
+      - tdcpass_lag_fedfunds
+      - tdcpass_lag_unemployment
+      - tdcpass_lag_inflation
+    horizons: [0, 1, 2, 4, 8]
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    response_type: cumulative_sum_h0_to_h
     track_in_release_snapshot: false
     track_in_estimation_snapshot: false
 

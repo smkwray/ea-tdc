@@ -768,7 +768,7 @@
     }
   },
   "deferred_jobs": [],
-  "generated_at": "2026-04-21T09:59:56+00:00",
+  "generated_at": "2026-04-22T10:04:40+00:00",
   "home": {
     "appendix_artifacts": [
       {
@@ -975,329 +975,234 @@
         "title": "Credit-spread responses to the baseline TDC estimate estimates"
       }
     ],
-    "deposit_accounting": {
-      "bucket_intro": "The accounting reconstruction groups the non-TDC deposit component into four buckets.",
-      "buckets": [
-        {
-          "definitions": [
-            [
-              "\\Delta D^{\\text{sub}}_t",
-              "Interpretive proxy bucket `deposit_substitution_block_qoq`, constructed as `large_time_deposits_qoq - retail_mmf_assets_qoq - institutional_mmf_assets_qoq`.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta LTD_t",
-              "Large time deposits: outcome `large_time_deposits_qoq`, FRED `LTDACBM027NBOG`, quarter-over-quarter change.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">LTD</span><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta MMF^{\\text{retail}}_t",
-              "Retail money market fund assets: outcome `retail_mmf_assets_qoq`, FRED `RMFSL`, quarter-over-quarter change.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">retail</sup><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta MMF^{\\text{inst}}_t",
-              "Institutional money market fund assets: outcome `institutional_mmf_assets_qoq`, FRED `WIMFSL` with Z.1 fallback `BOGZ1FL883034010Q`, quarter-over-quarter change.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">inst</sup><sub class=\"eq-sub\">t</sub>"
-            ]
-          ],
-          "equation": "\\Delta D^{\\text{sub}}_t = \\Delta LTD_t - \\Delta MMF^{\\text{retail}}_t - \\Delta MMF^{\\text{inst}}_t",
-          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">LTD</span><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">retail</sup><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">MMF</span><sup class=\"eq-sup\">inst</sup><sub class=\"eq-sub\">t</sub>",
-          "series": [
-            "Large time deposits (`large_time_deposits_qoq`; FRED `LTDACBM027NBOG`)",
-            "Retail money market fund assets (`retail_mmf_assets_qoq`; FRED `RMFSL`)",
-            "Institutional money market fund assets (`institutional_mmf_assets_qoq`; FRED `WIMFSL`, fallback `BOGZ1FL883034010Q`)"
-          ],
-          "summary": "This bucket asks whether money moves between deposits and deposit-like instruments rather than disappearing outright.",
-          "title": "Deposit substitution"
-        },
-        {
-          "definitions": [
-            [
-              "\\Delta D^{\\text{bank}}_t",
-              "Interpretive proxy bucket `bank_balance_sheet_proxy_block_qoq`, constructed as `bank_non_treasury_securities_qoq + bank_short_term_loans_z1_qoq`.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta S^{\\text{bank, non-Tsy}}_t",
-              "Banks' non-Treasury securities: outcome `bank_non_treasury_securities_qoq`, FRED `OSEACBW027SBOG`, quarter-over-quarter change.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">S</span><sup class=\"eq-sup\">bank, non-Tsy</sup><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta L^{\\text{bank, short}}_t",
-              "Short-term bank loans: outcome `bank_short_term_loans_z1_qoq`, FRED `BOGZ1FL704041005Q`, quarter-over-quarter change.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">L</span><sup class=\"eq-sup\">bank, short</sup><sub class=\"eq-sub\">t</sub>"
-            ]
-          ],
-          "equation": "\\Delta D^{\\text{bank}}_t = \\Delta S^{\\text{bank, non-Tsy}}_t + \\Delta L^{\\text{bank, short}}_t",
-          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">S</span><sup class=\"eq-sup\">bank, non-Tsy</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">L</span><sup class=\"eq-sup\">bank, short</sup><sub class=\"eq-sub\">t</sub>",
-          "series": [
-            "Bank non-Treasury securities (`bank_non_treasury_securities_qoq`; FRED `OSEACBW027SBOG`)",
-            "Short-term bank loans (`bank_short_term_loans_z1_qoq`; FRED `BOGZ1FL704041005Q`)"
-          ],
-          "summary": "This bucket tracks the other bank asset moves that can create or absorb deposits outside the direct Treasury channel.",
-          "title": "Bank balance-sheet adjustment"
-        },
-        {
-          "definitions": [
-            [
-              "\\Delta D^{\\text{public}}_t",
-              "Interpretive proxy bucket `public_liquidity_proxy_block_qoq`, constructed as `- tga_balance_qoq - on_rrp_balance_qoq`. This is narrower than the full Treasury operating cash concept used in the theory identities.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta TGA_t",
-              "Treasury General Account balance: outcome `tga_balance_qoq`, FRED `WDTGAL`, quarter-over-quarter change. Useful as a diagnostic cash proxy, but not the full TOC term when TT&L and related balances matter.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">TGA</span><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta ONRRP_t",
-              "ON RRP balance: outcome `on_rrp_balance_qoq`, FRED `RRPONTSYD`, quarter-over-quarter change.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">ONRRP</span><sub class=\"eq-sub\">t</sub>"
-            ]
-          ],
-          "equation": "\\Delta D^{\\text{public}}_t = - \\Delta TGA_t - \\Delta ONRRP_t",
-          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub> = - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">TGA</span><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">ONRRP</span><sub class=\"eq-sub\">t</sub>",
-          "series": [
-            "Treasury General Account balance (`tga_balance_qoq`; FRED `WDTGAL`)",
-            "ON RRP balance (`on_rrp_balance_qoq`; FRED `RRPONTSYD`)"
-          ],
-          "summary": "This proxy bucket tracks public cash balances that pull money into or out of the private deposit base. It is a diagnostic liquidity-plumbing surface, not the full historical Treasury operating cash leg.",
-          "title": "Public-liquidity plumbing"
-        },
-        {
-          "definitions": [
-            [
-              "\\Delta D^{\\text{ext}}_t",
-              "Interpretive proxy bucket `external_flow_proxy_block_qoq`, constructed as `row_private_flow_block + net_exports_qoq`.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta F^{\\text{ROW, private}}_t",
-              "Rest-of-world private-flow block: outcome `row_private_flow_block`, constructed as `row_corp_bonds_flow + row_corp_equities_flow + row_agency_flow + row_nonfin_business_loans_flow`.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">F</span><sup class=\"eq-sup\">ROW, private</sup><sub class=\"eq-sub\">t</sub>"
-            ],
-            [
-              "\\Delta NX_t",
-              "Net exports: outcome `net_exports_qoq`, constructed as `exports_qoq - imports_qoq`, using FRED `EXPGS` and `IMPGS`.",
-              "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">NX</span><sub class=\"eq-sub\">t</sub>"
-            ]
-          ],
-          "equation": "\\Delta D^{\\text{ext}}_t = \\Delta F^{\\text{ROW, private}}_t + \\Delta NX_t",
-          "equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">F</span><sup class=\"eq-sup\">ROW, private</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">NX</span><sub class=\"eq-sub\">t</sub>",
-          "series": [
-            "ROW private-flow block (`row_private_flow_block` = `row_corp_bonds_flow + row_corp_equities_flow + row_agency_flow + row_nonfin_business_loans_flow`)",
-            "Net exports (`net_exports_qoq` = `exports_qoq - imports_qoq`; FRED `EXPGS` minus `IMPGS`)"
-          ],
-          "summary": "This bucket tracks cross-border and external-balance channels that can add to or subtract from deposits.",
-          "title": "External flow"
-        }
-      ],
-      "gap_definitions": [
-        [
-          "\\Delta D^{\\mathrm{gap}}_t",
-          "Closure-gap outcome `accounting_identity_gap_qoq`, constructed as `other_component_qoq - accounting_identity_total_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">gap</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t",
-          "Residual component `other_component_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\Delta D^{\\mathrm{recon}}_t",
-          "Four-bucket reconstruction `accounting_identity_total_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub>"
-        ]
-      ],
-      "gap_equation": "\\Delta D^{\\mathrm{gap}}_t = \\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t - \\Delta D^{\\mathrm{recon}}_t",
-      "gap_equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">gap</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub>",
-      "identity_definitions": [
-        [
-          "\\Delta D^{\\mathrm{recon}}_t",
-          "Reconstruction outcome `accounting_identity_total_qoq`, defined as `accounting_deposit_substitution_qoq + accounting_bank_balance_sheet_qoq + accounting_public_liquidity_qoq + accounting_external_flow_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\Delta D^{\\mathrm{sub}}_t",
-          "Deposit-substitution accounting channel `accounting_deposit_substitution_qoq`; the bucket card below shows the proxy construction `deposit_substitution_block_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\Delta D^{\\mathrm{bank}}_t",
-          "Bank balance-sheet accounting channel `accounting_bank_balance_sheet_qoq`; the bucket card below shows the proxy construction `bank_balance_sheet_proxy_block_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\Delta D^{\\mathrm{public}}_t",
-          "Public-liquidity accounting channel `accounting_public_liquidity_qoq`; the bucket card below shows the proxy construction `public_liquidity_proxy_block_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\Delta D^{\\mathrm{ext}}_t",
-          "External-flow accounting channel `accounting_external_flow_qoq`; the bucket card below shows the proxy construction `external_flow_proxy_block_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub>"
-        ]
-      ],
-      "identity_equation": "\\Delta D^{\\mathrm{recon}}_t = \\Delta D^{\\mathrm{sub}}_t + \\Delta D^{\\mathrm{bank}}_t + \\Delta D^{\\mathrm{public}}_t + \\Delta D^{\\mathrm{ext}}_t",
-      "identity_equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">recon</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">sub</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">bank</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">public</sup><sub class=\"eq-sub\">t</sub> + <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">ext</sup><sub class=\"eq-sub\">t</sub>",
-      "impact_summary": "On impact, the non-TDC deposit component falls by -0.61, the accounting reconstruction moves by -0.59, the remaining gap is -0.02.",
+    "independent_evidence": {
+      "impact_summary": "On impact, the residual comparison surface moves by -48.62, the strict loan-core minimum moves by -10.53, the strict non-Treasury securities add-on moves by 11.94, the strict identifiable total moves by -2.19, the remaining residual gap is -46.43.",
       "links": [
         {
-          "href": "site_assets/models/baseline_tdc_lp_deposit_source_identity__lp_estimates.csv",
-          "label": "Accounting comparison CSV"
+          "href": "site_assets/models/tdcpass_strict_source_side_nontdc__lp_estimates.csv",
+          "label": "Strict-source comparison CSV"
         }
+      ],
+      "note_lines": [
+        "Independent evidence here means direct source-side non-Treasury bank-asset support, not residual closure.",
+        "The strict loan-core minimum is the narrow direct core; the strict identifiable total adds a separate direct securities leg.",
+        "The remaining gap stays nonzero by design because the strict lane does not try to close the whole non-TDC residual."
       ],
       "outcomes": [
         {
-          "chart_dom_id": "chart-baseline-tdc-lp-deposit-source-identity-other-component-qoq",
-          "key": "other_component_qoq",
-          "label": "Other deposit component",
+          "chart_dom_id": "chart-tdcpass-strict-source-side-nontdc-tdcpass-other-component-qoq",
+          "key": "tdcpass_other_component_qoq",
+          "label": "Residual non-TDC component (`tdcpass`)",
           "points": [
             {
-              "beta": -0.6084688876621475,
+              "beta": -48.61879637658057,
               "horizon": 0,
-              "lower95": -0.8470182958487349,
-              "p_value": 5.751510427920437e-07,
-              "upper95": -0.3699194794755601
+              "lower95": -75.63275354217494,
+              "p_value": 0.00041943883093420453,
+              "upper95": -21.604839210986203
             },
             {
-              "beta": -0.23415573370246878,
+              "beta": -61.97642816629344,
               "horizon": 1,
-              "lower95": -0.6194044003471206,
-              "p_value": 0.23353736037763073,
-              "upper95": 0.151092932942183
+              "lower95": -118.90399759840861,
+              "p_value": 0.032856636305469866,
+              "upper95": -5.0488587341782605
             },
             {
-              "beta": -0.2915445571225924,
+              "beta": -89.73570893264414,
               "horizon": 2,
-              "lower95": -0.5505781217863368,
-              "p_value": 0.02738419208007059,
-              "upper95": -0.03251099245884809
+              "lower95": -158.95205329561747,
+              "p_value": 0.011052103721528317,
+              "upper95": -20.519364569670827
             },
             {
-              "beta": -0.28476167201541,
+              "beta": -76.98599450086441,
               "horizon": 4,
-              "lower95": -0.4577238501379675,
-              "p_value": 0.00125136090034772,
-              "upper95": -0.11179949389285243
+              "lower95": -142.93723942511826,
+              "p_value": 0.022140964336099245,
+              "upper95": -11.034749576610537
             },
             {
-              "beta": -0.29189088467476054,
+              "beta": -141.52822900497154,
               "horizon": 8,
-              "lower95": -0.5080061098639853,
-              "p_value": 0.00811547733889384,
-              "upper95": -0.0757756594855358
+              "lower95": -235.2757937476029,
+              "p_value": 0.003086787948016978,
+              "upper95": -47.78066426234015
             }
           ]
         },
         {
-          "chart_dom_id": "chart-baseline-tdc-lp-deposit-source-identity-accounting-identity-total-qoq",
-          "key": "accounting_identity_total_qoq",
-          "label": "Accounting identity total",
+          "chart_dom_id": "chart-tdcpass-strict-source-side-nontdc-tdcpass-strict-loan-core-min-qoq",
+          "key": "tdcpass_strict_loan_core_min_qoq",
+          "label": "Strict loan-core minimum (`tdcpass`)",
           "points": [
             {
-              "beta": -0.5916443638802222,
+              "beta": -10.533363429643725,
               "horizon": 0,
-              "lower95": -0.8308844890942725,
-              "p_value": 1.2527363508763045e-06,
-              "upper95": -0.352404238666172
+              "lower95": -17.350814656965433,
+              "p_value": 0.0024592129966409804,
+              "upper95": -3.7159122023220164
             },
             {
-              "beta": -0.2175051419135046,
+              "beta": -11.231670291601901,
               "horizon": 1,
-              "lower95": -0.6012727261094538,
-              "p_value": 0.2666308369421977,
-              "upper95": 0.1662624422824446
+              "lower95": -22.22959853694268,
+              "p_value": 0.04532169558479038,
+              "upper95": -0.2337420462611206
             },
             {
-              "beta": -0.2861995026684155,
+              "beta": -15.165523003253767,
               "horizon": 2,
-              "lower95": -0.544703275610296,
-              "p_value": 0.030007479553006533,
-              "upper95": -0.027695729726535
+              "lower95": -30.523289385398215,
+              "p_value": 0.05293321351797653,
+              "upper95": 0.19224337889068188
             },
             {
-              "beta": -0.2769020374242988,
+              "beta": -10.667016186854665,
               "horizon": 4,
-              "lower95": -0.44934576917618974,
-              "p_value": 0.001647994040772982,
-              "upper95": -0.10445830567240791
+              "lower95": -40.80414294635833,
+              "p_value": 0.48784483057474404,
+              "upper95": 19.470110572649006
             },
             {
-              "beta": -0.29112840596116446,
+              "beta": 1.7566116287680202,
               "horizon": 8,
-              "lower95": -0.5136489394578074,
-              "p_value": 0.010338110147642965,
-              "upper95": -0.06860787246452146
+              "lower95": -41.76758599544671,
+              "p_value": 0.9369495243260517,
+              "upper95": 45.28080925298275
             }
           ]
         },
         {
-          "chart_dom_id": "chart-baseline-tdc-lp-deposit-source-identity-accounting-identity-gap-qoq",
-          "key": "accounting_identity_gap_qoq",
-          "label": "Accounting identity gap",
+          "chart_dom_id": "chart-tdcpass-strict-source-side-nontdc-tdcpass-strict-non-treasury-securities-qoq",
+          "key": "tdcpass_strict_non_treasury_securities_qoq",
+          "label": "Strict non-Treasury securities (`tdcpass`)",
           "points": [
             {
-              "beta": -0.01723669271587888,
+              "beta": 11.938897820907975,
               "horizon": 0,
-              "lower95": -0.03515250443646645,
-              "p_value": 0.05933485434235264,
-              "upper95": 0.0006791190047086941
+              "lower95": 1.2682284431315782,
+              "p_value": 0.028311013336915547,
+              "upper95": 22.609567198684374
             },
             {
-              "beta": -0.016650591788964365,
+              "beta": 16.77583758669822,
               "horizon": 1,
-              "lower95": -0.03266329975248555,
-              "p_value": 0.041542057464455384,
-              "upper95": -0.0006378838254431814
+              "lower95": 1.2362489826372869,
+              "p_value": 0.03435098069591924,
+              "upper95": 32.315426190759155
             },
             {
-              "beta": -0.005345054454177097,
+              "beta": 22.37372564818822,
               "horizon": 2,
-              "lower95": -0.016391890781065514,
-              "p_value": 0.3429494848625254,
-              "upper95": 0.005701781872711319
+              "lower95": 0.5870703883248787,
+              "p_value": 0.044134115756504055,
+              "upper95": 44.160380908051565
             },
             {
-              "beta": -0.00785963459111164,
+              "beta": 32.903525906140686,
               "horizon": 4,
-              "lower95": -0.019914367407254305,
-              "p_value": 0.2012805712168304,
-              "upper95": 0.004195098225031026
+              "lower95": -4.718481325343802,
+              "p_value": 0.0864955829459908,
+              "upper95": 70.52553313762517
             },
             {
-              "beta": -0.000762478713595879,
+              "beta": 34.47137099394291,
               "horizon": 8,
-              "lower95": -0.04481570326031068,
-              "p_value": 0.9729378148993457,
-              "upper95": 0.04329074583311892
+              "lower95": -18.8203983662794,
+              "p_value": 0.20486548151469686,
+              "upper95": 87.76314035416522
+            }
+          ]
+        },
+        {
+          "chart_dom_id": "chart-tdcpass-strict-source-side-nontdc-tdcpass-strict-identifiable-total-qoq",
+          "key": "tdcpass_strict_identifiable_total_qoq",
+          "label": "Strict identifiable total (`tdcpass`)",
+          "points": [
+            {
+              "beta": -2.1922125033951607,
+              "horizon": 0,
+              "lower95": -16.13679900453413,
+              "p_value": 0.7579839017286971,
+              "upper95": 11.75237399774381
+            },
+            {
+              "beta": 1.7922620108652136,
+              "horizon": 1,
+              "lower95": -17.830109162348357,
+              "p_value": 0.8579205309171578,
+              "upper95": 21.41463318407878
+            },
+            {
+              "beta": -4.297507461259366,
+              "horizon": 2,
+              "lower95": -29.951278439491844,
+              "p_value": 0.7426559159620201,
+              "upper95": 21.356263516973115
+            },
+            {
+              "beta": 10.86447546862858,
+              "horizon": 4,
+              "lower95": -40.8589040160042,
+              "p_value": 0.6805613575503171,
+              "upper95": 62.58785495326137
+            },
+            {
+              "beta": 20.486408198367375,
+              "horizon": 8,
+              "lower95": -62.23611454481308,
+              "p_value": 0.6273939395649917,
+              "upper95": 103.20893094154782
+            }
+          ]
+        },
+        {
+          "chart_dom_id": "chart-tdcpass-strict-source-side-nontdc-tdcpass-strict-identifiable-gap-qoq",
+          "key": "tdcpass_strict_identifiable_gap_qoq",
+          "label": "Residual minus strict total (`tdcpass`)",
+          "points": [
+            {
+              "beta": -46.42658387318541,
+              "horizon": 0,
+              "lower95": -71.72656808492407,
+              "p_value": 0.00032229688508578214,
+              "upper95": -21.126599661446743
+            },
+            {
+              "beta": -63.76869017715857,
+              "horizon": 1,
+              "lower95": -117.11736719076438,
+              "p_value": 0.0191383396786029,
+              "upper95": -10.42001316355276
+            },
+            {
+              "beta": -85.43820147138473,
+              "horizon": 2,
+              "lower95": -155.67462516489195,
+              "p_value": 0.017115506906770772,
+              "upper95": -15.201777777877524
+            },
+            {
+              "beta": -87.85046996949296,
+              "horizon": 4,
+              "lower95": -150.9015203049417,
+              "p_value": 0.00631591782566332,
+              "upper95": -24.799419634044213
+            },
+            {
+              "beta": -162.014637203339,
+              "horizon": 8,
+              "lower95": -283.6958295649738,
+              "p_value": 0.009062757452067638,
+              "upper95": -40.33344484170422
             }
           ]
         }
       ],
-      "residual_definitions": [
-        [
-          "\\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t",
-          "Residual outcome `other_component_qoq`, constructed in the quarterly design as `matched_total_deposits - tdc_bank_only_qoq`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\Delta D^{\\mathrm{matched}}_t",
-          "Observed matched deposits outcome `matched_total_deposits`, quarter-over-quarter change in FRED `BOGZ1FL764100005Q`.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">matched</sup><sub class=\"eq-sub\">t</sub>"
-        ],
-        [
-          "\\widehat{\\Delta D}^{\\mathrm{TDC}}_t",
-          "Baseline TDC treatment `tdc_bank_only_qoq`, mapped from the treatment source `tdc_base_bank_only_ru_flow` in the `tdcest` bundle.",
-          "<span class=\"eq-op\">&Delta;</span><span class=\"eq-hat\"><span class=\"eq-var\">D</span></span><sup class=\"eq-sup\">TDC</sup><sub class=\"eq-sub\">t</sub>"
-        ]
-      ],
-      "residual_equation": "\\Delta D^{\\mathrm{non\\mbox{-}TDC}}_t = \\Delta D^{\\mathrm{matched}}_t - \\widehat{\\Delta D}^{\\mathrm{TDC}}_t",
-      "residual_equation_html": "<span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">non-TDC</sup><sub class=\"eq-sub\">t</sub> = <span class=\"eq-op\">&Delta;</span><span class=\"eq-var\">D</span><sup class=\"eq-sup\">matched</sup><sub class=\"eq-sub\">t</sub> - <span class=\"eq-op\">&Delta;</span><span class=\"eq-hat\"><span class=\"eq-var\">D</span></span><sup class=\"eq-sup\">TDC</sup><sub class=\"eq-sub\">t</sub>",
-      "subtitle": "The residual deposit component and the accounting reconstruction move together rather than in opposite directions.",
-      "summary": "The quarterly deposit result has two parts. Matched deposits rise with TDC, while the non-TDC deposit component moves the other way. The accounting reconstruction checks whether that second piece can be rebuilt from deposit substitution, bank balance-sheet adjustment, public-liquidity plumbing, and external flows.",
-      "title": "Deposits and the accounting reconstruction tell the same story"
+      "subtitle": "EA-TDC no longer treats residual closure as an independent measurement lane; the valid comparison is the narrower `tdcpass` strict source-side block.",
+      "summary": "This block imports the stricter `tdcpass` comparison surface built from direct non-Treasury bank-asset transactions. It is intentionally narrower than the full non-TDC residual, so it should be read as independent source-side support rather than as a closure-by-construction total.",
+      "title": "Strict independent non-TDC evidence is narrower and source-side"
     },
     "insights": [
       {
@@ -1311,9 +1216,9 @@
         "title": "Does the deposit result survive broader holder definitions?"
       },
       {
-        "body": "The accounting check asks whether the residual deposit component can be rebuilt from deposit substitution, bank balance-sheet adjustment, public-liquidity plumbing, and external flows.",
+        "body": "The boundary check uses the narrower `tdcpass` strict source-side lane rather than residual closure, so independent evidence is limited to directly identifiable non-Treasury bank-asset support.",
         "kicker": "Question 3",
-        "title": "Can the non-TDC deposit component be reconstructed?"
+        "title": "What survives under strict independent non-TDC measurement?"
       }
     ],
     "main_artifacts": [

@@ -260,36 +260,24 @@
   }
 
   function renderDepositAccounting() {
-    var target = document.getElementById('deposit-accounting');
-    if (!target || !SITE_DATA || !SITE_DATA.home || !SITE_DATA.home.deposit_accounting) return;
-    var block = SITE_DATA.home.deposit_accounting;
+    var target = document.getElementById('independent-evidence');
+    if (!target || !SITE_DATA || !SITE_DATA.home || !SITE_DATA.home.independent_evidence) return;
+    var block = SITE_DATA.home.independent_evidence;
     var html = '';
-      html += '<section class="section-block job-block reveal" id="deposit-accounting-block">';
-      html += '<div class="job-top"><div><div class="eyebrow">Deposit accounting</div><h3>' + escapeHtml(block.title) + '</h3><p>' + escapeHtml(block.subtitle) + '</p></div>';
+      html += '<section class="section-block job-block reveal" id="independent-evidence-block">';
+      html += '<div class="job-top"><div><div class="eyebrow">Independent non-TDC evidence</div><h3>' + escapeHtml(block.title) + '</h3><p>' + escapeHtml(block.subtitle) + '</p></div>';
       html += '<div><p>' + escapeHtml(block.summary) + '</p><p class="branch-note">' + escapeHtml(block.impact_summary || '') + '</p><div class="button-row" style="margin-top:14px;">' + buildLinkRow(block.links || []) + '</div></div></div>';
       html += '<div class="mini-grid">';
       for (var i = 0; i < block.outcomes.length; i++) {
         var outcome = block.outcomes[i];
-        html += '<article class="mini-chart-card"><div><h4>' + escapeHtml(outcome.label) + '</h4><p class="mini-note">Quarter-by-quarter response to the baseline TDC estimate.</p></div><div class="mini-chart" id="' + escapeHtml(outcome.chart_dom_id) + '"></div></article>';
+        html += '<article class="mini-chart-card"><div><h4>' + escapeHtml(outcome.label) + '</h4><p class="mini-note">Quarter-by-quarter response under the imported `tdcpass` strict-source comparison.</p></div><div class="mini-chart" id="' + escapeHtml(outcome.chart_dom_id) + '"></div></article>';
       }
       html += '</div>';
-      html += '<details class="definition-shell" style="margin-top:18px;"><summary><div><div class="eyebrow">How the accounting works</div><h2>Residual, reconstruction, and gap.</h2></div><p>Show details</p></summary>';
-      html += '<div class="definition-body">';
-      html += '<p>The residual non-TDC deposit component is defined first. The accounting reconstruction then adds the four bucket totals and compares that sum with the residual.</p>';
-      html += '<p class="mini-note">Notation: Δ denotes a quarter-over-quarter change, and t indexes the quarter.</p>';
-      html += '<div class="equation-grid">';
-      html += '<article class="equation-card"><div class="eyebrow">Residual</div><h3>Non-TDC deposit component</h3>' + renderEquationMarkup(block.residual_equation, block.residual_equation_html) + renderDefinitionList(block.residual_definitions) + '</article>';
-      html += '<article class="equation-card"><div class="eyebrow">Accounting identity</div><h3>Four-bucket reconstruction</h3>' + renderEquationMarkup(block.identity_equation, block.identity_equation_html) + renderDefinitionList(block.identity_definitions) + '</article>';
-      html += '<article class="equation-card"><div class="eyebrow">Closure check</div><h3>Remaining gap</h3>' + renderEquationMarkup(block.gap_equation, block.gap_equation_html) + renderDefinitionList(block.gap_definitions) + '</article>';
-      html += '</div>';
-      html += '<p>' + escapeHtml(block.bucket_intro) + '</p>';
-      html += '<div class="insight-grid">';
-      for (var j = 0; j < block.buckets.length; j++) {
-        var bucket = block.buckets[j];
-        html += '<article class="insight-card"><div class="slot-label">Bucket ' + escapeHtml(String(j + 1)) + '</div><h3>' + escapeHtml(bucket.title) + '</h3><p>' + escapeHtml(bucket.summary) + '</p>' + renderEquationMarkup(bucket.equation, bucket.equation_html) + renderDefinitionList(bucket.definitions) + '<p class="mini-note">Series used: ' + escapeHtml((bucket.series || []).join('; ')) + '.</p></article>';
+      html += '<div class="insight-grid" style="margin-top:18px;">';
+      for (var j = 0; j < (block.note_lines || []).length; j++) {
+        html += '<article class="insight-card"><div class="slot-label">Boundary</div><p>' + escapeHtml(block.note_lines[j]) + '</p></article>';
       }
       html += '</div>';
-      html += '</div></details>';
     html += '</section>';
     target.innerHTML = html;
   }
@@ -681,10 +669,10 @@
           renderChart(homeOutcomes[j].chart_dom_id, homeOutcomes[j], j);
         }
       }
-      var depositAccounting = SITE_DATA.home.deposit_accounting;
-      if (depositAccounting && depositAccounting.outcomes) {
-        for (i = 0; i < depositAccounting.outcomes.length; i++) {
-          renderChart(depositAccounting.outcomes[i].chart_dom_id, depositAccounting.outcomes[i], i);
+      var independentEvidence = SITE_DATA.home.independent_evidence;
+      if (independentEvidence && independentEvidence.outcomes) {
+        for (i = 0; i < independentEvidence.outcomes.length; i++) {
+          renderChart(independentEvidence.outcomes[i].chart_dom_id, independentEvidence.outcomes[i], i);
         }
       }
       for (i = 0; i < SITE_DATA.sidecar.job_ids.length; i++) {

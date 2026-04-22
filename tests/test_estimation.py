@@ -96,6 +96,82 @@ def test_estimate_quarterly_job_writes_reference_comparison(tmp_path: Path) -> N
     assert summary["warning_rows"] == 0
 
 
+def test_estimate_quarterly_job_supports_tdcpass_strict_source_side_job(tmp_path: Path) -> None:
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    _write_text(
+        paths.config / "dass_job_blueprint.yaml",
+        "\n".join(
+            [
+                "jobs:",
+                "  - job_id: tdcpass_strict_source_side_nontdc",
+                "    estimator: lp",
+                "    freq: quarterly",
+                "    treatment_id: tdcpass_tdc_residual_z",
+                "    outcomes: [tdcpass_other_component_qoq, tdcpass_strict_loan_core_min_qoq, tdcpass_strict_non_treasury_securities_qoq, tdcpass_strict_identifiable_total_qoq, tdcpass_strict_identifiable_gap_qoq]",
+                "    controls_explicit: [tdcpass_lag_tdc_bank_only_qoq]",
+                "    horizons: [0, 1]",
+                "    response_type: cumulative_sum_h0_to_h",
+                "    output_family: supporting_reduced_form",
+                "    track_in_release_snapshot: false",
+                "    track_in_estimation_snapshot: false",
+            ]
+        ),
+    )
+    _write_text(
+        paths.bundles / "tdcpass" / "standardized_series.csv",
+        "\n".join(
+            [
+                "series_id,series_label,source_family,source_repo,source_table,freq,period_end,release_date,available_at,vintage_policy,units,value,transform_default,seasonal_adjustment_flag,interpolated_flag,component_group,role,notes",
+                "tdcpass_other_component_qoq,other_component_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,2,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_loan_core_min_qoq,strict_loan_core_min_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,1,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_non_treasury_securities_qoq,strict_non_treasury_securities_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,0.2,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_total_qoq,strict_identifiable_total_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,1.2,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_gap_qoq,strict_identifiable_gap_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,0.8,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_lag_tdc_bank_only_qoq,lag_tdc_bank_only_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,1,none,unknown,false,published_panel,reference,fixture",
+                "tdcpass_tdc_residual_z,tdc_residual_z,repo_seed_bundle,tdcpass,unexpected_tdc,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,ratio,1,none,unknown,false,published_shock,treatment,fixture",
+                "tdcpass_other_component_qoq,other_component_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-06-30,2024-09-28,2024-09-28,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,4,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_loan_core_min_qoq,strict_loan_core_min_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-06-30,2024-09-28,2024-09-28,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,2,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_non_treasury_securities_qoq,strict_non_treasury_securities_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-06-30,2024-09-28,2024-09-28,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,0.4,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_total_qoq,strict_identifiable_total_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-06-30,2024-09-28,2024-09-28,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,2.4,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_gap_qoq,strict_identifiable_gap_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-06-30,2024-09-28,2024-09-28,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,1.6,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_lag_tdc_bank_only_qoq,lag_tdc_bank_only_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-06-30,2024-09-28,2024-09-28,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,4,none,unknown,false,published_panel,reference,fixture",
+                "tdcpass_tdc_residual_z,tdc_residual_z,repo_seed_bundle,tdcpass,unexpected_tdc,quarterly,2024-06-30,2024-09-28,2024-09-28,tdcpass_publish_snapshot_conservative_90d_lag,ratio,2,none,unknown,false,published_shock,treatment,fixture",
+                "tdcpass_other_component_qoq,other_component_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-09-30,2024-12-29,2024-12-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,6,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_loan_core_min_qoq,strict_loan_core_min_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-09-30,2024-12-29,2024-12-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,3,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_non_treasury_securities_qoq,strict_non_treasury_securities_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-09-30,2024-12-29,2024-12-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,0.6,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_total_qoq,strict_identifiable_total_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-09-30,2024-12-29,2024-12-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,3.6,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_gap_qoq,strict_identifiable_gap_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-09-30,2024-12-29,2024-12-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,2.4,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_lag_tdc_bank_only_qoq,lag_tdc_bank_only_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-09-30,2024-12-29,2024-12-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,2,none,unknown,false,published_panel,reference,fixture",
+                "tdcpass_tdc_residual_z,tdc_residual_z,repo_seed_bundle,tdcpass,unexpected_tdc,quarterly,2024-09-30,2024-12-29,2024-12-29,tdcpass_publish_snapshot_conservative_90d_lag,ratio,3,none,unknown,false,published_shock,treatment,fixture",
+                "tdcpass_other_component_qoq,other_component_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-12-31,2025-03-31,2025-03-31,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,8,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_loan_core_min_qoq,strict_loan_core_min_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-12-31,2025-03-31,2025-03-31,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,4,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_non_treasury_securities_qoq,strict_non_treasury_securities_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-12-31,2025-03-31,2025-03-31,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,0.8,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_total_qoq,strict_identifiable_total_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-12-31,2025-03-31,2025-03-31,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,4.8,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_gap_qoq,strict_identifiable_gap_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-12-31,2025-03-31,2025-03-31,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,3.2,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_lag_tdc_bank_only_qoq,lag_tdc_bank_only_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-12-31,2025-03-31,2025-03-31,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,5,none,unknown,false,published_panel,reference,fixture",
+                "tdcpass_tdc_residual_z,tdc_residual_z,repo_seed_bundle,tdcpass,unexpected_tdc,quarterly,2024-12-31,2025-03-31,2025-03-31,tdcpass_publish_snapshot_conservative_90d_lag,ratio,4,none,unknown,false,published_shock,treatment,fixture",
+                "tdcpass_other_component_qoq,other_component_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2025-03-31,2025-06-29,2025-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,10,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_loan_core_min_qoq,strict_loan_core_min_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2025-03-31,2025-06-29,2025-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,5,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_non_treasury_securities_qoq,strict_non_treasury_securities_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2025-03-31,2025-06-29,2025-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,1.0,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_total_qoq,strict_identifiable_total_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2025-03-31,2025-06-29,2025-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,6.0,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_strict_identifiable_gap_qoq,strict_identifiable_gap_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2025-03-31,2025-06-29,2025-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,4.0,none,unknown,false,published_panel,mechanism,fixture",
+                "tdcpass_lag_tdc_bank_only_qoq,lag_tdc_bank_only_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2025-03-31,2025-06-29,2025-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,3,none,unknown,false,published_panel,reference,fixture",
+                "tdcpass_tdc_residual_z,tdc_residual_z,repo_seed_bundle,tdcpass,unexpected_tdc,quarterly,2025-03-31,2025-06-29,2025-06-29,tdcpass_publish_snapshot_conservative_90d_lag,ratio,5,none,unknown,false,published_shock,treatment,fixture",
+            ]
+        ),
+    )
+
+    build_quarterly_design(paths, job_id="tdcpass_strict_source_side_nontdc")
+    result = estimate_quarterly_job(paths, job_id="tdcpass_strict_source_side_nontdc")
+
+    with result.estimates_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 10
+    assert {row["response_type"] for row in rows} == {"cumulative_sum_h0_to_h"}
+    assert {row["covariance_estimator"] for row in rows} == {"newey_west"}
+
+
 def test_build_estimation_snapshot_runs_ready_lp_jobs(tmp_path: Path) -> None:
     paths = project_paths(tmp_path)
     ensure_repo_dirs(paths)

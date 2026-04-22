@@ -11,13 +11,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="assets/js/theme.js?v=2026-04-21T09%3A59%3A56%2B00%3A00"></script>
-<link rel="stylesheet" href="assets/css/style.css?v=2026-04-21T09%3A59%3A56%2B00%3A00">
+<script src="assets/js/theme.js?v=2026-04-22T10%3A04%3A40%2B00%3A00"></script>
+<link rel="stylesheet" href="assets/css/style.css?v=2026-04-22T10%3A04%3A40%2B00%3A00">
 <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-<script defer src="assets/js/main.js?v=2026-04-21T09%3A59%3A56%2B00%3A00"></script>
+<script defer src="assets/js/main.js?v=2026-04-22T10%3A04%3A40%2B00%3A00"></script>
 </head>
-<body data-page="home" data-root-prefix="" data-site-version="2026-04-21T09:59:56+00:00">
+<body data-page="home" data-root-prefix="" data-site-version="2026-04-22T10:04:40+00:00">
 <header class="nav">
 <div class="container nav-inner">
 <div class="brand">
@@ -28,6 +28,7 @@
 <a href="#questions">Questions</a>
 <a href="#definitions">TDC definition</a>
 <a href="#headline-results">Results</a>
+<a href="#independent-evidence-section">Independent evidence</a>
 <a href="#additional-evidence">Additional evidence</a>
 <a href="#component-evidence">Component evidence</a>
 <a href="#robustness">Robustness</a>
@@ -41,7 +42,7 @@
 <div class="hero-copy reveal">
 <div class="eyebrow">EA-TDC</div>
 <h1>Treasury contribution to deposits: estimates and transmission.</h1>
-<p>This work asks whether the baseline estimate of Treasury Deposit Contribution produces an early deposit response, how the remaining deposit component adjusts, and how much of that adjustment can be reconstructed with a simple accounting breakdown.</p>
+<p>This work asks whether the baseline estimate of Treasury Deposit Contribution produces an early deposit response, how that result survives broader holder definitions, and what remains under a narrower independent source-side comparison imported from `tdcpass`.</p>
 <div class="button-row">
 <a class="button primary" href="#headline-results">Read the results</a>
 <a class="button" href="#definitions">See the TDC definition</a>
@@ -53,14 +54,14 @@
 <section class="section container" id="claim-hierarchy">
 <div class="section-header reveal">
 <div><div class="eyebrow">Claim hierarchy</div><h2>What the release claims.</h2></div>
-<p>The public package is intentionally narrow: baseline deposits are the headline, accounting is a coherence check, component regressions are explanatory sidecars, and corrected Tier 2 / Tier 3 treatments stay sensitivity-only.</p>
+<p>The public package is intentionally narrow: baseline deposits are the headline, strict independent non-TDC evidence comes from the narrower `tdcpass` source-side lane, component regressions are explanatory sidecars, and corrected Tier 2 / Tier 3 treatments stay sensitivity-only.</p>
 </div>
-<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Baseline deposit response.</h3><p>The selected quarterly baseline delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Coherence</div><h3>Accounting alignment.</h3><p>The deposit-source reconstruction is a consistency check, not independent validation.</p></article><article class="insight-card reveal"><div class="eyebrow">Explanation</div><h3>Component sidecars.</h3><p>RU acquisition, Treasury cash, and remittances help interpret the deposit result.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Corrected variants.</h3><p>Tier 2 and Tier 3 treatments remain public sensitivity branches only.</p></article></div>
+<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Baseline deposit response.</h3><p>The selected quarterly baseline delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Boundary</div><h3>Strict source-side comparison.</h3><p>The valid independent non-TDC comparison is the narrower `tdcpass` source-side lane, not residual closure.</p></article><article class="insight-card reveal"><div class="eyebrow">Explanation</div><h3>Component sidecars.</h3><p>RU acquisition, Treasury cash, and remittances help interpret the deposit result.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Corrected variants.</h3><p>Tier 2 and Tier 3 treatments remain public sensitivity branches only.</p></article></div>
 </section>
 <section class="section container" id="questions">
 <div class="section-header reveal">
 <div><div class="eyebrow">Questions</div><h2>Research questions.</h2></div>
-<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives broader holder definitions, and whether the non-TDC deposit component can be reconstructed in a sensible way.</p>
+<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives broader holder definitions, and what remains under the narrower strict independent non-TDC evidence surface imported from `tdcpass`.</p>
 </div>
 <div id="questions-grid" class="insight-grid"></div>
 </section>
@@ -256,12 +257,12 @@
 </div>
 <div id="headline-job-list" class="job-list"></div>
 </section>
-<section class="section container" id="deposit-accounting-section">
+<section class="section container" id="independent-evidence-section">
 <div class="section-header reveal">
-<div><div class="eyebrow">Deposit accounting</div><h2>Accounting reconstruction supports coherence, not independent validation.</h2></div>
-<p>This section ties the main deposit result to the residual non-TDC deposit component and then rebuilds that residual with four accounting buckets as a coherence check.</p>
+<div><div class="eyebrow">Independent evidence</div><h2>Strict independent non-TDC evidence is narrower and source-side.</h2></div>
+<p>EA-TDC does not use residual/accounting closure as an independent non-TDC measure. The relevant comparison here is the narrower `tdcpass` source-side lane built from direct non-Treasury bank-asset transactions.</p>
 </div>
-<div id="deposit-accounting" class="job-list"></div>
+<div id="independent-evidence" class="job-list"></div>
 </section>
 <section class="section container" id="additional-evidence">
 <div class="section-header reveal">
@@ -317,7 +318,7 @@
 <footer class="site-footer container">
 <div class="footer-grid reveal">
 <div><div class="eyebrow">About EA-TDC</div><h2>Treasury contribution to deposits: definitions, estimates, and evidence.</h2><p>Definitions, estimates, figures, and downloadable result files are collected here together.</p></div>
-<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="site_assets/reports/release_scorecard.json" download>Scorecard JSON</a><a class="link-chip" href="site_assets/reports/release_contract.json" download>Contract JSON</a><a class="link-chip" href="#robustness">Robustness</a></div><p class="footer-note">Generated 2026-04-21T09:59:56+00:00</p></div>
+<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="site_assets/reports/release_scorecard.json" download>Scorecard JSON</a><a class="link-chip" href="site_assets/reports/release_contract.json" download>Contract JSON</a><a class="link-chip" href="#robustness">Robustness</a></div><p class="footer-note">Generated 2026-04-22T10:04:40+00:00</p></div>
 </div>
 </footer>
 </main>
