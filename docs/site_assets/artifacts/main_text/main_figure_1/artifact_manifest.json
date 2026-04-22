@@ -3,7 +3,7 @@
   "artifact_kind": "figure",
   "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
   "display_spec": "impulse_response_grid",
-  "generated_at": "2026-04-21T09:59:54+00:00",
+  "generated_at": "2026-04-22T10:04:37+00:00",
   "horizons": [
     "0",
     "1",
@@ -22,7 +22,7 @@
     "Observations: 85 to 93",
     "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.",
     "Displayed branch: K=200 screened branch",
-    "Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-21 and may reflect an in-progress quarter endpoint.",
+    "Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-22 and may reflect an in-progress quarter endpoint.",
     "Artifact source: Deposit responses to the baseline TDC estimate"
   ],
   "outcome_ids": [

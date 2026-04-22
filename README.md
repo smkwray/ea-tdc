@@ -11,11 +11,11 @@ EA-TDC is a research package built on [EconArk](https://github.com/smkwray/econa
 The finished package should be read in this order:
 
 - headline evidence: the quarterly deposit response to the baseline bank-only TDC estimate
-- coherence evidence: the deposit-accounting reconstruction, used as a diagnostic cross-check rather than independent validation
+- independent boundary evidence: the narrower `tdcpass` strict source-side comparison, used to separate broad TDC from truly independent non-TDC measurement
 - explanatory sidecar: component evidence on RU acquisition, Treasury operating cash, and positive Fed remittances
 - sensitivity only: corrected Tier 2 and Tier 3 treatment-ladder variants
 
-This is also the boundary used in sibling `tdcpass`: the broad Treasury-attributed TDC object is not treated as the same thing as a strict independently validated deposit component.
+EA-TDC no longer treats residual/accounting closure as an independent non-TDC measurement lane. That boundary is handled in sibling `tdcpass`, where the broad Treasury-attributed TDC object is kept separate from the narrower strict source-side evidence.
 
 ## Project structure
 

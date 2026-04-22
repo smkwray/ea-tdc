@@ -3,7 +3,7 @@
   "artifact_kind": "table",
   "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
   "display_spec": "supporting_table",
-  "generated_at": "2026-04-21T09:59:54+00:00",
+  "generated_at": "2026-04-22T10:04:37+00:00",
   "horizons": [
     "0",
     "1",
@@ -22,7 +22,7 @@
     "Observations: 86 to 93",
     "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.",
     "Displayed branch: K=100 screened branch",
-    "Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-21 and may reflect an in-progress quarter endpoint.",
+    "Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-22 and may reflect an in-progress quarter endpoint.",
     "Artifact source: Credit-spread responses to the baseline TDC estimate"
   ],
   "outcome_ids": [
