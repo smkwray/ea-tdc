@@ -96,6 +96,83 @@ def test_quarterly_design_builder_writes_manifests(tmp_path: Path) -> None:
     assert sample_manifest["rows"][-1]["reason"] == "required outcomes available within usable treatment-anchor sample"
 
 
+def test_quarterly_design_builder_imports_canonical_tier2_mmf_rrp_rows(tmp_path: Path) -> None:
+    _write_text(
+        tmp_path / "config" / "dass_job_blueprint.yaml",
+        "\n".join(
+            [
+                "jobs:",
+                "  - job_id: tdc_tier2_mmf_rrp_canonical_full_panel",
+                "    estimator: lp",
+                "    treatment_id: tdc_tier2_mmf_rrp_prop_bank_only_qoq",
+                "    outcomes:",
+                "      - matched_total_deposits",
+                "      - other_component_tier2_mmf_rrp_prop_bank_only_qoq",
+                "      - domestic_nonbank_deposits_qoq",
+                "      - domestic_nonbank_other_component_tier2_mmf_rrp_prop_bank_only_qoq",
+                "      - m2",
+                "    horizons: [0]",
+                "    controls_block: headline_core",
+                "    output_family: supporting_descriptive",
+            ]
+        ),
+    )
+    header = (
+        "series_id,series_label,source_family,source_repo,source_table,freq,period_end,"
+        "release_date,available_at,vintage_policy,units,value,transform_default,"
+        "seasonal_adjustment_flag,interpolated_flag,component_group,role,notes"
+    )
+    _write_text(
+        tmp_path / "data" / "bundles" / "tdcest" / "standardized_series.csv",
+        "\n".join(
+            [
+                header,
+                "tdc_base_bank_only_ru_flow,tdc_base_bank_only_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,100,none,unknown,false,canonical_headline,treatment,primary_treatment",
+                "tdc_tier2_mmf_rrp_prop_bank_only_ru_flow,tdc_tier2_mmf_rrp_prop_bank_only_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,10000,none,unknown,false,estimate_variant,treatment,fixture",
+                "tdc_tier2_mmf_rrp_lb_bank_only_ru_flow,tdc_tier2_mmf_rrp_lb_bank_only_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,8000,none,unknown,false,estimate_variant,treatment,fixture",
+                "tdc_tier2_mmf_rrp_ub_bank_only_ru_flow,tdc_tier2_mmf_rrp_ub_bank_only_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,12000,none,unknown,false,estimate_variant,treatment,fixture",
+                "tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow,tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,9000,none,unknown,false,estimate_variant,treatment,fixture",
+                "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow,tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,7000,none,unknown,false,estimate_variant,treatment,fixture",
+                "tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow,tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,usd_millions,6500,none,unknown,false,estimate_variant,treatment,fixture",
+                "gdp_deflator,gdp_deflator,repo_seed_bundle,tdcest,references,quarterly,2024-03-31,2024-06-29,2024-06-29,seed_bundle_snapshot_conservative_90d_lag,index,120,none,unknown,false,reference,control,reference",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "bundles" / "tdcpass" / "standardized_series.csv",
+        "\n".join(
+            [
+                header,
+                "tdcpass_domestic_nonbank_deposits_qoq,domestic_nonbank_deposits_qoq,repo_seed_bundle,tdcpass,quarterly_panel,quarterly,2024-03-31,2024-06-29,2024-06-29,tdcpass_publish_snapshot_conservative_90d_lag,usd_billions,40,none,unknown,false,published_panel,mechanism,fixture",
+            ]
+        ),
+    )
+    _write_text(
+        tmp_path / "data" / "raw" / "fred" / "BOGZ1FL764100005Q.csv",
+        "\n".join(["date,value", "2023-10-01,900", "2024-01-01,1030"]),
+    )
+    _write_text(
+        tmp_path / "data" / "raw" / "fred" / "M2SL.csv",
+        "\n".join(["date,value", "2024-01-31,1000", "2024-02-29,1005", "2024-03-31,1010"]),
+    )
+
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    result = build_quarterly_design(paths, job_id="tdc_tier2_mmf_rrp_canonical_full_panel")
+
+    with result.bundle_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    row = next(item for item in rows if item["quarter"] == "2024Q1")
+    assert row["tdc_tier2_mmf_rrp_prop_bank_only_qoq"] == "10000"
+    assert row["other_component_tier2_mmf_rrp_prop_bank_only_qoq"] == "-9870.0"
+    assert row["domestic_nonbank_other_component_tier2_mmf_rrp_prop_bank_only_qoq"] == "30000.0"
+    assert row["tdc_tier2_mmf_rrp_prop_bank_only_qoq__source_repo"] == "tdcest"
+    assert row["tdc_tier2_canonical_di_mmf_rrp_prop_qoq"] == "6500"
+
+    sample_manifest = json.loads(result.sample_manifest_path.read_text(encoding="utf-8"))
+    assert sample_manifest["rows"][1]["observations_remaining"] == 1
+
+
 def test_quarterly_design_builder_supports_corrected_treatment_residuals_and_identity_gaps(tmp_path: Path) -> None:
     _write_text(
         tmp_path / "config" / "dass_job_blueprint.yaml",
@@ -511,6 +588,7 @@ def test_quarterly_design_builder_supports_inflation_fx_private_assets_and_liqui
         "RELACBW027SBOG.csv": ["date,value", "2023-12-01,80", "2024-03-01,92"],
         "BOGZ1FL264035005Q.csv": ["date,value", "2023-10-01,900", "2024-01-01,915"],
         "WRESBAL.csv": ["date,value", "2023-10-04,1000", "2024-01-03,1035"],
+        "WDFOL.csv": ["date,value", "2023-10-04,40", "2024-01-03,45"],
         "WALCL.csv": ["date,value", "2023-10-04,7900", "2024-01-03,7925"],
         "TREAST.csv": ["date,value", "2023-10-04,4800", "2024-01-03,4810"],
     }.items():
@@ -549,10 +627,13 @@ def test_quarterly_design_builder_supports_inflation_fx_private_assets_and_liqui
         liquidity_rows = list(csv.DictReader(handle))
     liquidity_row = liquidity_rows[1]
     assert liquidity_row["reserve_balances_qoq"] == "35.0"
+    assert liquidity_row["foreign_official_deposits_qoq"] == "5.0"
+    assert liquidity_row["total_reserve_balances_plus_foreign_official_qoq"] == "40.0"
     assert liquidity_row["fed_total_assets_qoq"] == "25.0"
     assert liquidity_row["fed_treasury_holdings_qoq"] == "10.0"
     assert liquidity_row["reserve_balances_net_fed_assets_qoq"] == "10.0"
     assert liquidity_row["reserve_balances_net_fed_treasury_qoq"] == "25.0"
+    assert liquidity_row["total_reserves_plus_foreign_official_net_fed_treasury_qoq"] == "30.0"
 
 
 def test_quarterly_design_builder_supports_deposit_source_decomposition_job(tmp_path: Path) -> None:

@@ -420,51 +420,88 @@ def _estimate_rows_lp(
     result_rows: list[dict[str, str]] = []
     for outcome_id in outcome_ids:
         for horizon in horizons:
-            y_values: list[float] = []
-            x_rows: list[list[float]] = []
-            for idx, row in enumerate(bundle_rows):
-                treatment_value = _coerce_float(row.get(treatment_id, ""))
-                if treatment_value is None:
-                    continue
-                controls: list[float] = []
-                controls_ok = True
-                for control_id in control_ids:
-                    control_value = _coerce_float(row.get(control_id, ""))
-                    if control_value is None:
-                        controls_ok = False
-                        break
-                    controls.append(control_value)
-                if not controls_ok:
-                    continue
-                target_value = _build_quarterly_target(
-                    bundle_rows,
-                    start_idx=idx,
-                    outcome_id=outcome_id,
-                    horizon=horizon,
-                    response_type=response_type,
-                )
-                if target_value is None:
-                    continue
-                y_values.append(target_value)
-                x_rows.append([1.0, treatment_value, *controls])
-            if len(y_values) <= len(control_ids) + 2:
+            candidate_controls = control_ids[:]
+            best_fit: tuple[list[float], list[list[float]], list[str], list[str]] | None = None
+            fit_warning_flags: list[str] = []
+            while True:
+                y_values: list[float] = []
+                x_rows: list[list[float]] = []
+                for idx, row in enumerate(bundle_rows):
+                    treatment_value = _coerce_float(row.get(treatment_id, ""))
+                    if treatment_value is None:
+                        continue
+                    controls: list[float] = []
+                    controls_ok = True
+                    for control_id in candidate_controls:
+                        control_value = _coerce_float(row.get(control_id, ""))
+                        if control_value is None:
+                            controls_ok = False
+                            break
+                        controls.append(control_value)
+                    if not controls_ok:
+                        continue
+                    target_value = _build_quarterly_target(
+                        bundle_rows,
+                        start_idx=idx,
+                        outcome_id=outcome_id,
+                        horizon=horizon,
+                        response_type=response_type,
+                    )
+                    if target_value is None:
+                        continue
+                    y_values.append(target_value)
+                    x_rows.append([1.0, treatment_value, *controls])
+                if len(y_values) > len(candidate_controls) + 2:
+                    try:
+                        _ols(
+                            y_values,
+                            x_rows,
+                            covariance_estimator="newey_west",
+                            covariance_lags=max(horizon, 1),
+                        )
+                    except ValueError:
+                        if not candidate_controls:
+                            break
+                        candidate_controls = candidate_controls[:-1]
+                        if "collinear_controls" not in fit_warning_flags:
+                            fit_warning_flags.append("collinear_controls")
+                        continue
+                    dropped_controls = [control_id for control_id in control_ids if control_id not in candidate_controls]
+                    best_fit = (y_values, x_rows, candidate_controls[:], dropped_controls)
+                    break
+                if not candidate_controls:
+                    break
+                candidate_controls = candidate_controls[:-1]
+
+            if best_fit is None:
                 continue
+
+            y_values, x_rows, controls_used, dropped_controls = best_fit
             fit = _ols(
                 y_values,
                 x_rows,
                 covariance_estimator="newey_west",
                 covariance_lags=max(horizon, 1),
             )
+            warning_flags = fit_warning_flags[:]
+            if dropped_controls:
+                warning_flags.append("adaptive_controls")
             result_rows.append(
                 _estimate_row_payload(
                     job_id=job_id,
                     outcome_id=outcome_id,
                     horizon=horizon,
                     treatment_id=treatment_id,
-                    control_ids_used=control_ids,
+                    control_ids_used=controls_used,
                     response_type=response_type,
-                    inference_method="ols_newey_west_scaffold",
+                    inference_method=(
+                        "ols_newey_west_scaffold"
+                        if not dropped_controls
+                        else "ols_newey_west_scaffold_adaptive_controls"
+                    ),
                     fit=fit,
+                    warning_flags=warning_flags,
+                    dropped_control_ids=dropped_controls,
                 )
             )
     return result_rows

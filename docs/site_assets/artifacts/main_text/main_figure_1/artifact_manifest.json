@@ -1,9 +1,9 @@
 {
   "artifact_id": "main_figure_1",
   "artifact_kind": "figure",
-  "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+  "caption": "Impulse responses for Matched total deposits, Other component, same Tier 2 treatment to Long-history Tier 2 TDC. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
   "display_spec": "impulse_response_grid",
-  "generated_at": "2026-04-22T10:04:37+00:00",
+  "generated_at": "2026-05-22T17:38:04+00:00",
   "horizons": [
     "0",
     "1",
@@ -12,28 +12,28 @@
     "8"
   ],
   "html_path": "output/artifacts/main_text/main_figure_1/main_figure_1.html",
-  "job_id": "baseline_tdc_lp_deposits",
+  "job_id": "paper_tier2_selected_credit_rate_lags",
   "notes": [
-    "Treatment: Baseline TDC estimate",
+    "Treatment: Long-history Tier 2 TDC",
     "Response: Direct response at horizon h",
-    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Dflmx K200 F1, Dflmx K200 F2, Dflmx K200 F3, Dflmx K200 F4",
+    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Tier 2 method-tier control, Strict loan-core lag 2, Strict loan-core lag 4, Consumer-credit lag 4, Bank-credit lag 4, 2Y Treasury-yield lag 4, 10Y Treasury-yield lag 1, 10Y Treasury-yield lag 2, Dflmx K100 F1, Dflmx K100 F2, Dflmx K100 F3, Dflmx K100 F4",
     "Covariance: Newey-West HAC",
-    "Sample span: 1946Q4 to 2026Q2",
-    "Observations: 85 to 93",
-    "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.",
-    "Displayed branch: K=200 screened branch",
-    "Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-22 and may reflect an in-progress quarter endpoint.",
-    "Artifact source: Deposit responses to the baseline TDC estimate"
+    "Sample span: 2002Q1 to 2025Q4",
+    "Observations: 88 to 96",
+    "Scale: coefficients are $B responses per +$100B TDC.",
+    "Run/specification: regression_mmf_rrp_bank_long_selected_credit_rate_lags. This paper-facing branch adds selected lagged credit and Treasury-rate controls before the K=100 factor tail.",
+    "Claim boundary: deposit pass-through is the headline; broad mortgage/core-loan crowding-out is weak after selected lags.",
+    "Artifact source: Long-history Tier 2 selected-lag pass-through"
   ],
   "outcome_ids": [
     "matched_total_deposits",
-    "other_component_qoq"
+    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq"
   ],
   "primary_path": "output/artifacts/main_text/main_figure_1/main_figure_1.svg",
   "release_channel": "main_text",
   "secondary_path": "",
   "slot_label": "Main Figure 1",
-  "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
-  "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
-  "title": "Deposit responses to the baseline TDC estimate"
+  "source_estimates_path": "output/models/paper_tier2_selected_credit_rate_lags_estimates.csv",
+  "subtitle": "Local projection | Committed headline design | 2002Q1 to 2025Q4 | 2 outcomes | 88-96 obs",
+  "title": "Long-history Tier 2 selected-lag pass-through"
 }

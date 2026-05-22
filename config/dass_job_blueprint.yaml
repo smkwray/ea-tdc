@@ -12,6 +12,86 @@ jobs:
     cutoff_rule: quarter_start_default
     output_family: headline_identified
 
+  - job_id: baseline_tdc_lp_domestic_nonbank_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_bank_only_qoq
+    research_status: diagnostic_only
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_tier1_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: baseline_tdc_lp_strict_loan_core_same_treatment
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_bank_only_qoq
+    research_status: diagnostic_only
+    outcomes:
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - tdcpass_strict_loan_core_min_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: baseline_tdc_lp_domestic_nonbank_deposits_tier2_bank_only
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_interest_corrected_bank_only_ru_flow
+    research_status: diagnostic_only
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_tier2_bank_only_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_selected_lp_domestic_nonbank_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_selected_domestic_nonfinancial_proxy
+    research_status: diagnostic_only
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_du_selected_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_residual_lp_domestic_nonbank_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_residual_proxy_full_cu_ru
+    research_status: diagnostic_only
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_du_residual_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
   - job_id: baseline_tdc_lp_deposits_tier2_bank_only
     estimator: lp
     freq: quarterly
@@ -21,6 +101,210 @@ jobs:
       - matched_total_deposits
       - other_component_tier2_bank_only_qoq
       - m2
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_mmf_rrp_canonical_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_canonical_di_mmf_rrp_prop_qoq
+    research_status: sensitivity_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier2_mmf_rrp_prop_bank_only_qoq
+      - other_component_tier2_mmf_rrp_lb_bank_only_qoq
+      - other_component_tier2_mmf_rrp_ub_bank_only_qoq
+      - other_component_tier2_mmf_rrp_prop_di_np_cu_qoq
+      - other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq
+      - other_component_tier2_canonical_di_mmf_rrp_prop_qoq
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_tier2_mmf_rrp_prop_bank_only_qoq
+      - domestic_nonbank_other_component_tier2_mmf_rrp_lb_bank_only_qoq
+      - domestic_nonbank_other_component_tier2_mmf_rrp_ub_bank_only_qoq
+      - domestic_nonbank_other_component_tier2_mmf_rrp_prop_di_np_cu_qoq
+      - domestic_nonbank_other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq
+      - domestic_nonbank_other_component_tier2_canonical_di_mmf_rrp_prop_qoq
+      - m2
+      - tdcpass_strict_loan_core_min_qoq
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - repo_spread
+      - fed_funds
+      - sofr
+      - baa_aaa
+      - investment_grade_oas
+      - high_yield_oas
+      - bank_credit_qoq
+      - bank_non_treasury_securities_qoq
+      - row_loans_assets_qoq
+      - row_private_flow_block
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_total_reserves_row_bank_check
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_canonical_di_mmf_rrp_prop_qoq
+    research_status: diagnostic_only
+    outcomes:
+      - reserve_balances_qoq
+      - foreign_official_deposits_qoq
+      - total_reserve_balances_plus_foreign_official_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - total_reserves_plus_foreign_official_net_fed_treasury_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_regression_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_regression_di_np_cu_qoq
+    research_status: sensitivity_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier2_regression_bank_only_qoq
+      - other_component_tier2_regression_di_np_cu_qoq
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - mortgage_30y
+      - mortgage_30y_dgs10_spread
+      - m2
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_regression_bank_only_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_regression_bank_only_qoq
+    research_status: sensitivity_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier2_regression_bank_only_qoq
+      - tdcpass_strict_loan_core_min_qoq
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - mortgage_30y
+      - mortgage_30y_dgs10_spread
+      - m2
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_regression_deposit_anatomy
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_regression_bank_only_qoq
+    research_status: diagnostic_only
+    outcomes:
+      - matched_total_deposits
+      - domestic_nonbank_deposits_qoq
+      - large_time_deposits_qoq
+      - M2SL
+      - other_component_qoq
+      - other_component_tier2_bank_only_qoq
+      - other_component_tier2_regression_bank_only_qoq
+      - other_component_tier2_regression_di_np_cu_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
+      - domestic_nonbank_other_component_no_row_qoq
+      - domestic_nonbank_other_component_no_toc_no_row_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_regression_credit_anatomy
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_regression_bank_only_qoq
+    research_status: diagnostic_only
+    outcomes:
+      - tdcpass_strict_loan_core_min_qoq
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_ci_loans_h8_qoq
+      - bank_short_term_loans_z1_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - bank_non_treasury_securities_qoq
+      - row_loans_assets_qoq
+      - row_nonfin_business_loans_flow
+      - row_private_flow_block
+      - row_corp_bonds_flow
+      - row_corp_equities_flow
+      - row_agency_flow
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_regression_plumbing_rates
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_regression_bank_only_qoq
+    research_status: diagnostic_only
+    outcomes:
+      - reserve_balances_qoq
+      - reserve_balances
+      - reserve_balances_net_fed_treasury_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - total_reserve_balances_plus_foreign_official_qoq
+      - total_reserves_plus_foreign_official_net_fed_treasury_qoq
+      - foreign_official_deposits_qoq
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+      - fed_total_assets_qoq
+      - fed_treasury_holdings_qoq
+      - FEDFUNDS
+      - SOFR
+      - TGCRRATE
+      - repo_spread
+      - dgs3mo
+      - dgs2
+      - dgs5
+      - dgs10
+      - dgs30
+      - dgs10_2y_spread
+      - dgs10_3mo_spread
+      - mortgage_30y
+      - mortgage_30y_dgs10_spread
+      - term_premium_10y
+      - baa_aaa
+      - investment_grade_oas
+      - bbb_oas
+      - high_yield_oas
     horizons: [0, 1, 2, 4, 8]
     controls_block: headline_core
     cutoff_rule: quarter_start_default
@@ -149,6 +433,307 @@ jobs:
     controls_block: headline_core
     cutoff_rule: quarter_start_default
     output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_mmf_rrp_plumbing_adjusted_tier1_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier1_mmf_rrp_plumbing_adjusted_qoq
+    research_status: exploratory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier1_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_tier1_mmf_rrp_plumbing_adjusted_qoq
+      - m2
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - tdcpass_strict_loan_core_min_qoq
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - on_rrp_balance_qoq
+      - tga_balance_qoq
+      - repo_spread
+      - fed_funds
+      - sofr
+      - dgs3mo
+      - dgs2
+      - dgs5
+      - dgs10
+      - dgs30
+      - dgs10_2y_spread
+      - dgs10_3mo_spread
+      - term_premium_10y
+      - mortgage_30y
+      - mortgage_30y_dgs10_spread
+      - baa_aaa
+      - investment_grade_oas
+      - bbb_oas
+      - high_yield_oas
+      - headline_cpi_inflation_qoq_ann
+      - core_cpi_inflation_qoq_ann
+      - headline_pce_inflation_qoq_ann
+      - core_pce_inflation_qoq_ann
+      - broad_dollar_change
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_ci_loans_h8_qoq
+      - bank_short_term_loans_z1_qoq
+      - bank_non_treasury_securities_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - row_loans_assets_qoq
+      - row_corp_bonds_flow
+      - row_private_flow_block
+      - current_account_balance
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: exploratory_sidecar
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_mmf_rrp_plumbing_adjusted_tier2_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_mmf_rrp_plumbing_adjusted_qoq
+    research_status: exploratory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier2_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq
+      - m2
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - tdcpass_strict_loan_core_min_qoq
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - repo_spread
+      - fed_funds
+      - sofr
+      - baa_aaa
+      - investment_grade_oas
+      - high_yield_oas
+      - headline_cpi_inflation_qoq_ann
+      - core_cpi_inflation_qoq_ann
+      - core_pce_inflation_qoq_ann
+      - broad_dollar_change
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_non_treasury_securities_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - row_loans_assets_qoq
+      - row_corp_bonds_flow
+      - row_private_flow_block
+      - current_account_balance
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: exploratory_sidecar
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_tier2_unadjusted_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_interest_corrected_bank_only_ru_flow
+    research_status: exploratory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier2_bank_only_qoq
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_tier2_bank_only_qoq
+      - m2
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - on_rrp_balance_qoq
+      - tga_balance_qoq
+      - repo_spread
+      - fed_funds
+      - sofr
+      - dgs3mo
+      - dgs2
+      - dgs5
+      - dgs10
+      - dgs30
+      - dgs10_2y_spread
+      - dgs10_3mo_spread
+      - term_premium_10y
+      - mortgage_30y
+      - mortgage_30y_dgs10_spread
+      - baa_aaa
+      - investment_grade_oas
+      - bbb_oas
+      - high_yield_oas
+      - headline_cpi_inflation_qoq_ann
+      - core_cpi_inflation_qoq_ann
+      - headline_pce_inflation_qoq_ann
+      - core_pce_inflation_qoq_ann
+      - broad_dollar_change
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_ci_loans_h8_qoq
+      - bank_short_term_loans_z1_qoq
+      - bank_non_treasury_securities_qoq
+      - row_loans_assets_qoq
+      - row_corp_bonds_flow
+      - row_private_flow_block
+      - current_account_balance
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: exploratory_sidecar
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_mmf_rrp_plumbing_adjusted_du_selected_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq
+    research_status: exploratory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq
+      - m2
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - tdcpass_strict_loan_core_min_qoq
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - repo_spread
+      - fed_funds
+      - sofr
+      - baa_aaa
+      - investment_grade_oas
+      - high_yield_oas
+      - headline_cpi_inflation_qoq_ann
+      - core_cpi_inflation_qoq_ann
+      - core_pce_inflation_qoq_ann
+      - broad_dollar_change
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_non_treasury_securities_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - row_loans_assets_qoq
+      - row_corp_bonds_flow
+      - row_private_flow_block
+      - current_account_balance
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: exploratory_sidecar
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_mmf_rrp_plumbing_adjusted_du_residual_full_panel
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_residual_mmf_rrp_plumbing_adjusted_qoq
+    research_status: exploratory_sidecar
+    outcomes:
+      - matched_total_deposits
+      - other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq
+      - m2
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - tdcpass_strict_loan_core_min_qoq
+      - reserve_balances_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - reserve_balances_net_fed_assets_qoq
+      - repo_spread
+      - fed_funds
+      - sofr
+      - baa_aaa
+      - investment_grade_oas
+      - high_yield_oas
+      - headline_cpi_inflation_qoq_ann
+      - core_cpi_inflation_qoq_ann
+      - core_pce_inflation_qoq_ann
+      - broad_dollar_change
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_non_treasury_securities_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - row_loans_assets_qoq
+      - row_corp_bonds_flow
+      - row_private_flow_block
+      - current_account_balance
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: exploratory_sidecar
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_mmf_rrp_plumbing_adjusted_domestic_residual_ladder
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier1_mmf_rrp_plumbing_adjusted_qoq
+    research_status: exploratory_sidecar
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
+      - domestic_nonbank_other_component_no_row_qoq
+      - domestic_nonbank_other_component_no_toc_qoq
+      - domestic_nonbank_other_component_no_toc_no_row_qoq
+      - domestic_nonbank_other_component_tier1_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_other_component_no_row_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_other_component_no_toc_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_other_component_no_toc_no_row_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_other_component_core_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_other_component_us_chartered_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_other_component_no_foreign_bank_sectors_mmf_rrp_plumbing_adjusted_qoq
+      - mmf_on_rrp_plumbing_absorption_qoq
+      - tdc_no_toc_bank_only_qoq
+      - tdc_no_toc_no_row_bank_only_qoq
+      - tdc_core_deposit_proximate_bank_only_qoq
+      - tdc_toc_row_support_bundle_qoq
+      - row_private_flow_block
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: exploratory_sidecar
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_mmf_rrp_plumbing_adjusted_tier2_domestic_residual_ladder
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_mmf_rrp_plumbing_adjusted_qoq
+    research_status: exploratory_sidecar
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq
+      - domestic_nonbank_other_component_no_toc_mmf_rrp_plumbing_adjusted_qoq
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
+      - tdcpass_strict_loan_core_min_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: exploratory_sidecar
     track_in_release_snapshot: false
     track_in_estimation_snapshot: false
 
@@ -329,6 +914,198 @@ jobs:
     track_in_release_snapshot: false
     track_in_estimation_snapshot: false
 
+  - job_id: baseline_tdc_lp_deposit_sources_tier2_bank_only
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_tier2_interest_corrected_bank_only_ru_flow
+    research_status: sensitivity_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_tier2_bank_only_qoq
+      - large_time_deposits_qoq
+      - retail_mmf_assets_qoq
+      - institutional_mmf_assets_qoq
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_ci_loans_h8_qoq
+      - bank_short_term_loans_z1_qoq
+      - bank_non_treasury_securities_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - row_loans_assets_qoq
+      - row_corp_bonds_flow
+      - row_private_flow_block
+      - exports_qoq
+      - imports_qoq
+      - net_exports_qoq
+      - current_account_balance
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_fiscal_flow_lp_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_fiscal_flow_first_pass_narrow
+    research_status: diagnostic_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_qoq
+      - m2
+      - repo_spread
+      - reserve_balances_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_fiscal_flow_broad_lp_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_fiscal_flow_first_pass_broad
+    research_status: diagnostic_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_qoq
+      - m2
+      - repo_spread
+      - reserve_balances_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_fiscal_flow_broad_lp_domestic_nonbank_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_fiscal_flow_first_pass_broad
+    research_status: diagnostic_only
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_fiscal_flow_narrow_lp_domestic_nonbank_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_fiscal_flow_first_pass_narrow
+    research_status: diagnostic_only
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_net_fiscal_payment_lp_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_net_noninterest_fiscal_payment_proxy
+    research_status: diagnostic_only
+    outcomes:
+      - matched_total_deposits
+      - other_component_qoq
+      - m2
+      - repo_spread
+      - reserve_balances_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_net_fiscal_payment_lp_domestic_nonbank_deposits
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_net_noninterest_fiscal_payment_proxy
+    research_status: diagnostic_only
+    outcomes:
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_fiscal_flow_lp_deposit_sources
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_fiscal_flow_first_pass_narrow
+    research_status: diagnostic_only
+    outcomes:
+      - matched_total_deposits
+      - large_time_deposits_qoq
+      - retail_mmf_assets_qoq
+      - institutional_mmf_assets_qoq
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_ci_loans_h8_qoq
+      - bank_short_term_loans_z1_qoq
+      - bank_non_treasury_securities_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - row_loans_assets_qoq
+      - row_private_flow_block
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
+  - job_id: tdc_du_net_fiscal_payment_lp_deposit_sources
+    estimator: lp
+    freq: quarterly
+    treatment_id: tdc_du_net_noninterest_fiscal_payment_proxy
+    research_status: diagnostic_only
+    outcomes:
+      - matched_total_deposits
+      - large_time_deposits_qoq
+      - retail_mmf_assets_qoq
+      - institutional_mmf_assets_qoq
+      - bank_credit_qoq
+      - bank_business_loans_qoq
+      - bank_ci_loans_h8_qoq
+      - bank_short_term_loans_z1_qoq
+      - bank_non_treasury_securities_qoq
+      - bank_consumer_loans_qoq
+      - bank_real_estate_loans_qoq
+      - row_loans_assets_qoq
+      - row_private_flow_block
+      - tga_balance_qoq
+      - on_rrp_balance_qoq
+    horizons: [0, 1, 2, 4, 8]
+    controls_block: headline_core
+    cutoff_rule: quarter_start_default
+    output_family: supporting_descriptive
+    track_in_release_snapshot: false
+    track_in_estimation_snapshot: false
+
   - job_id: tdc_lpiv_deposits_qra_ru_gap
     estimator: lp_iv
     freq: quarterly
@@ -456,6 +1233,8 @@ jobs:
     research_status: boundary_comparison_only
     outcomes:
       - tdcpass_other_component_qoq
+      - tdcpass_strict_loan_mortgages_qoq
+      - tdcpass_strict_loan_consumer_credit_qoq
       - tdcpass_strict_loan_core_min_qoq
       - tdcpass_strict_non_treasury_securities_qoq
       - tdcpass_strict_identifiable_total_qoq

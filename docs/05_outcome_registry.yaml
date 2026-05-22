@@ -8,6 +8,9 @@ outcome_families:
       - total_bank_deposits
       - matched_total_deposits
       - matched_total_deposits_pct_gdp
+      - domestic_nonbank_deposits_qoq
+      - domestic_nonbank_other_component_qoq
+      - domestic_nonbank_other_component_core_deposit_proximate_qoq
       - large_time_deposits_qoq
       - large_time_deposits_qoq_pct_gdp
       - retail_mmf_assets_qoq
@@ -41,6 +44,11 @@ outcome_families:
       - on_rrp_balance_qoq
       - on_rrp_balance_qoq_pct_gdp
       - reserve_balances
+      - reserve_balances_qoq
+      - foreign_official_deposits_qoq
+      - total_reserve_balances_plus_foreign_official_qoq
+      - reserve_balances_net_fed_treasury_qoq
+      - total_reserves_plus_foreign_official_net_fed_treasury_qoq
       - tga_balance_qoq
       - tga_balance_qoq_pct_gdp
       - dealer_repo_conditions
@@ -68,7 +76,7 @@ outcome_families:
       - investment_grade_oas
       - high_yield_oas
       - mortgage_spread_if_kept
-    comments: Strong thesis-relevant family for financial-conditions effects.
+    comments: Strong internal family for financial-conditions effects.
 
   prices_and_nominal_activity:
     default_horizons: [1, 2, 4, 8]
@@ -99,6 +107,9 @@ outcome_families:
     preferred_scale: qoq_flow_or_share_change
     examples:
       - bank_treasury_holdings
+      - bank_treasury_securities_qoq
+      - bank_treasury_securities_transactions_qoq
+      - bank_treasury_agency_securities_qoq
       - total_loans
       - bank_credit_qoq_pct_gdp
       - c_i_loans

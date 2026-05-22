@@ -41,7 +41,8 @@ from .reporting import (
     build_release_snapshot,
     build_stage_completion_closeout,
 )
-from .robustness import build_control_universe, build_quarterly_robustness
+from .residualized_shock import build_quarterly_fwl_audit
+from .robustness import DEFAULT_CONTROL_POLICY_MODE, build_control_universe, build_quarterly_robustness
 from .sanitize import sanitize_output_paths
 from .seeds import copy_seed_source
 from .site import build_site
@@ -229,6 +230,12 @@ def build_parser() -> argparse.ArgumentParser:
     robustness_parser.add_argument("--repo-root", default=None, help="Override the repository root")
     robustness_parser.add_argument("--k-grid", default="100,200,300", help="Comma-separated control screen sizes")
     robustness_parser.add_argument("--factor-count", type=int, default=4, help="Number of factor controls to extract")
+    robustness_parser.add_argument(
+        "--control-policy-mode",
+        choices=["off", "balanced", "clean_macro"],
+        default=DEFAULT_CONTROL_POLICY_MODE,
+        help="Control eligibility policy before factor screening",
+    )
 
     robustness_snapshot_parser = subparsers.add_parser(
         "build-robustness-snapshot",
@@ -250,6 +257,17 @@ def build_parser() -> argparse.ArgumentParser:
     dml_parser.add_argument("--repo-root", default=None, help="Override the repository root")
     dml_parser.add_argument("--fold-count", type=int, default=3, help="Cross-fitting fold count")
     dml_parser.add_argument("--ridge-alpha", type=float, default=1.0, help="Ridge penalty for nuisance models")
+    dml_parser.add_argument("--control-policy-mode", choices=["off", "balanced", "clean_macro"], default=DEFAULT_CONTROL_POLICY_MODE, help="Control eligibility policy if robustness must be built")
+
+    fwl_parser = subparsers.add_parser(
+        "build-quarterly-fwl-audit",
+        help="Audit a factor-augmented LP by residualizing TDC and outcomes on the same controls",
+    )
+    fwl_parser.add_argument("job_id", help="Quarterly lp job id from config/dass_job_blueprint.yaml")
+    fwl_parser.add_argument("--repo-root", default=None, help="Override the repository root")
+    fwl_parser.add_argument("--k-screened", type=int, default=100, help="Number of screened controls to compress into factors")
+    fwl_parser.add_argument("--factor-count", type=int, default=4, help="Number of factor controls to extract")
+    fwl_parser.add_argument("--control-policy-mode", choices=["off", "balanced", "clean_macro"], default=DEFAULT_CONTROL_POLICY_MODE, help="Control eligibility policy before factor screening")
 
     tmle_parser = subparsers.add_parser(
         "build-quarterly-tmle",
@@ -259,6 +277,7 @@ def build_parser() -> argparse.ArgumentParser:
     tmle_parser.add_argument("--repo-root", default=None, help="Override the repository root")
     tmle_parser.add_argument("--fold-count", type=int, default=3, help="Cross-fitting fold count")
     tmle_parser.add_argument("--ridge-alpha", type=float, default=1.0, help="Ridge penalty for nuisance models")
+    tmle_parser.add_argument("--control-policy-mode", choices=["off", "balanced", "clean_macro"], default=DEFAULT_CONTROL_POLICY_MODE, help="Control eligibility policy if robustness must be built")
 
     forest_parser = subparsers.add_parser(
         "build-quarterly-forest",
@@ -271,6 +290,7 @@ def build_parser() -> argparse.ArgumentParser:
     forest_parser.add_argument("--max-depth", type=int, default=3, help="Maximum tree depth")
     forest_parser.add_argument("--min-leaf", type=int, default=8, help="Minimum leaf size")
     forest_parser.add_argument("--feature-fraction", type=float, default=0.5, help="Feature subsample share per tree")
+    forest_parser.add_argument("--control-policy-mode", choices=["off", "balanced", "clean_macro"], default=DEFAULT_CONTROL_POLICY_MODE, help="Control eligibility policy if robustness must be built")
 
     negative_controls_parser = subparsers.add_parser(
         "build-negative-controls",
@@ -279,6 +299,7 @@ def build_parser() -> argparse.ArgumentParser:
     negative_controls_parser.add_argument("job_id", help="Quarterly lp job id from config/dass_job_blueprint.yaml")
     negative_controls_parser.add_argument("--repo-root", default=None, help="Override the repository root")
     negative_controls_parser.add_argument("--top-n", type=int, default=12, help="Number of placebo-outcome candidates to keep")
+    negative_controls_parser.add_argument("--control-policy-mode", choices=["off", "balanced", "clean_macro"], default=DEFAULT_CONTROL_POLICY_MODE, help="Control eligibility policy if robustness must be built")
 
     estimate_job_parser = subparsers.add_parser("estimate-job", help="Estimate a ready supported job from its design bundle")
     estimate_job_parser.add_argument("job_id", help="Job id from config/dass_job_blueprint.yaml")
@@ -653,6 +674,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             job_id=args.job_id,
             k_grid=k_grid,
             factor_count=args.factor_count,
+            control_policy_mode=args.control_policy_mode,
         )
         result = {
             "summary_path": str(built.summary_path),
@@ -680,9 +702,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             job_id=args.job_id,
             fold_count=args.fold_count,
             ridge_alpha=args.ridge_alpha,
+            control_policy_mode=args.control_policy_mode,
         )
         result = {
             "estimates_path": str(built.estimates_path),
+            "summary_path": str(built.summary_path),
+            "rows_written": built.rows_written,
+        }
+    elif args.command == "build-quarterly-fwl-audit":
+        runtime = load_runtime_config(repo_root)
+        paths = project_paths(repo_root, data_root=runtime.data_root, output_root=runtime.output_root)
+        built = build_quarterly_fwl_audit(
+            paths,
+            job_id=args.job_id,
+            k_screened=args.k_screened,
+            factor_count=args.factor_count,
+            control_policy_mode=args.control_policy_mode,
+        )
+        result = {
+            "estimates_path": str(built.estimates_path),
+            "diagnostics_path": str(built.diagnostics_path),
             "summary_path": str(built.summary_path),
             "rows_written": built.rows_written,
         }
@@ -694,6 +733,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             job_id=args.job_id,
             fold_count=args.fold_count,
             ridge_alpha=args.ridge_alpha,
+            control_policy_mode=args.control_policy_mode,
         )
         result = {
             "estimates_path": str(built.estimates_path),
@@ -711,6 +751,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_depth=args.max_depth,
             min_leaf=args.min_leaf,
             feature_fraction=args.feature_fraction,
+            control_policy_mode=args.control_policy_mode,
         )
         result = {
             "estimates_path": str(built.estimates_path),
@@ -724,6 +765,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             paths,
             job_id=args.job_id,
             top_n=args.top_n,
+            control_policy_mode=args.control_policy_mode,
         )
         result = {
             "summary_path": str(built.summary_path),

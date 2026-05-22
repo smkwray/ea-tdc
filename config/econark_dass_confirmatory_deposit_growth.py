@@ -4,8 +4,6 @@ import csv
 import os
 from pathlib import Path
 
-import numpy as np
-
 # EA-TDC-owned confirmatory config focused on transformed deposit targets.
 # This keeps the transformed deposit-growth outcomes but now aligns the
 # treatment with the repo's canonical public quarterly TDC object.
@@ -21,6 +19,12 @@ ECONARK_ROOT = Path(
 # confirmatory rerun target for the deposit branch.
 CONFIRMATORY_SCOPE = "tdc_confirmatory"
 PUBLIC_TREATMENT_LABEL = "tdc_bank_only_qoq"
+
+
+def _log(series):
+    import numpy as np
+
+    return np.log(series)
 
 START_DATE = "1985-03-31"
 END_DATE = "2025-12-31"
@@ -95,7 +99,7 @@ INFER_RAW_FREQ = True
 
 SERIES_TO_GENERATE = {
     "DEPOSITS_DLOG_Q": {
-        "func": lambda df: np.log(df["DEPOSITS"]).diff() * 100.0,
+        "func": lambda df: _log(df["DEPOSITS"]).diff() * 100.0,
         "components": ["DEPOSITS"],
         "freq": "q",
     },

@@ -2,7 +2,7 @@
   "artifact_gallery": [
     {
       "artifact_id": "main_figure_1",
-      "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+      "caption": "Impulse responses for Matched total deposits, Other component, same Tier 2 treatment to Long-history Tier 2 TDC. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
       "horizons": [
         "0",
         "1",
@@ -10,7 +10,7 @@
         "4",
         "8"
       ],
-      "job_id": "baseline_tdc_lp_deposits",
+      "job_id": "paper_tier2_selected_credit_rate_lags",
       "kind": "figure",
       "links": [
         {
@@ -24,25 +24,22 @@
       ],
       "outcome_ids": [
         "matched_total_deposits",
-        "other_component_qoq"
+        "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq"
       ],
       "release_channel": "main_text",
       "slot_label": "Main Figure 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "source_estimates_path": "output/models/paper_tier2_selected_credit_rate_lags_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 2002Q1 to 2025Q4 | 2 outcomes | 88-96 obs",
       "table_rows": [],
-      "title": "Deposit responses to the baseline TDC estimate"
+      "title": "Long-history Tier 2 selected-lag pass-through"
     },
     {
       "artifact_id": "main_table_1",
-      "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+      "caption": "H=0 coefficient table for Matched total deposits, Other component, same Tier 2 treatment, Strict loan core, Mortgages, Consumer credit, Bank credit in response to Long-history Tier 2 TDC. Entries are $B per +$100B TDC, with p-values and observations.",
       "horizons": [
-        "0",
-        "1",
-        "2",
-        "4",
-        "8"
+        "0"
       ],
-      "job_id": "baseline_tdc_lp_deposits",
+      "job_id": "paper_tier2_selected_credit_rate_lags",
       "kind": "table",
       "links": [
         {
@@ -60,20 +57,162 @@
       ],
       "outcome_ids": [
         "matched_total_deposits",
-        "other_component_qoq"
+        "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+        "tdcpass_strict_loan_core_min_qoq",
+        "tdcpass_strict_loan_mortgages_qoq",
+        "tdcpass_strict_loan_consumer_credit_qoq",
+        "bank_credit_qoq"
       ],
       "release_channel": "main_text",
       "slot_label": "Main Table 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "source_estimates_path": "output/models/paper_tier2_selected_credit_rate_lags_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 2002Q1 to 2025Q4 | 6 outcomes | 96-96 obs",
       "table_rows": [
         {
-          "beta": "0.4712",
+          "beta": "61.6349",
           "horizon": "0",
-          "lower95": "0.0876",
+          "lower95": "",
+          "n": "96",
+          "outcome": "matched_total_deposits",
+          "outcome_label": "Matched total deposits",
+          "p_value_normal": "0.0023",
+          "se": "",
+          "upper95": ""
+        },
+        {
+          "beta": "-38.3651",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+          "outcome_label": "Other Component Tier2 Regression Mmf RRP Prop Bank Only Qoq",
+          "p_value_normal": "0.0578",
+          "se": "",
+          "upper95": ""
+        },
+        {
+          "beta": "-3.7505",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "tdcpass_strict_loan_core_min_qoq",
+          "outcome_label": "Strict loan-core minimum (`tdcpass`)",
+          "p_value_normal": "0.2006",
+          "se": "",
+          "upper95": ""
+        },
+        {
+          "beta": "-0.3991",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "tdcpass_strict_loan_mortgages_qoq",
+          "outcome_label": "Tdcpass Strict Loan Mortgages Qoq",
+          "p_value_normal": "0.8520",
+          "se": "",
+          "upper95": ""
+        },
+        {
+          "beta": "-3.3514",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "tdcpass_strict_loan_consumer_credit_qoq",
+          "outcome_label": "Tdcpass Strict Loan Consumer Credit Qoq",
+          "p_value_normal": "0.0332",
+          "se": "",
+          "upper95": ""
+        },
+        {
+          "beta": "7.3689",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "bank_credit_qoq",
+          "outcome_label": "Bank credit",
+          "p_value_normal": "0.5272",
+          "se": "",
+          "upper95": ""
+        }
+      ],
+      "title": "Long-history Tier 2 selected-lag h=0 coefficient table"
+    },
+    {
+      "artifact_id": "appendix_figure_1",
+      "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
+      "job_id": "baseline_tdc_lp_deposits",
+      "kind": "figure",
+      "links": [
+        {
+          "href": "artifacts/appendix_figure_1/index.html",
+          "label": "Open"
+        },
+        {
+          "href": "site_assets/artifacts/appendix/appendix_figure_1/appendix_figure_1.svg",
+          "label": "Raw"
+        }
+      ],
+      "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
+      "release_channel": "appendix",
+      "slot_label": "Appendix Figure 1",
+      "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "table_rows": [],
+      "title": "Older baseline K=200 sensitivity"
+    },
+    {
+      "artifact_id": "appendix_table_1",
+      "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
+      "job_id": "baseline_tdc_lp_deposits",
+      "kind": "table",
+      "links": [
+        {
+          "href": "artifacts/appendix_table_1/index.html",
+          "label": "Open"
+        },
+        {
+          "href": "site_assets/artifacts/appendix/appendix_table_1/appendix_table_1.csv",
+          "label": "CSV"
+        },
+        {
+          "href": "site_assets/artifacts/appendix/appendix_table_1/appendix_table_1.md",
+          "label": "Raw"
+        }
+      ],
+      "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
+      "release_channel": "appendix",
+      "slot_label": "Appendix Table 1",
+      "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "table_rows": [
+        {
+          "beta": "0.4713",
+          "horizon": "0",
+          "lower95": "0.0878",
           "n": "93",
           "outcome": "matched_total_deposits",
           "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0161",
+          "p_value_normal": "0.0160",
           "se": "0.1957",
           "upper95": "0.8547"
         },
@@ -122,9 +261,9 @@
           "upper95": "0.6149"
         },
         {
-          "beta": "-0.5288",
+          "beta": "-0.5287",
           "horizon": "0",
-          "lower95": "-0.9124",
+          "lower95": "-0.9122",
           "n": "93",
           "outcome": "other_component_qoq",
           "outcome_label": "Other deposit component",
@@ -177,10 +316,10 @@
           "upper95": "0.1063"
         }
       ],
-      "title": "Deposit responses to the baseline TDC estimate coefficient table"
+      "title": "Older baseline K=200 sensitivity"
     },
     {
-      "artifact_id": "appendix_table_1",
+      "artifact_id": "appendix_table_2",
       "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
       "horizons": [
         "0",
@@ -193,15 +332,15 @@
       "kind": "table",
       "links": [
         {
-          "href": "artifacts/appendix_table_1/index.html",
+          "href": "artifacts/appendix_table_2/index.html",
           "label": "Open"
         },
         {
-          "href": "site_assets/artifacts/appendix/appendix_table_1/appendix_table_1.csv",
+          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.csv",
           "label": "CSV"
         },
         {
-          "href": "site_assets/artifacts/appendix/appendix_table_1/appendix_table_1.md",
+          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.md",
           "label": "Raw"
         }
       ],
@@ -211,8 +350,9 @@
         "high_yield_oas"
       ],
       "release_channel": "appendix",
-      "slot_label": "Appendix Table 1",
-      "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
+      "slot_label": "Appendix Table 2",
+      "source_estimates_path": "output/models/baseline_tdc_lp_credit_spreads__robustness_k100_estimates.csv",
+      "subtitle": "Local projection | Appendix supporting design | 1945Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
       "table_rows": [
         {
           "beta": "-0.0000",
@@ -384,9 +524,9 @@
     }
   ],
   "artifacts": {
-    "appendix_table_1": {
-      "artifact_id": "appendix_table_1",
-      "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+    "appendix_figure_1": {
+      "artifact_id": "appendix_figure_1",
+      "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
       "horizons": [
         "0",
         "1",
@@ -394,7 +534,40 @@
         "4",
         "8"
       ],
-      "job_id": "baseline_tdc_lp_credit_spreads",
+      "job_id": "baseline_tdc_lp_deposits",
+      "kind": "figure",
+      "links": [
+        {
+          "href": "artifacts/appendix_figure_1/index.html",
+          "label": "Open"
+        },
+        {
+          "href": "site_assets/artifacts/appendix/appendix_figure_1/appendix_figure_1.svg",
+          "label": "Raw"
+        }
+      ],
+      "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
+      "release_channel": "appendix",
+      "slot_label": "Appendix Figure 1",
+      "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "table_rows": [],
+      "title": "Older baseline K=200 sensitivity"
+    },
+    "appendix_table_1": {
+      "artifact_id": "appendix_table_1",
+      "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
+      "job_id": "baseline_tdc_lp_deposits",
       "kind": "table",
       "links": [
         {
@@ -411,13 +584,162 @@
         }
       ],
       "outcome_ids": [
+        "matched_total_deposits",
+        "other_component_qoq"
+      ],
+      "release_channel": "appendix",
+      "slot_label": "Appendix Table 1",
+      "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "table_rows": [
+        {
+          "beta": "0.4713",
+          "horizon": "0",
+          "lower95": "0.0878",
+          "n": "93",
+          "outcome": "matched_total_deposits",
+          "outcome_label": "Matched total deposits",
+          "p_value_normal": "0.0160",
+          "se": "0.1957",
+          "upper95": "0.8547"
+        },
+        {
+          "beta": "0.3258",
+          "horizon": "1",
+          "lower95": "-0.2053",
+          "n": "92",
+          "outcome": "matched_total_deposits",
+          "outcome_label": "Matched total deposits",
+          "p_value_normal": "0.2293",
+          "se": "0.2710",
+          "upper95": "0.8569"
+        },
+        {
+          "beta": "0.0789",
+          "horizon": "2",
+          "lower95": "-0.2068",
+          "n": "91",
+          "outcome": "matched_total_deposits",
+          "outcome_label": "Matched total deposits",
+          "p_value_normal": "0.5883",
+          "se": "0.1458",
+          "upper95": "0.3646"
+        },
+        {
+          "beta": "0.3610",
+          "horizon": "4",
+          "lower95": "0.0600",
+          "n": "89",
+          "outcome": "matched_total_deposits",
+          "outcome_label": "Matched total deposits",
+          "p_value_normal": "0.0187",
+          "se": "0.1536",
+          "upper95": "0.6619"
+        },
+        {
+          "beta": "0.2830",
+          "horizon": "8",
+          "lower95": "-0.0488",
+          "n": "85",
+          "outcome": "matched_total_deposits",
+          "outcome_label": "Matched total deposits",
+          "p_value_normal": "0.0946",
+          "se": "0.1693",
+          "upper95": "0.6149"
+        },
+        {
+          "beta": "-0.5287",
+          "horizon": "0",
+          "lower95": "-0.9122",
+          "n": "93",
+          "outcome": "other_component_qoq",
+          "outcome_label": "Other deposit component",
+          "p_value_normal": "0.0069",
+          "se": "0.1957",
+          "upper95": "-0.1453"
+        },
+        {
+          "beta": "0.2296",
+          "horizon": "1",
+          "lower95": "-0.3070",
+          "n": "92",
+          "outcome": "other_component_qoq",
+          "outcome_label": "Other deposit component",
+          "p_value_normal": "0.4017",
+          "se": "0.2738",
+          "upper95": "0.7663"
+        },
+        {
+          "beta": "-0.0647",
+          "horizon": "2",
+          "lower95": "-0.4392",
+          "n": "91",
+          "outcome": "other_component_qoq",
+          "outcome_label": "Other deposit component",
+          "p_value_normal": "0.7347",
+          "se": "0.1910",
+          "upper95": "0.3097"
+        },
+        {
+          "beta": "-0.1931",
+          "horizon": "4",
+          "lower95": "-0.6033",
+          "n": "89",
+          "outcome": "other_component_qoq",
+          "outcome_label": "Other deposit component",
+          "p_value_normal": "0.3560",
+          "se": "0.2092",
+          "upper95": "0.2170"
+        },
+        {
+          "beta": "-0.1088",
+          "horizon": "8",
+          "lower95": "-0.3238",
+          "n": "85",
+          "outcome": "other_component_qoq",
+          "outcome_label": "Other deposit component",
+          "p_value_normal": "0.3216",
+          "se": "0.1097",
+          "upper95": "0.1063"
+        }
+      ],
+      "title": "Older baseline K=200 sensitivity"
+    },
+    "appendix_table_2": {
+      "artifact_id": "appendix_table_2",
+      "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+      "horizons": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
+      "job_id": "baseline_tdc_lp_credit_spreads",
+      "kind": "table",
+      "links": [
+        {
+          "href": "artifacts/appendix_table_2/index.html",
+          "label": "Open"
+        },
+        {
+          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.csv",
+          "label": "CSV"
+        },
+        {
+          "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.md",
+          "label": "Raw"
+        }
+      ],
+      "outcome_ids": [
         "baa_aaa",
         "investment_grade_oas",
         "high_yield_oas"
       ],
       "release_channel": "appendix",
-      "slot_label": "Appendix Table 1",
-      "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
+      "slot_label": "Appendix Table 2",
+      "source_estimates_path": "output/models/baseline_tdc_lp_credit_spreads__robustness_k100_estimates.csv",
+      "subtitle": "Local projection | Appendix supporting design | 1945Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
       "table_rows": [
         {
           "beta": "-0.0000",
@@ -589,7 +911,7 @@
     },
     "main_figure_1": {
       "artifact_id": "main_figure_1",
-      "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+      "caption": "Impulse responses for Matched total deposits, Other component, same Tier 2 treatment to Long-history Tier 2 TDC. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
       "horizons": [
         "0",
         "1",
@@ -597,7 +919,7 @@
         "4",
         "8"
       ],
-      "job_id": "baseline_tdc_lp_deposits",
+      "job_id": "paper_tier2_selected_credit_rate_lags",
       "kind": "figure",
       "links": [
         {
@@ -611,25 +933,22 @@
       ],
       "outcome_ids": [
         "matched_total_deposits",
-        "other_component_qoq"
+        "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq"
       ],
       "release_channel": "main_text",
       "slot_label": "Main Figure 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "source_estimates_path": "output/models/paper_tier2_selected_credit_rate_lags_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 2002Q1 to 2025Q4 | 2 outcomes | 88-96 obs",
       "table_rows": [],
-      "title": "Deposit responses to the baseline TDC estimate"
+      "title": "Long-history Tier 2 selected-lag pass-through"
     },
     "main_table_1": {
       "artifact_id": "main_table_1",
-      "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+      "caption": "H=0 coefficient table for Matched total deposits, Other component, same Tier 2 treatment, Strict loan core, Mortgages, Consumer credit, Bank credit in response to Long-history Tier 2 TDC. Entries are $B per +$100B TDC, with p-values and observations.",
       "horizons": [
-        "0",
-        "1",
-        "2",
-        "4",
-        "8"
+        "0"
       ],
-      "job_id": "baseline_tdc_lp_deposits",
+      "job_id": "paper_tier2_selected_credit_rate_lags",
       "kind": "table",
       "links": [
         {
@@ -647,133 +966,94 @@
       ],
       "outcome_ids": [
         "matched_total_deposits",
-        "other_component_qoq"
+        "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+        "tdcpass_strict_loan_core_min_qoq",
+        "tdcpass_strict_loan_mortgages_qoq",
+        "tdcpass_strict_loan_consumer_credit_qoq",
+        "bank_credit_qoq"
       ],
       "release_channel": "main_text",
       "slot_label": "Main Table 1",
-      "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+      "source_estimates_path": "output/models/paper_tier2_selected_credit_rate_lags_estimates.csv",
+      "subtitle": "Local projection | Committed headline design | 2002Q1 to 2025Q4 | 6 outcomes | 96-96 obs",
       "table_rows": [
         {
-          "beta": "0.4712",
+          "beta": "61.6349",
           "horizon": "0",
-          "lower95": "0.0876",
-          "n": "93",
+          "lower95": "",
+          "n": "96",
           "outcome": "matched_total_deposits",
           "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0161",
-          "se": "0.1957",
-          "upper95": "0.8547"
+          "p_value_normal": "0.0023",
+          "se": "",
+          "upper95": ""
         },
         {
-          "beta": "0.3258",
-          "horizon": "1",
-          "lower95": "-0.2053",
-          "n": "92",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.2293",
-          "se": "0.2710",
-          "upper95": "0.8569"
-        },
-        {
-          "beta": "0.0789",
-          "horizon": "2",
-          "lower95": "-0.2068",
-          "n": "91",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.5883",
-          "se": "0.1458",
-          "upper95": "0.3646"
-        },
-        {
-          "beta": "0.3610",
-          "horizon": "4",
-          "lower95": "0.0600",
-          "n": "89",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0187",
-          "se": "0.1536",
-          "upper95": "0.6619"
-        },
-        {
-          "beta": "0.2830",
-          "horizon": "8",
-          "lower95": "-0.0488",
-          "n": "85",
-          "outcome": "matched_total_deposits",
-          "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0946",
-          "se": "0.1693",
-          "upper95": "0.6149"
-        },
-        {
-          "beta": "-0.5288",
+          "beta": "-38.3651",
           "horizon": "0",
-          "lower95": "-0.9124",
-          "n": "93",
-          "outcome": "other_component_qoq",
-          "outcome_label": "Other deposit component",
-          "p_value_normal": "0.0069",
-          "se": "0.1957",
-          "upper95": "-0.1453"
+          "lower95": "",
+          "n": "96",
+          "outcome": "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+          "outcome_label": "Other Component Tier2 Regression Mmf RRP Prop Bank Only Qoq",
+          "p_value_normal": "0.0578",
+          "se": "",
+          "upper95": ""
         },
         {
-          "beta": "0.2296",
-          "horizon": "1",
-          "lower95": "-0.3070",
-          "n": "92",
-          "outcome": "other_component_qoq",
-          "outcome_label": "Other deposit component",
-          "p_value_normal": "0.4017",
-          "se": "0.2738",
-          "upper95": "0.7663"
+          "beta": "-3.7505",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "tdcpass_strict_loan_core_min_qoq",
+          "outcome_label": "Strict loan-core minimum (`tdcpass`)",
+          "p_value_normal": "0.2006",
+          "se": "",
+          "upper95": ""
         },
         {
-          "beta": "-0.0647",
-          "horizon": "2",
-          "lower95": "-0.4392",
-          "n": "91",
-          "outcome": "other_component_qoq",
-          "outcome_label": "Other deposit component",
-          "p_value_normal": "0.7347",
-          "se": "0.1910",
-          "upper95": "0.3097"
+          "beta": "-0.3991",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "tdcpass_strict_loan_mortgages_qoq",
+          "outcome_label": "Tdcpass Strict Loan Mortgages Qoq",
+          "p_value_normal": "0.8520",
+          "se": "",
+          "upper95": ""
         },
         {
-          "beta": "-0.1931",
-          "horizon": "4",
-          "lower95": "-0.6033",
-          "n": "89",
-          "outcome": "other_component_qoq",
-          "outcome_label": "Other deposit component",
-          "p_value_normal": "0.3560",
-          "se": "0.2092",
-          "upper95": "0.2170"
+          "beta": "-3.3514",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "tdcpass_strict_loan_consumer_credit_qoq",
+          "outcome_label": "Tdcpass Strict Loan Consumer Credit Qoq",
+          "p_value_normal": "0.0332",
+          "se": "",
+          "upper95": ""
         },
         {
-          "beta": "-0.1088",
-          "horizon": "8",
-          "lower95": "-0.3238",
-          "n": "85",
-          "outcome": "other_component_qoq",
-          "outcome_label": "Other deposit component",
-          "p_value_normal": "0.3216",
-          "se": "0.1097",
-          "upper95": "0.1063"
+          "beta": "7.3689",
+          "horizon": "0",
+          "lower95": "",
+          "n": "96",
+          "outcome": "bank_credit_qoq",
+          "outcome_label": "Bank credit",
+          "p_value_normal": "0.5272",
+          "se": "",
+          "upper95": ""
         }
       ],
-      "title": "Deposit responses to the baseline TDC estimate coefficient table"
+      "title": "Long-history Tier 2 selected-lag h=0 coefficient table"
     }
   },
   "deferred_jobs": [],
-  "generated_at": "2026-04-22T10:04:40+00:00",
+  "generated_at": "2026-05-22T17:38:12+00:00",
   "home": {
     "appendix_artifacts": [
       {
-        "artifact_id": "appendix_table_1",
-        "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+        "artifact_id": "appendix_figure_1",
+        "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
         "horizons": [
           "0",
           "1",
@@ -781,7 +1061,40 @@
           "4",
           "8"
         ],
-        "job_id": "baseline_tdc_lp_credit_spreads",
+        "job_id": "baseline_tdc_lp_deposits",
+        "kind": "figure",
+        "links": [
+          {
+            "href": "artifacts/appendix_figure_1/index.html",
+            "label": "Open"
+          },
+          {
+            "href": "site_assets/artifacts/appendix/appendix_figure_1/appendix_figure_1.svg",
+            "label": "Raw"
+          }
+        ],
+        "outcome_ids": [
+          "matched_total_deposits",
+          "other_component_qoq"
+        ],
+        "release_channel": "appendix",
+        "slot_label": "Appendix Figure 1",
+        "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
+        "subtitle": "Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+        "table_rows": [],
+        "title": "Older baseline K=200 sensitivity"
+      },
+      {
+        "artifact_id": "appendix_table_1",
+        "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+        "horizons": [
+          "0",
+          "1",
+          "2",
+          "4",
+          "8"
+        ],
+        "job_id": "baseline_tdc_lp_deposits",
         "kind": "table",
         "links": [
           {
@@ -798,13 +1111,162 @@
           }
         ],
         "outcome_ids": [
+          "matched_total_deposits",
+          "other_component_qoq"
+        ],
+        "release_channel": "appendix",
+        "slot_label": "Appendix Table 1",
+        "source_estimates_path": "output/models/baseline_tdc_lp_deposits__robustness_k200_estimates.csv",
+        "subtitle": "Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+        "table_rows": [
+          {
+            "beta": "0.4713",
+            "horizon": "0",
+            "lower95": "0.0878",
+            "n": "93",
+            "outcome": "matched_total_deposits",
+            "outcome_label": "Matched total deposits",
+            "p_value_normal": "0.0160",
+            "se": "0.1957",
+            "upper95": "0.8547"
+          },
+          {
+            "beta": "0.3258",
+            "horizon": "1",
+            "lower95": "-0.2053",
+            "n": "92",
+            "outcome": "matched_total_deposits",
+            "outcome_label": "Matched total deposits",
+            "p_value_normal": "0.2293",
+            "se": "0.2710",
+            "upper95": "0.8569"
+          },
+          {
+            "beta": "0.0789",
+            "horizon": "2",
+            "lower95": "-0.2068",
+            "n": "91",
+            "outcome": "matched_total_deposits",
+            "outcome_label": "Matched total deposits",
+            "p_value_normal": "0.5883",
+            "se": "0.1458",
+            "upper95": "0.3646"
+          },
+          {
+            "beta": "0.3610",
+            "horizon": "4",
+            "lower95": "0.0600",
+            "n": "89",
+            "outcome": "matched_total_deposits",
+            "outcome_label": "Matched total deposits",
+            "p_value_normal": "0.0187",
+            "se": "0.1536",
+            "upper95": "0.6619"
+          },
+          {
+            "beta": "0.2830",
+            "horizon": "8",
+            "lower95": "-0.0488",
+            "n": "85",
+            "outcome": "matched_total_deposits",
+            "outcome_label": "Matched total deposits",
+            "p_value_normal": "0.0946",
+            "se": "0.1693",
+            "upper95": "0.6149"
+          },
+          {
+            "beta": "-0.5287",
+            "horizon": "0",
+            "lower95": "-0.9122",
+            "n": "93",
+            "outcome": "other_component_qoq",
+            "outcome_label": "Other deposit component",
+            "p_value_normal": "0.0069",
+            "se": "0.1957",
+            "upper95": "-0.1453"
+          },
+          {
+            "beta": "0.2296",
+            "horizon": "1",
+            "lower95": "-0.3070",
+            "n": "92",
+            "outcome": "other_component_qoq",
+            "outcome_label": "Other deposit component",
+            "p_value_normal": "0.4017",
+            "se": "0.2738",
+            "upper95": "0.7663"
+          },
+          {
+            "beta": "-0.0647",
+            "horizon": "2",
+            "lower95": "-0.4392",
+            "n": "91",
+            "outcome": "other_component_qoq",
+            "outcome_label": "Other deposit component",
+            "p_value_normal": "0.7347",
+            "se": "0.1910",
+            "upper95": "0.3097"
+          },
+          {
+            "beta": "-0.1931",
+            "horizon": "4",
+            "lower95": "-0.6033",
+            "n": "89",
+            "outcome": "other_component_qoq",
+            "outcome_label": "Other deposit component",
+            "p_value_normal": "0.3560",
+            "se": "0.2092",
+            "upper95": "0.2170"
+          },
+          {
+            "beta": "-0.1088",
+            "horizon": "8",
+            "lower95": "-0.3238",
+            "n": "85",
+            "outcome": "other_component_qoq",
+            "outcome_label": "Other deposit component",
+            "p_value_normal": "0.3216",
+            "se": "0.1097",
+            "upper95": "0.1063"
+          }
+        ],
+        "title": "Older baseline K=200 sensitivity"
+      },
+      {
+        "artifact_id": "appendix_table_2",
+        "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+        "horizons": [
+          "0",
+          "1",
+          "2",
+          "4",
+          "8"
+        ],
+        "job_id": "baseline_tdc_lp_credit_spreads",
+        "kind": "table",
+        "links": [
+          {
+            "href": "artifacts/appendix_table_2/index.html",
+            "label": "Open"
+          },
+          {
+            "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.csv",
+            "label": "CSV"
+          },
+          {
+            "href": "site_assets/artifacts/appendix/appendix_table_2/appendix_table_2.md",
+            "label": "Raw"
+          }
+        ],
+        "outcome_ids": [
           "baa_aaa",
           "investment_grade_oas",
           "high_yield_oas"
         ],
         "release_channel": "appendix",
-        "slot_label": "Appendix Table 1",
-        "subtitle": "Local projection | Appendix supporting design | 1946Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
+        "slot_label": "Appendix Table 2",
+        "source_estimates_path": "output/models/baseline_tdc_lp_credit_spreads__robustness_k100_estimates.csv",
+        "subtitle": "Local projection | Appendix supporting design | 1945Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
         "table_rows": [
           {
             "beta": "-0.0000",
@@ -1224,7 +1686,7 @@
     "main_artifacts": [
       {
         "artifact_id": "main_figure_1",
-        "caption": "Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
+        "caption": "Impulse responses for Matched total deposits, Other component, same Tier 2 treatment to Long-history Tier 2 TDC. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
         "horizons": [
           "0",
           "1",
@@ -1232,7 +1694,7 @@
           "4",
           "8"
         ],
-        "job_id": "baseline_tdc_lp_deposits",
+        "job_id": "paper_tier2_selected_credit_rate_lags",
         "kind": "figure",
         "links": [
           {
@@ -1246,25 +1708,22 @@
         ],
         "outcome_ids": [
           "matched_total_deposits",
-          "other_component_qoq"
+          "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq"
         ],
         "release_channel": "main_text",
         "slot_label": "Main Figure 1",
-        "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+        "source_estimates_path": "output/models/paper_tier2_selected_credit_rate_lags_estimates.csv",
+        "subtitle": "Local projection | Committed headline design | 2002Q1 to 2025Q4 | 2 outcomes | 88-96 obs",
         "table_rows": [],
-        "title": "Deposit responses to the baseline TDC estimate"
+        "title": "Long-history Tier 2 selected-lag pass-through"
       },
       {
         "artifact_id": "main_table_1",
-        "caption": "Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+        "caption": "H=0 coefficient table for Matched total deposits, Other component, same Tier 2 treatment, Strict loan core, Mortgages, Consumer credit, Bank credit in response to Long-history Tier 2 TDC. Entries are $B per +$100B TDC, with p-values and observations.",
         "horizons": [
-          "0",
-          "1",
-          "2",
-          "4",
-          "8"
+          "0"
         ],
-        "job_id": "baseline_tdc_lp_deposits",
+        "job_id": "paper_tier2_selected_credit_rate_lags",
         "kind": "table",
         "links": [
           {
@@ -1282,124 +1741,85 @@
         ],
         "outcome_ids": [
           "matched_total_deposits",
-          "other_component_qoq"
+          "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+          "tdcpass_strict_loan_core_min_qoq",
+          "tdcpass_strict_loan_mortgages_qoq",
+          "tdcpass_strict_loan_consumer_credit_qoq",
+          "bank_credit_qoq"
         ],
         "release_channel": "main_text",
         "slot_label": "Main Table 1",
-        "subtitle": "Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs",
+        "source_estimates_path": "output/models/paper_tier2_selected_credit_rate_lags_estimates.csv",
+        "subtitle": "Local projection | Committed headline design | 2002Q1 to 2025Q4 | 6 outcomes | 96-96 obs",
         "table_rows": [
           {
-            "beta": "0.4712",
+            "beta": "61.6349",
             "horizon": "0",
-            "lower95": "0.0876",
-            "n": "93",
+            "lower95": "",
+            "n": "96",
             "outcome": "matched_total_deposits",
             "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.0161",
-            "se": "0.1957",
-            "upper95": "0.8547"
+            "p_value_normal": "0.0023",
+            "se": "",
+            "upper95": ""
           },
           {
-            "beta": "0.3258",
-            "horizon": "1",
-            "lower95": "-0.2053",
-            "n": "92",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.2293",
-            "se": "0.2710",
-            "upper95": "0.8569"
-          },
-          {
-            "beta": "0.0789",
-            "horizon": "2",
-            "lower95": "-0.2068",
-            "n": "91",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.5883",
-            "se": "0.1458",
-            "upper95": "0.3646"
-          },
-          {
-            "beta": "0.3610",
-            "horizon": "4",
-            "lower95": "0.0600",
-            "n": "89",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.0187",
-            "se": "0.1536",
-            "upper95": "0.6619"
-          },
-          {
-            "beta": "0.2830",
-            "horizon": "8",
-            "lower95": "-0.0488",
-            "n": "85",
-            "outcome": "matched_total_deposits",
-            "outcome_label": "Matched total deposits",
-            "p_value_normal": "0.0946",
-            "se": "0.1693",
-            "upper95": "0.6149"
-          },
-          {
-            "beta": "-0.5288",
+            "beta": "-38.3651",
             "horizon": "0",
-            "lower95": "-0.9124",
-            "n": "93",
-            "outcome": "other_component_qoq",
-            "outcome_label": "Other deposit component",
-            "p_value_normal": "0.0069",
-            "se": "0.1957",
-            "upper95": "-0.1453"
+            "lower95": "",
+            "n": "96",
+            "outcome": "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+            "outcome_label": "Other Component Tier2 Regression Mmf RRP Prop Bank Only Qoq",
+            "p_value_normal": "0.0578",
+            "se": "",
+            "upper95": ""
           },
           {
-            "beta": "0.2296",
-            "horizon": "1",
-            "lower95": "-0.3070",
-            "n": "92",
-            "outcome": "other_component_qoq",
-            "outcome_label": "Other deposit component",
-            "p_value_normal": "0.4017",
-            "se": "0.2738",
-            "upper95": "0.7663"
+            "beta": "-3.7505",
+            "horizon": "0",
+            "lower95": "",
+            "n": "96",
+            "outcome": "tdcpass_strict_loan_core_min_qoq",
+            "outcome_label": "Strict loan-core minimum (`tdcpass`)",
+            "p_value_normal": "0.2006",
+            "se": "",
+            "upper95": ""
           },
           {
-            "beta": "-0.0647",
-            "horizon": "2",
-            "lower95": "-0.4392",
-            "n": "91",
-            "outcome": "other_component_qoq",
-            "outcome_label": "Other deposit component",
-            "p_value_normal": "0.7347",
-            "se": "0.1910",
-            "upper95": "0.3097"
+            "beta": "-0.3991",
+            "horizon": "0",
+            "lower95": "",
+            "n": "96",
+            "outcome": "tdcpass_strict_loan_mortgages_qoq",
+            "outcome_label": "Tdcpass Strict Loan Mortgages Qoq",
+            "p_value_normal": "0.8520",
+            "se": "",
+            "upper95": ""
           },
           {
-            "beta": "-0.1931",
-            "horizon": "4",
-            "lower95": "-0.6033",
-            "n": "89",
-            "outcome": "other_component_qoq",
-            "outcome_label": "Other deposit component",
-            "p_value_normal": "0.3560",
-            "se": "0.2092",
-            "upper95": "0.2170"
+            "beta": "-3.3514",
+            "horizon": "0",
+            "lower95": "",
+            "n": "96",
+            "outcome": "tdcpass_strict_loan_consumer_credit_qoq",
+            "outcome_label": "Tdcpass Strict Loan Consumer Credit Qoq",
+            "p_value_normal": "0.0332",
+            "se": "",
+            "upper95": ""
           },
           {
-            "beta": "-0.1088",
-            "horizon": "8",
-            "lower95": "-0.3238",
-            "n": "85",
-            "outcome": "other_component_qoq",
-            "outcome_label": "Other deposit component",
-            "p_value_normal": "0.3216",
-            "se": "0.1097",
-            "upper95": "0.1063"
+            "beta": "7.3689",
+            "horizon": "0",
+            "lower95": "",
+            "n": "96",
+            "outcome": "bank_credit_qoq",
+            "outcome_label": "Bank credit",
+            "p_value_normal": "0.5272",
+            "se": "",
+            "upper95": ""
           }
         ],
-        "title": "Deposit responses to the baseline TDC estimate coefficient table"
+        "title": "Long-history Tier 2 selected-lag h=0 coefficient table"
       }
     ],
     "main_job_ids": [
@@ -1409,8 +1829,8 @@
   "jobs": {
     "baseline_tdc_lp_credit_spreads": {
       "anchor": "baseline-tdc-lp-credit-spreads",
-      "branch_label": "Expanded control set",
-      "branch_note": "Selected public version uses the expanded control set built from a screened pool of K=100 lagged indicators.",
+      "branch_label": "Screened-factor robustness",
+      "branch_note": "Displayed robustness branch uses K=100 screened lagged indicators compressed into factor controls; the macro-core LP remains the transparent baseline.",
       "estimator_label": "lp | newey west",
       "job_id": "baseline_tdc_lp_credit_spreads",
       "kicker": "Credit",
@@ -1727,8 +2147,8 @@
     },
     "baseline_tdc_lp_deposits": {
       "anchor": "baseline-tdc-lp-deposits",
-      "branch_label": "Expanded control set",
-      "branch_note": "Selected public version uses the expanded control set built from a screened pool of K=200 lagged indicators.",
+      "branch_label": "Screened-factor robustness",
+      "branch_note": "Displayed robustness branch uses K=200 screened lagged indicators compressed into factor controls; the macro-core LP remains the transparent baseline.",
       "estimator_label": "lp | newey west",
       "job_id": "baseline_tdc_lp_deposits",
       "kicker": "Deposits",
@@ -1750,39 +2170,39 @@
           "label": "Matched total deposits",
           "points": [
             {
-              "beta": 0.47115605165263197,
+              "beta": 0.4712704370873475,
               "horizon": 0,
-              "lower95": 0.08757980721712028,
-              "p_value": 0.016061468082834374,
-              "upper95": 0.8547322960881436
+              "lower95": 0.08779447975550075,
+              "p_value": 0.016008134386058526,
+              "upper95": 0.8547463944191942
             },
             {
-              "beta": 0.32578957202963743,
+              "beta": 0.325789572029946,
               "horizon": 1,
-              "lower95": -0.20533319033668884,
-              "p_value": 0.22926287577256477,
-              "upper95": 0.8569123343959637
+              "lower95": -0.20533319033570102,
+              "p_value": 0.22926287577152804,
+              "upper95": 0.8569123343955931
             },
             {
-              "beta": 0.07889761678474655,
+              "beta": 0.0788976167847691,
               "horizon": 2,
-              "lower95": -0.20680405530984775,
-              "p_value": 0.5883273209946318,
-              "upper95": 0.36459928887934084
+              "lower95": -0.2068040553096358,
+              "p_value": 0.5883273209942779,
+              "upper95": 0.364599288879174
             },
             {
-              "beta": 0.3609512504283823,
+              "beta": 0.3609512504283951,
               "horizon": 4,
-              "lower95": 0.059981081485558696,
-              "p_value": 0.01874250590100046,
-              "upper95": 0.6619214193712059
+              "lower95": 0.059981081486064236,
+              "p_value": 0.018742505900802398,
+              "upper95": 0.6619214193707259
             },
             {
-              "beta": 0.28304272975652767,
+              "beta": 0.28304272975668615,
               "horizon": 8,
-              "lower95": -0.04879539527612553,
-              "p_value": 0.09456568515957953,
-              "upper95": 0.6148808547891809
+              "lower95": -0.048795395275615716,
+              "p_value": 0.09456568515904551,
+              "upper95": 0.614880854788988
             }
           ]
         },
@@ -1792,39 +2212,39 @@
           "label": "Other deposit component",
           "points": [
             {
-              "beta": -0.5288439483473528,
+              "beta": -0.5287295629126406,
               "horizon": 0,
-              "lower95": -0.9124201927826334,
-              "p_value": 0.006886372997302104,
-              "upper95": -0.14526770391207228
+              "lower95": -0.9122055202448445,
+              "p_value": 0.006883845017963353,
+              "upper95": -0.1452536055804367
             },
             {
-              "beta": 0.22963053389274354,
+              "beta": 0.22963053389300842,
               "horizon": 1,
-              "lower95": -0.3070319774640161,
-              "p_value": 0.40166173659678295,
-              "upper95": 0.7662930452495033
+              "lower95": -0.30703197746353744,
+              "p_value": 0.4016617365960524,
+              "upper95": 0.7662930452495542
             },
             {
-              "beta": -0.06474228698062072,
+              "beta": -0.0647422869805897,
               "horizon": 2,
-              "lower95": -0.4391773238931966,
-              "p_value": 0.7346873812946713,
-              "upper95": 0.3096927499319551
+              "lower95": -0.4391773238932994,
+              "p_value": 0.7346873812948849,
+              "upper95": 0.30969274993212
             },
             {
-              "beta": -0.1931409453319906,
+              "beta": -0.19314094533196782,
               "horizon": 4,
-              "lower95": -0.603264953043668,
-              "p_value": 0.355992219552848,
-              "upper95": 0.21698306237968673
+              "lower95": -0.6032649530436257,
+              "p_value": 0.35599221955288196,
+              "upper95": 0.21698306237969003
             },
             {
-              "beta": -0.10875720171216868,
+              "beta": -0.10875720171191633,
               "horizon": 8,
-              "lower95": -0.323838621389511,
-              "p_value": 0.3216437441392266,
-              "upper95": 0.10632421796517363
+              "lower95": -0.3238386213887098,
+              "p_value": 0.32164374413911445,
+              "upper95": 0.1063242179648771
             }
           ]
         }
@@ -1833,13 +2253,13 @@
       "summary": "The cleanest current transmission result is deposit-side. The baseline TDC estimate raises matched deposits early, but another deposit component moves the other way, which looks more like balance-sheet reallocation than uniform expansion.",
       "table_rows": [
         {
-          "beta": "0.4712",
+          "beta": "0.4713",
           "horizon": "0",
-          "lower95": "0.0876",
+          "lower95": "0.0878",
           "n": "93",
           "outcome": "matched_total_deposits",
           "outcome_label": "Matched total deposits",
-          "p_value_normal": "0.0161",
+          "p_value_normal": "0.0160",
           "se": "0.1957",
           "upper95": "0.8547"
         },
@@ -1888,9 +2308,9 @@
           "upper95": "0.6149"
         },
         {
-          "beta": "-0.5288",
+          "beta": "-0.5287",
           "horizon": "0",
-          "lower95": "-0.9124",
+          "lower95": "-0.9122",
           "n": "93",
           "outcome": "other_component_qoq",
           "outcome_label": "Other deposit component",
@@ -1948,8 +2368,8 @@
     },
     "baseline_tdc_lp_fx": {
       "anchor": "baseline-tdc-lp-fx",
-      "branch_label": "Expanded control set",
-      "branch_note": "Selected public version uses the expanded control set built from a screened pool of K=100 lagged indicators.",
+      "branch_label": "Screened-factor robustness",
+      "branch_note": "Displayed robustness branch uses K=100 screened lagged indicators compressed into factor controls; the macro-core LP remains the transparent baseline.",
       "estimator_label": "estimated",
       "job_id": "baseline_tdc_lp_fx",
       "kicker": "FX",
@@ -2072,8 +2492,8 @@
     },
     "baseline_tdc_lp_inflation": {
       "anchor": "baseline-tdc-lp-inflation",
-      "branch_label": "Expanded control set",
-      "branch_note": "Selected public version uses the expanded control set built from a screened pool of K=100 lagged indicators.",
+      "branch_label": "Screened-factor robustness",
+      "branch_note": "Displayed robustness branch uses K=100 screened lagged indicators compressed into factor controls; the macro-core LP remains the transparent baseline.",
       "estimator_label": "estimated",
       "job_id": "baseline_tdc_lp_inflation",
       "kicker": "Inflation",
@@ -2390,8 +2810,8 @@
     },
     "baseline_tdc_lp_private_assets": {
       "anchor": "baseline-tdc-lp-private-assets",
-      "branch_label": "Expanded control set",
-      "branch_note": "Selected public version uses the expanded control set built from a screened pool of K=100 lagged indicators.",
+      "branch_label": "Screened-factor robustness",
+      "branch_note": "Displayed robustness branch uses K=100 screened lagged indicators compressed into factor controls; the macro-core LP remains the transparent baseline.",
       "estimator_label": "estimated",
       "job_id": "baseline_tdc_lp_private_assets",
       "kicker": "Private assets",
@@ -2963,7 +3383,7 @@
         "summary": "The deposit response survives the larger control universe and the broad-depository treatment variant. Excluding 2008-2009 or 2020 weakens precision in places but does not flip the headline deposit result.",
         "title": "Deposits remain the cleanest robust result",
         "tmle_rows_written": 10,
-        "treatment_variant_count": 4
+        "treatment_variant_count": 8
       },
       {
         "chart_dom_id": "robustness-baseline-tdc-lp-credit-spreads",
@@ -3330,39 +3750,39 @@
                 "label": "Selected public estimate",
                 "points": [
                   {
-                    "beta": 0.47115605165263197,
+                    "beta": 0.4712704370873475,
                     "horizon": 0,
-                    "lower95": 0.08757980721712028,
-                    "p_value": 0.016061468082834374,
-                    "upper95": 0.8547322960881436
+                    "lower95": 0.08779447975550075,
+                    "p_value": 0.016008134386058526,
+                    "upper95": 0.8547463944191942
                   },
                   {
-                    "beta": 0.32578957202963743,
+                    "beta": 0.325789572029946,
                     "horizon": 1,
-                    "lower95": -0.20533319033668884,
-                    "p_value": 0.22926287577256477,
-                    "upper95": 0.8569123343959637
+                    "lower95": -0.20533319033570102,
+                    "p_value": 0.22926287577152804,
+                    "upper95": 0.8569123343955931
                   },
                   {
-                    "beta": 0.07889761678474655,
+                    "beta": 0.0788976167847691,
                     "horizon": 2,
-                    "lower95": -0.20680405530984775,
-                    "p_value": 0.5883273209946318,
-                    "upper95": 0.36459928887934084
+                    "lower95": -0.2068040553096358,
+                    "p_value": 0.5883273209942779,
+                    "upper95": 0.364599288879174
                   },
                   {
-                    "beta": 0.3609512504283823,
+                    "beta": 0.3609512504283951,
                     "horizon": 4,
-                    "lower95": 0.059981081485558696,
-                    "p_value": 0.01874250590100046,
-                    "upper95": 0.6619214193712059
+                    "lower95": 0.059981081486064236,
+                    "p_value": 0.018742505900802398,
+                    "upper95": 0.6619214193707259
                   },
                   {
-                    "beta": 0.28304272975652767,
+                    "beta": 0.28304272975668615,
                     "horizon": 8,
-                    "lower95": -0.04879539527612553,
-                    "p_value": 0.09456568515957953,
-                    "upper95": 0.6148808547891809
+                    "lower95": -0.048795395275615716,
+                    "p_value": 0.09456568515904551,
+                    "upper95": 0.614880854788988
                   }
                 ]
               },
@@ -3372,39 +3792,39 @@
                 "outcome_key": "matched_total_deposits",
                 "points": [
                   {
-                    "beta": 0.4692951860770825,
+                    "beta": 0.4694098097906321,
                     "horizon": 0,
-                    "lower95": 0.08483224427526637,
-                    "p_value": 0.016735098411037264,
-                    "upper95": 0.8537581278788986
+                    "lower95": 0.08504674310994259,
+                    "p_value": 0.016680171236634678,
+                    "upper95": 0.8537728764713217
                   },
                   {
-                    "beta": 0.32100114832919535,
+                    "beta": 0.3210011483293716,
                     "horizon": 1,
-                    "lower95": -0.2116304778942013,
-                    "p_value": 0.2375100282782896,
-                    "upper95": 0.853632774552592
+                    "lower95": -0.21163047789385697,
+                    "p_value": 0.23751002827788392,
+                    "upper95": 0.8536327745526002
                   },
                   {
-                    "beta": 0.07770501763209073,
+                    "beta": 0.07770501763209935,
                     "horizon": 2,
-                    "lower95": -0.2068522968994352,
-                    "p_value": 0.592495141383075,
-                    "upper95": 0.3622623321636167
+                    "lower95": -0.20685229689940166,
+                    "p_value": 0.5924951413830017,
+                    "upper95": 0.3622623321636004
                   },
                   {
-                    "beta": 0.35697896568568166,
+                    "beta": 0.35697896568573956,
                     "horizon": 4,
-                    "lower95": 0.05175509035432618,
-                    "p_value": 0.02188567727318924,
-                    "upper95": 0.6622028410170371
+                    "lower95": 0.05175509035432169,
+                    "p_value": 0.021885677273194792,
+                    "upper95": 0.6622028410171574
                   },
                   {
-                    "beta": 0.28495863676308236,
+                    "beta": 0.2849586367631844,
                     "horizon": 8,
-                    "lower95": -0.04838903970800473,
-                    "p_value": 0.0938391726618999,
-                    "upper95": 0.6183063132341695
+                    "lower95": -0.04838903970733632,
+                    "p_value": 0.09383917266122421,
+                    "upper95": 0.6183063132337051
                   }
                 ]
               }
@@ -3420,39 +3840,39 @@
                 "label": "Selected public estimate",
                 "points": [
                   {
-                    "beta": -0.5288439483473528,
+                    "beta": -0.5287295629126406,
                     "horizon": 0,
-                    "lower95": -0.9124201927826334,
-                    "p_value": 0.006886372997302104,
-                    "upper95": -0.14526770391207228
+                    "lower95": -0.9122055202448445,
+                    "p_value": 0.006883845017963353,
+                    "upper95": -0.1452536055804367
                   },
                   {
-                    "beta": 0.22963053389274354,
+                    "beta": 0.22963053389300842,
                     "horizon": 1,
-                    "lower95": -0.3070319774640161,
-                    "p_value": 0.40166173659678295,
-                    "upper95": 0.7662930452495033
+                    "lower95": -0.30703197746353744,
+                    "p_value": 0.4016617365960524,
+                    "upper95": 0.7662930452495542
                   },
                   {
-                    "beta": -0.06474228698062072,
+                    "beta": -0.0647422869805897,
                     "horizon": 2,
-                    "lower95": -0.4391773238931966,
-                    "p_value": 0.7346873812946713,
-                    "upper95": 0.3096927499319551
+                    "lower95": -0.4391773238932994,
+                    "p_value": 0.7346873812948849,
+                    "upper95": 0.30969274993212
                   },
                   {
-                    "beta": -0.1931409453319906,
+                    "beta": -0.19314094533196782,
                     "horizon": 4,
-                    "lower95": -0.603264953043668,
-                    "p_value": 0.355992219552848,
-                    "upper95": 0.21698306237968673
+                    "lower95": -0.6032649530436257,
+                    "p_value": 0.35599221955288196,
+                    "upper95": 0.21698306237969003
                   },
                   {
-                    "beta": -0.10875720171216868,
+                    "beta": -0.10875720171191633,
                     "horizon": 8,
-                    "lower95": -0.323838621389511,
-                    "p_value": 0.3216437441392266,
-                    "upper95": 0.10632421796517363
+                    "lower95": -0.3238386213887098,
+                    "p_value": 0.32164374413911445,
+                    "upper95": 0.1063242179648771
                   }
                 ]
               },
@@ -3462,39 +3882,39 @@
                 "outcome_key": "other_component_qoq",
                 "points": [
                   {
-                    "beta": -0.5330961247916158,
+                    "beta": -0.5329816884947263,
                     "horizon": 0,
-                    "lower95": -0.915644667132812,
-                    "p_value": 0.006307822673414343,
-                    "upper95": -0.1505475824504196
+                    "lower95": -0.915430110425238,
+                    "p_value": 0.00630536226751266,
+                    "upper95": -0.15053326656421456
                   },
                   {
-                    "beta": 0.22721948201976783,
+                    "beta": 0.22721948201993328,
                     "horizon": 1,
-                    "lower95": -0.311000314775679,
-                    "p_value": 0.40798182557665275,
-                    "upper95": 0.7654392788152147
+                    "lower95": -0.3110003147752841,
+                    "p_value": 0.4079818255761116,
+                    "upper95": 0.7654392788151506
                   },
                   {
-                    "beta": -0.062403948217941,
+                    "beta": -0.06240394821792793,
                     "horizon": 2,
-                    "lower95": -0.43847758927528935,
-                    "p_value": 0.7450043725011608,
-                    "upper95": 0.3136696928394074
+                    "lower95": -0.4384775892751782,
+                    "p_value": 0.7450043725011481,
+                    "upper95": 0.31366969283932233
                   },
                   {
-                    "beta": -0.19199533152147857,
+                    "beta": -0.19199533152145715,
                     "horizon": 4,
-                    "lower95": -0.6048062119633069,
-                    "p_value": 0.36198895224972305,
-                    "upper95": 0.22081554892034966
+                    "lower95": -0.6048062119631201,
+                    "p_value": 0.3619889522495845,
+                    "upper95": 0.22081554892020583
                   },
                   {
-                    "beta": -0.10747661179713032,
+                    "beta": -0.10747661179698284,
                     "horizon": 8,
-                    "lower95": -0.3234063871298835,
-                    "p_value": 0.329278634486444,
-                    "upper95": 0.10845316353562286
+                    "lower95": -0.32340638712940983,
+                    "p_value": 0.3292786344863772,
+                    "upper95": 0.10845316353544415
                   }
                 ]
               }

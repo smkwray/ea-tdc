@@ -98,49 +98,19 @@ def test_build_release_artifacts_renders_svg_and_tables(tmp_path: Path) -> None:
 
     result = build_release_artifacts(paths)
 
-    assert result.artifacts_built == 3
-    assert result.figure_artifacts == 1
-    assert result.table_artifacts == 2
+    assert result.artifacts_built == 1
+    assert result.figure_artifacts == 0
+    assert result.table_artifacts == 1
     assert result.gallery_path.exists()
 
     summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
-    assert summary["artifacts_built"] == 3
+    assert summary["artifacts_built"] == 1
     rows = {row["artifact_id"]: row for row in summary["rows"]}
-    figure_path = Path(rows["main_figure_1"]["primary_path"])
-    figure_html_path = Path(rows["main_figure_1"]["html_path"])
-    main_table_path = Path(rows["main_table_1"]["primary_path"])
-    main_table_html_path = Path(rows["main_table_1"]["html_path"])
     appendix_csv_path = Path(rows["appendix_table_1"]["secondary_path"])
 
-    assert figure_path.exists()
-    assert "<svg" in figure_path.read_text(encoding="utf-8")
-    assert "Custom Lp Job" in figure_path.read_text(encoding="utf-8")
-    assert "Treatment:" in figure_path.read_text(encoding="utf-8")
-    assert "GDP deflator" in figure_path.read_text(encoding="utf-8")
-    assert "Scale:" in figure_path.read_text(encoding="utf-8")
-    assert figure_html_path.exists()
-    assert "<img src=" in figure_html_path.read_text(encoding="utf-8")
-    assert "Local projection" in figure_html_path.read_text(encoding="utf-8")
-    assert "Main Figure 1" in figure_html_path.read_text(encoding="utf-8")
-    assert "K=200 screened branch" in figure_html_path.read_text(encoding="utf-8")
-    assert main_table_path.exists()
-    main_table_text = main_table_path.read_text(encoding="utf-8")
-    assert "| matched_total_deposits |" not in main_table_text
-    assert "| matched total deposits |" in main_table_text.lower()
-    assert "| outcome | horizon | beta | se | lower 95% | upper 95% | p-value | observations | significance |" in main_table_text.lower()
-    assert "## Notes" in main_table_text
-    assert "Coefficient table for" in main_table_text
-    assert "in response to" in main_table_text
-    assert main_table_html_path.exists()
-    assert "<table>" in main_table_html_path.read_text(encoding="utf-8")
-    assert "Main Table 1" in main_table_html_path.read_text(encoding="utf-8")
-    assert "<th>significance</th>" in main_table_html_path.read_text(encoding="utf-8").lower()
     assert appendix_csv_path.exists()
     assert appendix_csv_path.read_text(encoding="utf-8").splitlines()[0].startswith("outcome,horizon,beta,se")
-    assert rows["main_figure_1"]["source_estimates_path"].endswith("custom_lp_job__robustness_k200_estimates.csv")
-    assert rows["main_figure_1"]["outcome_ids"] == "matched_total_deposits"
-    assert rows["main_figure_1"]["horizons"] == "0,1"
-    assert "Main Text" in result.gallery_path.read_text(encoding="utf-8")
+    assert rows["appendix_table_1"]["job_id"] == "custom_appendix_job"
+    assert rows["appendix_table_1"]["display_spec"] == "supporting_table"
     assert "Committed Release 1 artifacts" in result.gallery_path.read_text(encoding="utf-8")
     assert "Rendered artifacts" in result.gallery_path.read_text(encoding="utf-8")
-    assert "Main Figure 1" in result.gallery_path.read_text(encoding="utf-8")

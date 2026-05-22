@@ -12,7 +12,11 @@ from typing import Any
 
 from ea_tdc.artifacts import build_release_artifacts
 from ea_tdc.paths import ProjectPaths
-from ea_tdc.reporting import build_component_sidecar_screening, build_robustness_snapshot, build_stage_completion_closeout
+from ea_tdc.reporting import (
+    build_component_sidecar_screening,
+    build_robustness_snapshot,
+    build_stage_completion_closeout,
+)
 from ea_tdc.sanitize import sanitize_output_paths
 from ea_tdc.utils import utc_now_iso, write_json
 
@@ -163,6 +167,9 @@ ROBUSTNESS_META: dict[str, dict[str, str]] = {
 
 OUTCOME_LABELS = {
     "matched_total_deposits": "Matched total deposits",
+    "domestic_nonbank_deposits_qoq": "Domestic nonbank deposits",
+    "domestic_nonbank_other_component_qoq": "Domestic nonbank residual",
+    "domestic_nonbank_other_component_core_deposit_proximate_qoq": "Domestic nonbank residual, TOC/ROW-excluded core",
     "other_component_qoq": "Other deposit component",
     "tdcpass_other_component_qoq": "Residual non-TDC component (`tdcpass`)",
     "tdcpass_strict_loan_core_min_qoq": "Strict loan-core minimum (`tdcpass`)",
@@ -189,6 +196,9 @@ OUTCOME_LABELS = {
     "bank_ci_loans_h8_qoq": "C&I loans (H.8)",
     "bank_short_term_loans_z1_qoq": "Short-term bank loans (Z.1)",
     "bank_non_treasury_securities_qoq": "Bank non-Treasury securities",
+    "bank_treasury_securities_qoq": "Bank Treasury securities",
+    "bank_treasury_securities_transactions_qoq": "Bank Treasury securities transactions",
+    "bank_treasury_agency_securities_qoq": "Bank Treasury and agency securities",
     "bank_consumer_loans_qoq": "Consumer loans",
     "bank_real_estate_loans_qoq": "Real-estate loans",
     "row_loans_assets_qoq": "ROW non-Treasury assets",
@@ -222,6 +232,9 @@ OUTCOME_LABELS = {
     "bank_ci_loans_h8_qoq_pct_gdp": "C&I loans (H.8, % GDP)",
     "bank_short_term_loans_z1_qoq_pct_gdp": "Short-term bank loans (Z.1, % GDP)",
     "bank_non_treasury_securities_qoq_pct_gdp": "Bank non-Treasury securities (% GDP)",
+    "bank_treasury_securities_qoq_pct_gdp": "Bank Treasury securities (% GDP)",
+    "bank_treasury_securities_transactions_qoq_pct_gdp": "Bank Treasury securities transactions (% GDP)",
+    "bank_treasury_agency_securities_qoq_pct_gdp": "Bank Treasury and agency securities (% GDP)",
     "bank_consumer_loans_qoq_pct_gdp": "Consumer loans (% GDP)",
     "bank_real_estate_loans_qoq_pct_gdp": "Real-estate loans (% GDP)",
     "row_loans_assets_qoq_pct_gdp": "ROW non-Treasury assets (% GDP)",
@@ -246,8 +259,11 @@ OUTCOME_LABELS = {
     "accounting_identity_total_qoq_pct_gdp": "Accounting identity total (% GDP)",
     "accounting_identity_gap_qoq_pct_gdp": "Accounting identity gap (% GDP)",
     "reserve_balances_qoq": "Raw reserve balances",
+    "foreign_official_deposits_qoq": "Foreign official Fed deposits",
+    "total_reserve_balances_plus_foreign_official_qoq": "Bank + foreign official Fed deposits",
     "reserve_balances_net_fed_assets_qoq": "Reserves net of Fed total assets",
     "reserve_balances_net_fed_treasury_qoq": "Reserves net of Fed Treasury holdings",
+    "total_reserves_plus_foreign_official_net_fed_treasury_qoq": "Bank + foreign official Fed deposits net of Fed Treasury holdings",
     "fed_total_assets_qoq": "Fed total assets",
     "fed_treasury_holdings_qoq": "Fed Treasury holdings",
 }
@@ -2298,6 +2314,8 @@ _PUBLIC_REPORT_ALLOWLIST = {
     "release_contract.json",
     "release_scorecard.json",
     "robustness_snapshot.json",
+    "tier2_rolling_selected_credit_rate_pass_through.md",
+    "tier2_rolling_selected_credit_rate_pass_through_correlations.csv",
 }
 
 
@@ -2491,6 +2509,19 @@ def _site_model_paths(site_data: dict[str, Any], paths: ProjectPaths) -> list[Pa
     for link in independent_evidence.get("links", []) or []:
         add_from_href(str((link or {}).get("href", "")))
 
+    artifacts = site_data.get("artifacts", {}) or {}
+    for artifact in artifacts.values():
+        source_path = _resolve_repo_path(str((artifact or {}).get("source_estimates_path", "")), paths)
+        if source_path.exists() and source_path not in seen:
+            seen.add(source_path)
+            model_paths.append(source_path)
+
+    if not model_paths:
+        for candidate in sorted((paths.output / "models").glob("*.csv")):
+            if candidate not in seen:
+                seen.add(candidate)
+                model_paths.append(candidate)
+
     return model_paths
 
 
@@ -2510,9 +2541,9 @@ def _selected_result_branch(paths: ProjectPaths, job_id: str, baseline_path: Pat
             return {
                 "selected_path": recommended_path,
                 "baseline_path": baseline_path,
-                "branch_label": "Expanded control set",
+                "branch_label": "Screened-factor robustness",
                 "branch_summary": (
-                    f"Selected public version uses the expanded control set built from a screened pool of K={recommended_k} lagged indicators."
+                    f"Displayed robustness branch uses K={recommended_k} screened lagged indicators compressed into factor controls; the macro-core LP remains the transparent baseline."
                 ),
                 "recommended_k": recommended_k,
                 "robustness_summary": summary,
@@ -2521,7 +2552,7 @@ def _selected_result_branch(paths: ProjectPaths, job_id: str, baseline_path: Pat
         "selected_path": baseline_path,
         "baseline_path": baseline_path,
         "branch_label": "Baseline controls",
-        "branch_summary": "Selected public version uses the baseline quarterly control set.",
+        "branch_summary": "Displayed branch uses the baseline quarterly macro control set.",
         "recommended_k": 0,
         "robustness_summary": summary,
     }
@@ -2804,6 +2835,10 @@ def _factor_summary_payload(robustness_snapshot: dict[str, Any], paths: ProjectP
                         "label": "Control screen",
                         "href": _copied_report_href(str((row.get("links", {}) or {}).get("control_screen_path", "")), paths),
                     },
+                    {
+                        "label": "Control policy",
+                        "href": _copied_report_href(str((row.get("links", {}) or {}).get("control_policy_path", "")), paths),
+                    },
                 ],
             }
         )
@@ -2965,6 +3000,7 @@ def _robustness_payload(
                     {"label": "Ladder CSV", "href": _copied_report_href(str((item.get("links", {}) or {}).get("ladder_path", "")), paths)},
                     {"label": "Treatment CSV", "href": _copied_report_href(str((item.get("links", {}) or {}).get("treatment_path", "")), paths)},
                     {"label": "Regime CSV", "href": _copied_report_href(str((item.get("links", {}) or {}).get("regime_path", "")), paths)},
+                    {"label": "Control policy", "href": _copied_report_href(str((item.get("links", {}) or {}).get("control_policy_path", "")), paths)},
                     {"label": "Quoted DML summary", "href": _copied_report_href(str((item.get("links", {}) or {}).get("dml_summary_path", "")), paths)},
                     {"label": "Quoted DML estimates", "href": _copied_report_href(str((item.get("links", {}) or {}).get("dml_estimates_path", "")), paths)},
                     {"label": "Forest cross-check", "href": _copied_report_href(str((item.get("links", {}) or {}).get("forest_summary_path", "")), paths)},
@@ -3023,6 +3059,7 @@ def _artifact_payload(row: dict[str, Any], paths: ProjectPaths) -> dict[str, Any
         "horizons": horizons,
         "table_rows": table_rows,
         "links": _artifact_links(row, paths),
+        "source_estimates_path": str(row.get("source_estimates_path", "")),
         "release_channel": str(row.get("release_channel", "")),
     }
 
@@ -3039,6 +3076,7 @@ def _site_data_payload(
     scorecard_rows = {str(row.get("job_id", "")): row for row in scorecard.get("rows", [])}
     jobs_by_id: dict[str, Any] = {}
     candidate_job_ids = set(MAIN_JOB_IDS + SIDECAR_JOB_IDS)
+    candidate_job_ids.update(scorecard_rows)
     candidate_job_ids.update(str(row.get("job_id", "")) for row in artifact_build.get("rows", []))
     for job_id in sorted(candidate_job_ids):
         baseline_model_path = _find_estimates_path(job_id, scorecard_rows, paths)
@@ -3061,6 +3099,9 @@ def _site_data_payload(
         treatment_href = _copied_report_href(str(robustness_summary.get("treatment_path", "")), paths)
         if treatment_href:
             links.append({"label": "Treatment variants", "href": treatment_href})
+        control_policy_href = _copied_report_href(str(robustness_summary.get("control_policy_path", "")), paths)
+        if control_policy_href:
+            links.append({"label": "Control policy", "href": control_policy_href})
         jobs_by_id[job_id] = {
             "job_id": job_id,
             "anchor": job_id.replace("_", "-"),
@@ -3337,7 +3378,7 @@ def _home_html(generated_at: str) -> str:
             '<div class="hero-copy reveal">',
             '<div class="eyebrow">EA-TDC</div>',
             '<h1>Treasury contribution to deposits: estimates and transmission.</h1>',
-            '<p>This work asks whether the baseline estimate of Treasury Deposit Contribution produces an early deposit response, how that result survives broader holder definitions, and what remains under a narrower independent source-side comparison imported from `tdcpass`.</p>',
+            '<p>This work asks whether the long-history Tier 2 estimate of Treasury Deposit Contribution produces an early deposit response, how that result changes after selected credit/rate lags, and what remains under narrower source-side comparisons imported from `tdcpass`.</p>',
             '<div class="button-row">',
             '<a class="button primary" href="#headline-results">Read the results</a>',
             '<a class="button" href="#definitions">See the TDC definition</a>',
@@ -3349,14 +3390,14 @@ def _home_html(generated_at: str) -> str:
             '<section class="section container" id="claim-hierarchy">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Claim hierarchy</div><h2>What the release claims.</h2></div>',
-            '<p>The public package is intentionally narrow: baseline deposits are the headline, strict independent non-TDC evidence comes from the narrower `tdcpass` source-side lane, component regressions are explanatory sidecars, and corrected Tier 2 / Tier 3 treatments stay sensitivity-only.</p>',
+            '<p>The public package is intentionally narrow: long-history Tier 2 deposit pass-through is the headline, the same-treatment residual is a perimeter/plumbing-sensitive offset, broad mortgage/core-loan crowding-out is weak after selected lags, and consumer credit remains a guarded candidate margin.</p>',
             "</div>",
-            '<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Baseline deposit response.</h3><p>The selected quarterly baseline delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Boundary</div><h3>Strict source-side comparison.</h3><p>The valid independent non-TDC comparison is the narrower `tdcpass` source-side lane, not residual closure.</p></article><article class="insight-card reveal"><div class="eyebrow">Explanation</div><h3>Component sidecars.</h3><p>RU acquisition, Treasury cash, and remittances help interpret the deposit result.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Corrected variants.</h3><p>Tier 2 and Tier 3 treatments remain public sensitivity branches only.</p></article></div>',
+            '<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Tier 2 deposit response.</h3><p>The selected-lag long-history surface delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Boundary</div><h3>Residual is not a channel.</h3><p>The same-treatment non-TDC deposit component is treated as perimeter and plumbing-sensitive.</p></article><article class="insight-card reveal"><div class="eyebrow">Credit</div><h3>Broad crowding-out weakens.</h3><p>Mortgage and strict core-loan rows are weak after selected lags; consumer credit is guarded.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Older baseline preserved.</h3><p>The K=200 baseline branch is retained as an appendix sensitivity, not the main surface.</p></article></div>',
             "</section>",
             '<section class="section container" id="questions">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Questions</div><h2>Research questions.</h2></div>',
-            '<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives broader holder definitions, and what remains under the narrower strict independent non-TDC evidence surface imported from `tdcpass`.</p>',
+            '<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives selected credit/rate controls, and how to delimit residual and credit evidence without over-naming mechanisms.</p>',
             "</div>",
             '<div id="questions-grid" class="insight-grid"></div>',
             "</section>",
@@ -3366,7 +3407,7 @@ def _home_html(generated_at: str) -> str:
             '<section class="section container" id="headline-results">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Results</div><h2>Deposits are the clearest headline response.</h2></div>',
-            '<p>This figure traces the main deposit response to the baseline TDC estimate using the selected public version of the quarterly model.</p>',
+            '<p>This figure traces the selected-lag long-history Tier 2 deposit response and the same-treatment non-TDC deposit offset.</p>',
             "</div>",
             '<div id="headline-job-list" class="job-list"></div>',
             "</section>",
@@ -3380,7 +3421,7 @@ def _home_html(generated_at: str) -> str:
             '<section class="section container" id="additional-evidence">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Additional evidence</div><h2>Inflation, FX, and private balance sheets.</h2></div>',
-            '<p>These branches extend the same baseline TDC estimate into prices, exchange rates, and private non-Treasury balance sheets without changing the main public claim hierarchy.</p>',
+            '<p>These branches extend the TDC surface into prices, exchange rates, and private non-Treasury balance sheets without changing the main public claim boundaries.</p>',
             "</div>",
             '<div id="additional-evidence-grid" class="insight-grid"></div>',
             '<div style="height:18px"></div>',

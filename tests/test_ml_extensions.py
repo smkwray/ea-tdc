@@ -149,6 +149,7 @@ def test_build_quarterly_dml_writes_estimates_and_summary(tmp_path: Path) -> Non
     assert summary["job_id"] == job_id
     assert summary["rows_written"] > 0
     assert summary["recommended_k"] in {100, 200}
+    assert sum(1 for control_id in summary["control_ids"] if str(control_id).startswith("dflmx_k")) == 2
 
     with result.estimates_path.open("r", encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))

@@ -1,0 +1,40 @@
+{
+  "artifact_id": "appendix_table_2",
+  "artifact_kind": "table",
+  "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
+  "display_spec": "supporting_table",
+  "generated_at": "2026-05-22T17:38:04+00:00",
+  "horizons": [
+    "0",
+    "1",
+    "2",
+    "4",
+    "8"
+  ],
+  "html_path": "output/artifacts/appendix/appendix_table_2/appendix_table_2.html",
+  "job_id": "baseline_tdc_lp_credit_spreads",
+  "notes": [
+    "Treatment: Baseline TDC estimate",
+    "Response: Direct response at horizon h",
+    "Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Dflmx K100 F1, Dflmx K100 F2, Dflmx K100 F3, Dflmx K100 F4",
+    "Covariance: Newey-West HAC",
+    "Sample span: 1945Q4 to 2026Q2",
+    "Observations: 86 to 93",
+    "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.",
+    "Displayed branch: K=100 screened branch",
+    "Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-05-22 and may reflect an in-progress quarter endpoint.",
+    "Artifact source: Credit-spread responses to the baseline TDC estimate"
+  ],
+  "outcome_ids": [
+    "baa_aaa",
+    "investment_grade_oas",
+    "high_yield_oas"
+  ],
+  "primary_path": "output/artifacts/appendix/appendix_table_2/appendix_table_2.md",
+  "release_channel": "appendix",
+  "secondary_path": "output/artifacts/appendix/appendix_table_2/appendix_table_2.csv",
+  "slot_label": "Appendix Table 2",
+  "source_estimates_path": "output/models/baseline_tdc_lp_credit_spreads__robustness_k100_estimates.csv",
+  "subtitle": "Local projection | Appendix supporting design | 1945Q4 to 2026Q2 | 3 outcomes | 86-93 obs",
+  "title": "Credit-spread responses to the baseline TDC estimate estimates"
+}

@@ -1,14 +1,14 @@
 {
   "control_universe": {
-    "columns_path": "/output/reports/control_universe_columns.csv",
+    "columns_path": "output/reports/control_universe_columns.csv",
     "feature_count": 9438,
     "lag_structure": {
       "daily_lags": 90,
       "monthly_lags": 12,
       "quarterly_lags": 8
     },
-    "panel_path": "/output/reports/control_universe_quarterly.csv",
-    "quarter_count": 319,
+    "panel_path": "output/reports/control_universe_quarterly.csv",
+    "quarter_count": 320,
     "series_count": 394,
     "series_count_by_frequency": {
       "d": 73,
@@ -16,7 +16,7 @@
       "q": 246
     }
   },
-  "generated_at": "2026-04-22T10:04:37+00:00",
+  "generated_at": "2026-05-22T17:38:04+00:00",
   "jobs_summarized": 6,
   "rows": [
     {
@@ -73,6 +73,7 @@
         }
       ],
       "links": {
+        "control_policy_path": "output/reports/baseline_tdc_lp_deposits__control_policy.csv",
         "control_screen_path": "output/reports/baseline_tdc_lp_deposits__control_screen.csv",
         "dml_estimates_path": "/output/models/baseline_tdc_lp_deposits__dml_estimates.csv",
         "dml_summary_path": "output/manifests/baseline_tdc_lp_deposits__dml_summary.json",
@@ -234,25 +235,49 @@
           "warning_rows": 0
         },
         {
+          "avg_abs_beta": 0.268311,
+          "rows_written": 10,
+          "treatment_variant": "tdc_tier2_interest_corrected_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.483821,
+          "rows_written": 8,
+          "treatment_variant": "tdc_tier3_fiscal_corrected_bank_only_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.267132,
+          "rows_written": 10,
+          "treatment_variant": "tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
+          "avg_abs_beta": 0.487965,
+          "rows_written": 8,
+          "treatment_variant": "tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow",
+          "warning_rows": 0
+        },
+        {
           "avg_abs_beta": 0.262526,
           "rows_written": 10,
           "treatment_variant": "tdc_no_remit_bank_only",
           "warning_rows": 0
         },
         {
-          "avg_abs_beta": 0.241125,
+          "avg_abs_beta": 0.241131,
           "rows_written": 10,
           "treatment_variant": "tdc_domestic_bank_only_ru_flow",
           "warning_rows": 0
         },
         {
-          "avg_abs_beta": 0.258586,
+          "avg_abs_beta": 0.258584,
           "rows_written": 10,
           "treatment_variant": "tdc_bank_only_extended_1990",
           "warning_rows": 0
         }
       ],
-      "treatment_variant_count": 4
+      "treatment_variant_count": 8
     },
     {
       "baseline_avg_abs_beta": 6e-06,
@@ -308,6 +333,7 @@
         }
       ],
       "links": {
+        "control_policy_path": "",
         "control_screen_path": "output/reports/baseline_tdc_lp_credit_spreads__control_screen.csv",
         "dml_estimates_path": "/output/models/baseline_tdc_lp_credit_spreads__dml_estimates.csv",
         "dml_summary_path": "output/manifests/baseline_tdc_lp_credit_spreads__dml_summary.json",
@@ -543,6 +569,7 @@
         }
       ],
       "links": {
+        "control_policy_path": "",
         "control_screen_path": "output/reports/baseline_tdc_lp_inflation__control_screen.csv",
         "dml_estimates_path": "/output/models/baseline_tdc_lp_inflation__dml_estimates.csv",
         "dml_summary_path": "output/manifests/baseline_tdc_lp_inflation__dml_summary.json",
@@ -778,6 +805,7 @@
         }
       ],
       "links": {
+        "control_policy_path": "",
         "control_screen_path": "output/reports/baseline_tdc_lp_fx__control_screen.csv",
         "dml_estimates_path": "/output/models/baseline_tdc_lp_fx__dml_estimates.csv",
         "dml_summary_path": "output/manifests/baseline_tdc_lp_fx__dml_summary.json",
@@ -1013,6 +1041,7 @@
         }
       ],
       "links": {
+        "control_policy_path": "",
         "control_screen_path": "output/reports/baseline_tdc_lp_private_assets__control_screen.csv",
         "dml_estimates_path": "/output/models/baseline_tdc_lp_private_assets__dml_estimates.csv",
         "dml_summary_path": "output/manifests/baseline_tdc_lp_private_assets__dml_summary.json",
@@ -1248,6 +1277,7 @@
         }
       ],
       "links": {
+        "control_policy_path": "",
         "control_screen_path": "output/reports/baseline_tdc_lp_liquidity_decomposition__control_screen.csv",
         "dml_estimates_path": "/output/models/baseline_tdc_lp_liquidity_decomposition__dml_estimates.csv",
         "dml_summary_path": "output/manifests/baseline_tdc_lp_liquidity_decomposition__dml_summary.json",

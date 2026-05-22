@@ -17,6 +17,131 @@ from ea_tdc.utils import utc_now_iso, write_json
 
 BASELINE_SERIES_MAP = {
     "tdc_bank_only_qoq": ("tdcest", "tdc_base_bank_only_ru_flow"),
+    "tdc_tier2_interest_corrected_bank_only_ru_flow": (
+        "tdcest",
+        "tdc_tier2_interest_corrected_bank_only_ru_flow",
+    ),
+    "tdc_tier2_legacy_h15_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_h15_intensity_corrected_bank_only_ru_flow",
+    ),
+    "tdc_tier2_legacy_h15_bill_robust_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow",
+    ),
+    "tdc_tier2_regression_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_bank_only_ru_flow",
+    ),
+    "tdc_tier2_regression_mmf_rrp_lb_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_mmf_rrp_lb_bank_only_ru_flow",
+    ),
+    "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_mmf_rrp_prop_bank_only_ru_flow",
+    ),
+    "tdc_tier2_regression_mmf_rrp_ub_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_mmf_rrp_ub_bank_only_ru_flow",
+    ),
+    "tdc_tier2_regression_di_np_cu_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_depository_institution_np_cu_ru_flow",
+    ),
+    "tdc_tier2_regression_mmf_rrp_lb_di_np_cu_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_mmf_rrp_lb_depository_institution_np_cu_ru_flow",
+    ),
+    "tdc_tier2_regression_mmf_rrp_prop_di_np_cu_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_mmf_rrp_prop_depository_institution_np_cu_ru_flow",
+    ),
+    "tdc_tier2_regression_mmf_rrp_ub_di_np_cu_qoq": (
+        "tdcest",
+        "tdc_tier2_regression_mmf_rrp_ub_depository_institution_np_cu_ru_flow",
+    ),
+    "tier2_regression_bank_row_tier_pre_component_h15_scaled": (
+        "tdcest",
+        "tier2_regression_bank_row_method_tier__is_pre_component_h15_scaled_backcast",
+    ),
+    "tier2_regression_bank_row_tier_component_pool": (
+        "tdcest",
+        "tier2_regression_bank_row_method_tier__is_component_pool_wamest_bucket_backcast",
+    ),
+    "tier2_regression_bank_row_tier_constrained": (
+        "tdcest",
+        "tier2_regression_bank_row_method_tier__is_constrained_component",
+    ),
+    "tier2_regression_di_tier_pre_component_h15_scaled": (
+        "tdcest",
+        "tier2_regression_di_method_tier__is_pre_component_h15_scaled_backcast",
+    ),
+    "tier2_regression_di_tier_component_pool": (
+        "tdcest",
+        "tier2_regression_di_method_tier__is_component_pool_wamest_bucket_backcast",
+    ),
+    "tier2_regression_di_tier_constrained": (
+        "tdcest",
+        "tier2_regression_di_method_tier__is_constrained_component",
+    ),
+    "tdc_tier2_di_np_cu_qoq": ("tdcest", "tdc_tier2_interest_corrected_depository_institution_np_cu_ru_flow"),
+    "tdc_tier2_mmf_rrp_prop_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_mmf_rrp_prop_bank_only_ru_flow",
+    ),
+    "tdc_tier2_mmf_rrp_lb_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_mmf_rrp_lb_bank_only_ru_flow",
+    ),
+    "tdc_tier2_mmf_rrp_ub_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_mmf_rrp_ub_bank_only_ru_flow",
+    ),
+    "tdc_tier2_mmf_rrp_prop_di_np_cu_qoq": (
+        "tdcest",
+        "tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow",
+    ),
+    "tdc_tier2_treasury_interest_robust_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_treasury_interest_robust_bank_only_ru_flow",
+    ),
+    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq": (
+        "tdcest",
+        "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow",
+    ),
+    "tdc_tier2_treasury_interest_robust_di_np_cu_qoq": (
+        "tdcest",
+        "tdc_tier2_treasury_interest_robust_depository_institution_np_cu_ru_flow",
+    ),
+    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_di_np_cu_qoq": (
+        "tdcest",
+        "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_depository_institution_np_cu_ru_flow",
+    ),
+    "tdc_tier2_canonical_di_mmf_rrp_prop_qoq": (
+        "tdcest",
+        "tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow",
+    ),
+    "mmf_rrp_adjustment_prop_qoq": ("tdcest", "mmf_rrp_adjustment_prop"),
+    "tdc_du_fiscal_flow_first_pass_narrow": ("tdcest", "tdc_du_fiscal_flow_first_pass_narrow"),
+    "tdc_du_fiscal_flow_first_pass_broad": ("tdcest", "tdc_du_fiscal_flow_first_pass_broad"),
+    "tdc_du_selected_domestic_nonfinancial_proxy": ("tdcest", "tdc_du_selected_domestic_nonfinancial_proxy"),
+    "tdc_du_residual_proxy_full_cu_ru": ("tdcest", "tdc_du_residual_proxy_full_cu_ru"),
+    "du_noninterest_outlay_proxy": ("tdcest", "du_noninterest_outlay_proxy"),
+    "du_receipt_proxy": ("tdcest", "du_receipt_proxy"),
+    "mmf_treasury_bills_reallocation_qoq": ("tdcpass", "tdcpass_mmf_treasury_bills_reallocation_qoq"),
+    "tdc_domestic_bank_only_qoq": ("tdcpass", "tdcpass_tdc_domestic_bank_only_qoq"),
+    "tdc_no_toc_bank_only_qoq": ("tdcpass", "tdcpass_tdc_no_toc_bank_only_qoq"),
+    "tdc_no_toc_no_row_bank_only_qoq": ("tdcpass", "tdcpass_tdc_no_toc_no_row_bank_only_qoq"),
+    "tdc_core_deposit_proximate_bank_only_qoq": ("tdcpass", "tdcpass_tdc_core_deposit_proximate_bank_only_qoq"),
+    "tdc_us_chartered_bank_only_qoq": ("tdcpass", "tdcpass_tdc_us_chartered_bank_only_qoq"),
+    "tdc_no_foreign_bank_sectors_qoq": ("tdcpass", "tdcpass_tdc_no_foreign_bank_sectors_qoq"),
+    "domestic_nonbank_deposits_qoq": ("tdcpass", "tdcpass_domestic_nonbank_deposits_qoq"),
+    "domestic_nonbank_other_component_qoq": ("tdcpass", "tdcpass_domestic_nonbank_other_component_qoq"),
+    "domestic_nonbank_other_component_core_deposit_proximate_qoq": (
+        "tdcpass",
+        "tdcpass_domestic_nonbank_other_component_core_deposit_proximate_qoq",
+    ),
     "qra_ati_baseline_bn": ("qrawatch", "ati_baseline_bn"),
     "qra_net_bills_bn": ("qrawatch", "net_bills_bn"),
     "qra_bill_share": ("qrawatch", "bill_share"),
@@ -56,15 +181,58 @@ BASELINE_SERIES_MAP = {
     "accounting_external_flow_qoq": ("accounting", "accounting_external_flow_qoq"),
 }
 
+BASELINE_SERIES_SCALE = {
+    # tdcest deposit/TDC flows are carried in millions in the EA-TDC design.
+    # These tdcpass holder-side diagnostics arrive in billions, so scale them
+    # before estimating pass-through shares against the EA-TDC treatment.
+    "domestic_nonbank_deposits_qoq": 1000.0,
+    "domestic_nonbank_other_component_qoq": 1000.0,
+    "domestic_nonbank_other_component_core_deposit_proximate_qoq": 1000.0,
+    "mmf_treasury_bills_reallocation_qoq": 1000.0,
+    "tdc_domestic_bank_only_qoq": 1000.0,
+    "tdc_no_toc_bank_only_qoq": 1000.0,
+    "tdc_no_toc_no_row_bank_only_qoq": 1000.0,
+    "tdc_core_deposit_proximate_bank_only_qoq": 1000.0,
+    "tdc_us_chartered_bank_only_qoq": 1000.0,
+    "tdc_no_foreign_bank_sectors_qoq": 1000.0,
+}
+
 TREATMENT_COLUMN_MAP = {
     "tdc_bank_only_shock": "tdc_bank_only_qoq",
     "tdc_ru_acquisition_component_qoq": "ru_bank_only_tsy_tx",
     "tdc_treasury_cash_drain_component_qoq": "minus_treasury_operating_cash_tx",
     "tdc_positive_remit_component_qoq": "fed_remit_positive",
+    "tdc_du_fiscal_flow_first_pass_narrow": "tdc_du_fiscal_flow_first_pass_narrow",
+    "tdc_du_fiscal_flow_first_pass_broad": "tdc_du_fiscal_flow_first_pass_broad",
+    "tdc_du_net_noninterest_fiscal_payment_proxy": "du_net_noninterest_fiscal_payment_proxy",
 }
 
 ALTERNATIVE_OTHER_COMPONENT_SERIES = {
+    "other_component_tier1_mmf_rrp_plumbing_adjusted_qoq": "tdc_tier1_mmf_rrp_plumbing_adjusted_qoq",
     "other_component_tier2_bank_only_qoq": "tdc_tier2_interest_corrected_bank_only_ru_flow",
+    "other_component_tier2_legacy_h15_bank_only_qoq": "tdc_tier2_legacy_h15_bank_only_qoq",
+    "other_component_tier2_regression_bank_only_qoq": "tdc_tier2_regression_bank_only_qoq",
+    "other_component_tier2_regression_di_np_cu_qoq": "tdc_tier2_regression_di_np_cu_qoq",
+    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq": (
+        "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq"
+    ),
+    "other_component_tier2_regression_mmf_rrp_prop_di_np_cu_qoq": (
+        "tdc_tier2_regression_mmf_rrp_prop_di_np_cu_qoq"
+    ),
+    "other_component_tier2_mmf_rrp_prop_bank_only_qoq": "tdc_tier2_mmf_rrp_prop_bank_only_qoq",
+    "other_component_tier2_mmf_rrp_lb_bank_only_qoq": "tdc_tier2_mmf_rrp_lb_bank_only_qoq",
+    "other_component_tier2_mmf_rrp_ub_bank_only_qoq": "tdc_tier2_mmf_rrp_ub_bank_only_qoq",
+    "other_component_tier2_mmf_rrp_prop_di_np_cu_qoq": "tdc_tier2_mmf_rrp_prop_di_np_cu_qoq",
+    "other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq": (
+        "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq"
+    ),
+    "other_component_tier2_canonical_di_mmf_rrp_prop_qoq": "tdc_tier2_canonical_di_mmf_rrp_prop_qoq",
+    "other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq": (
+        "tdc_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq"
+    ),
+    "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq": "tdc_tier2_mmf_rrp_plumbing_adjusted_qoq",
+    "other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq": "tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq",
+    "other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq": "tdc_du_residual_mmf_rrp_plumbing_adjusted_qoq",
     "other_component_tier3_bank_only_qoq": "tdc_tier3_fiscal_corrected_bank_only_ru_flow",
     "other_component_tier2_broad_depository_qoq": "tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow",
     "other_component_tier3_broad_depository_qoq": "tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow",
@@ -72,6 +240,104 @@ ALTERNATIVE_OTHER_COMPONENT_SERIES = {
 
 BASELINE_REQUIRED_OUTPUTS = {
     "baseline_tdc_lp_deposits": ["matched_total_deposits", "other_component_qoq", "m2"],
+    "baseline_tdc_lp_domestic_nonbank_deposits": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_tier1_qoq",
+        "domestic_nonbank_other_component_qoq",
+        "domestic_nonbank_other_component_core_deposit_proximate_qoq",
+    ],
+    "baseline_tdc_lp_domestic_nonbank_deposits_tier2_bank_only": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_tier2_bank_only_qoq",
+        "domestic_nonbank_other_component_qoq",
+        "domestic_nonbank_other_component_core_deposit_proximate_qoq",
+    ],
+    "tdc_tier2_mmf_rrp_canonical_full_panel": [
+        "matched_total_deposits",
+        "other_component_tier2_mmf_rrp_prop_bank_only_qoq",
+        "other_component_tier2_mmf_rrp_lb_bank_only_qoq",
+        "other_component_tier2_mmf_rrp_ub_bank_only_qoq",
+        "other_component_tier2_mmf_rrp_prop_di_np_cu_qoq",
+        "other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq",
+        "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
+        "other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq",
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_tier2_mmf_rrp_prop_bank_only_qoq",
+        "domestic_nonbank_other_component_tier2_mmf_rrp_lb_bank_only_qoq",
+        "domestic_nonbank_other_component_tier2_mmf_rrp_ub_bank_only_qoq",
+        "domestic_nonbank_other_component_tier2_mmf_rrp_prop_di_np_cu_qoq",
+        "domestic_nonbank_other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq",
+        "domestic_nonbank_other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
+        "domestic_nonbank_other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq",
+        "m2",
+        "tdcpass_strict_loan_mortgages_qoq",
+        "tdcpass_strict_loan_consumer_credit_qoq",
+        "tdcpass_strict_loan_core_min_qoq",
+        "reserve_balances_qoq",
+        "foreign_official_deposits_qoq",
+        "total_reserve_balances_plus_foreign_official_qoq",
+        "reserve_balances_net_fed_treasury_qoq",
+        "total_reserves_plus_foreign_official_net_fed_treasury_qoq",
+        "reserve_balances_net_fed_assets_qoq",
+        "repo_spread",
+        "fed_funds",
+        "sofr",
+        "dgs3mo",
+        "dgs2",
+        "dgs5",
+        "dgs10",
+        "dgs30",
+        "dgs10_2y_spread",
+        "dgs10_3mo_spread",
+        "term_premium_10y",
+        "mortgage_30y",
+        "mortgage_30y_dgs10_spread",
+        "baa_aaa",
+        "investment_grade_oas",
+        "bbb_oas",
+        "high_yield_oas",
+        "headline_cpi_inflation_qoq_ann",
+        "core_cpi_inflation_qoq_ann",
+        "headline_pce_inflation_qoq_ann",
+        "core_pce_inflation_qoq_ann",
+        "broad_dollar_change",
+        "bank_credit_qoq",
+        "bank_business_loans_qoq",
+        "bank_ci_loans_h8_qoq",
+        "bank_short_term_loans_z1_qoq",
+        "bank_non_treasury_securities_qoq",
+        "bank_treasury_securities_qoq",
+        "bank_treasury_securities_transactions_qoq",
+        "bank_treasury_agency_securities_qoq",
+        "bank_consumer_loans_qoq",
+        "bank_real_estate_loans_qoq",
+        "row_loans_assets_qoq",
+        "row_corp_bonds_flow",
+        "row_private_flow_block",
+        "current_account_balance",
+        "tga_balance_qoq",
+        "on_rrp_balance_qoq",
+    ],
+    "tdc_tier2_regression_full_panel": [
+        "matched_total_deposits",
+        "other_component_tier2_regression_bank_only_qoq",
+        "other_component_tier2_regression_di_np_cu_qoq",
+        "tdcpass_strict_loan_mortgages_qoq",
+        "tdcpass_strict_loan_consumer_credit_qoq",
+        "bank_consumer_loans_qoq",
+        "bank_real_estate_loans_qoq",
+        "mortgage_30y",
+        "mortgage_30y_dgs10_spread",
+        "m2",
+    ],
+    "tdc_du_selected_lp_domestic_nonbank_deposits": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_du_selected_qoq",
+    ],
+    "tdc_du_residual_lp_domestic_nonbank_deposits": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_du_residual_qoq",
+    ],
     "baseline_tdc_lp_money": ["m2"],
     "baseline_tdc_lp_funding": ["reserve_balances", "repo_spread", "fed_funds", "sofr"],
     "baseline_tdc_lp_credit_spreads": ["baa_aaa", "investment_grade_oas", "high_yield_oas"],
@@ -85,16 +351,149 @@ BASELINE_REQUIRED_OUTPUTS = {
         "bank_credit_qoq",
         "bank_business_loans_qoq",
         "bank_non_treasury_securities_qoq",
+        "bank_treasury_securities_qoq",
+        "bank_treasury_securities_transactions_qoq",
+        "bank_treasury_agency_securities_qoq",
         "bank_consumer_loans_qoq",
         "bank_real_estate_loans_qoq",
         "row_loans_assets_qoq",
     ],
     "baseline_tdc_lp_liquidity_decomposition": [
         "reserve_balances_qoq",
+        "foreign_official_deposits_qoq",
+        "total_reserve_balances_plus_foreign_official_qoq",
         "fed_total_assets_qoq",
         "fed_treasury_holdings_qoq",
         "reserve_balances_net_fed_assets_qoq",
         "reserve_balances_net_fed_treasury_qoq",
+        "total_reserves_plus_foreign_official_net_fed_treasury_qoq",
+    ],
+    "tdc_mmf_rrp_plumbing_adjusted_tier1_full_panel": [
+        "matched_total_deposits",
+        "other_component_tier1_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_tier1_mmf_rrp_plumbing_adjusted_qoq",
+        "m2",
+        "tdcpass_strict_loan_mortgages_qoq",
+        "tdcpass_strict_loan_consumer_credit_qoq",
+        "tdcpass_strict_loan_core_min_qoq",
+        "reserve_balances_qoq",
+        "foreign_official_deposits_qoq",
+        "total_reserve_balances_plus_foreign_official_qoq",
+        "reserve_balances_net_fed_treasury_qoq",
+        "total_reserves_plus_foreign_official_net_fed_treasury_qoq",
+        "reserve_balances_net_fed_assets_qoq",
+        "on_rrp_balance_qoq",
+        "tga_balance_qoq",
+        "repo_spread",
+        "fed_funds",
+        "sofr",
+        "dgs3mo",
+        "dgs2",
+        "dgs5",
+        "dgs10",
+        "dgs30",
+        "dgs10_2y_spread",
+        "dgs10_3mo_spread",
+        "term_premium_10y",
+        "mortgage_30y",
+        "mortgage_30y_dgs10_spread",
+        "baa_aaa",
+        "investment_grade_oas",
+        "bbb_oas",
+        "high_yield_oas",
+        "headline_cpi_inflation_qoq_ann",
+        "core_cpi_inflation_qoq_ann",
+        "headline_pce_inflation_qoq_ann",
+        "core_pce_inflation_qoq_ann",
+        "broad_dollar_change",
+        "bank_credit_qoq",
+        "bank_business_loans_qoq",
+        "bank_ci_loans_h8_qoq",
+        "bank_short_term_loans_z1_qoq",
+        "bank_non_treasury_securities_qoq",
+        "bank_treasury_securities_qoq",
+        "bank_treasury_securities_transactions_qoq",
+        "bank_treasury_agency_securities_qoq",
+        "bank_consumer_loans_qoq",
+        "bank_real_estate_loans_qoq",
+        "row_loans_assets_qoq",
+        "row_corp_bonds_flow",
+        "row_private_flow_block",
+        "current_account_balance",
+    ],
+    "tdc_mmf_rrp_plumbing_adjusted_tier2_full_panel": [
+        "matched_total_deposits",
+        "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
+        "m2",
+        "tdcpass_strict_loan_mortgages_qoq",
+        "tdcpass_strict_loan_consumer_credit_qoq",
+        "tdcpass_strict_loan_core_min_qoq",
+        "reserve_balances_qoq",
+        "reserve_balances_net_fed_treasury_qoq",
+        "reserve_balances_net_fed_assets_qoq",
+        "on_rrp_balance_qoq",
+        "tga_balance_qoq",
+        "repo_spread",
+        "fed_funds",
+        "sofr",
+        "dgs3mo",
+        "dgs2",
+        "dgs5",
+        "dgs10",
+        "dgs30",
+        "dgs10_2y_spread",
+        "dgs10_3mo_spread",
+        "term_premium_10y",
+        "mortgage_30y",
+        "mortgage_30y_dgs10_spread",
+        "baa_aaa",
+        "investment_grade_oas",
+        "bbb_oas",
+        "high_yield_oas",
+        "headline_cpi_inflation_qoq_ann",
+        "core_cpi_inflation_qoq_ann",
+        "headline_pce_inflation_qoq_ann",
+        "core_pce_inflation_qoq_ann",
+        "broad_dollar_change",
+        "bank_credit_qoq",
+        "bank_business_loans_qoq",
+        "bank_ci_loans_h8_qoq",
+        "bank_short_term_loans_z1_qoq",
+        "bank_non_treasury_securities_qoq",
+        "bank_treasury_securities_qoq",
+        "bank_treasury_securities_transactions_qoq",
+        "bank_consumer_loans_qoq",
+        "bank_real_estate_loans_qoq",
+        "row_loans_assets_qoq",
+        "row_corp_bonds_flow",
+        "row_private_flow_block",
+        "current_account_balance",
+    ],
+    "tdc_mmf_rrp_plumbing_adjusted_domestic_residual_ladder": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_qoq",
+        "domestic_nonbank_other_component_core_deposit_proximate_qoq",
+        "domestic_nonbank_other_component_no_row_qoq",
+        "domestic_nonbank_other_component_no_toc_qoq",
+        "domestic_nonbank_other_component_no_toc_no_row_qoq",
+        "domestic_nonbank_other_component_tier1_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_other_component_no_row_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_other_component_no_toc_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_other_component_no_toc_no_row_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_other_component_core_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_other_component_us_chartered_mmf_rrp_plumbing_adjusted_qoq",
+        "domestic_nonbank_other_component_no_foreign_bank_sectors_mmf_rrp_plumbing_adjusted_qoq",
+        "mmf_on_rrp_plumbing_absorption_qoq",
+        "tdc_no_toc_bank_only_qoq",
+        "tdc_no_toc_no_row_bank_only_qoq",
+        "tdc_core_deposit_proximate_bank_only_qoq",
+        "tdc_toc_row_support_bundle_qoq",
+        "row_private_flow_block",
+        "tga_balance_qoq",
+        "on_rrp_balance_qoq",
     ],
     "baseline_tdc_lp_deposit_sources_pct_gdp": [
         "matched_total_deposits_pct_gdp",
@@ -156,6 +555,21 @@ BASELINE_REQUIRED_OUTPUTS = {
         "accounting_identity_gap_qoq_pct_gdp",
     ],
     "tdc_lpiv_deposits_qra_ru_gap": ["matched_total_deposits", "m2", "other_component_qoq"],
+    "tdc_du_fiscal_flow_broad_lp_domestic_nonbank_deposits": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_qoq",
+        "domestic_nonbank_other_component_core_deposit_proximate_qoq",
+    ],
+    "tdc_du_fiscal_flow_narrow_lp_domestic_nonbank_deposits": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_qoq",
+        "domestic_nonbank_other_component_core_deposit_proximate_qoq",
+    ],
+    "tdc_du_net_fiscal_payment_lp_domestic_nonbank_deposits": [
+        "domestic_nonbank_deposits_qoq",
+        "domestic_nonbank_other_component_qoq",
+        "domestic_nonbank_other_component_core_deposit_proximate_qoq",
+    ],
     "tdc_lpiv_deposits_qra_bank_absorption": ["matched_total_deposits", "m2", "other_component_qoq"],
     "tdc_lpiv_deposits_qra_bank_foreign_private_corr": ["matched_total_deposits", "m2", "other_component_qoq"],
     "tdc_lpiv_deposits_qra_bank_short_share": ["matched_total_deposits", "m2", "other_component_qoq"],
@@ -170,23 +584,114 @@ BASELINE_REQUIRED_OUTPUTS = {
 OUTCOME_ALIASES = {
     "m2": ["m2", "M2SL"],
     "matched_total_deposits": ["matched_total_deposits", "total_deposits_bank_qoq"],
+    "domestic_nonbank_deposits_qoq": ["domestic_nonbank_deposits_qoq"],
+    "domestic_nonbank_other_component_qoq": ["domestic_nonbank_other_component_qoq"],
+    "domestic_nonbank_other_component_tier1_qoq": ["domestic_nonbank_other_component_tier1_qoq"],
+    "domestic_nonbank_other_component_tier2_bank_only_qoq": [
+        "domestic_nonbank_other_component_tier2_bank_only_qoq"
+    ],
+    "domestic_nonbank_other_component_tier2_mmf_rrp_prop_bank_only_qoq": [
+        "domestic_nonbank_other_component_tier2_mmf_rrp_prop_bank_only_qoq"
+    ],
+    "domestic_nonbank_other_component_tier2_mmf_rrp_lb_bank_only_qoq": [
+        "domestic_nonbank_other_component_tier2_mmf_rrp_lb_bank_only_qoq"
+    ],
+    "domestic_nonbank_other_component_tier2_mmf_rrp_ub_bank_only_qoq": [
+        "domestic_nonbank_other_component_tier2_mmf_rrp_ub_bank_only_qoq"
+    ],
+    "domestic_nonbank_other_component_tier2_mmf_rrp_prop_di_np_cu_qoq": [
+        "domestic_nonbank_other_component_tier2_mmf_rrp_prop_di_np_cu_qoq"
+    ],
+    "domestic_nonbank_other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq": [
+        "domestic_nonbank_other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq"
+    ],
+    "domestic_nonbank_other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq": [
+        "domestic_nonbank_other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq"
+    ],
+    "domestic_nonbank_other_component_du_selected_qoq": [
+        "domestic_nonbank_other_component_du_selected_qoq"
+    ],
+    "domestic_nonbank_other_component_du_residual_qoq": [
+        "domestic_nonbank_other_component_du_residual_qoq"
+    ],
+    "domestic_nonbank_other_component_core_deposit_proximate_qoq": [
+        "domestic_nonbank_other_component_core_deposit_proximate_qoq"
+    ],
+    "domestic_nonbank_other_component_no_row_qoq": [
+        "domestic_nonbank_other_component_no_row_qoq"
+    ],
+    "domestic_nonbank_other_component_no_toc_qoq": [
+        "domestic_nonbank_other_component_no_toc_qoq"
+    ],
+    "domestic_nonbank_other_component_no_toc_no_row_qoq": [
+        "domestic_nonbank_other_component_no_toc_no_row_qoq"
+    ],
+    "domestic_nonbank_other_component_tier1_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_tier1_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_no_row_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_no_row_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_no_toc_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_no_toc_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_no_toc_no_row_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_no_toc_no_row_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_core_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_core_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_us_chartered_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_us_chartered_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "domestic_nonbank_other_component_no_foreign_bank_sectors_mmf_rrp_plumbing_adjusted_qoq": [
+        "domestic_nonbank_other_component_no_foreign_bank_sectors_mmf_rrp_plumbing_adjusted_qoq"
+    ],
     "large_time_deposits_qoq": ["large_time_deposits_qoq"],
     "retail_mmf_assets_qoq": ["retail_mmf_assets_qoq"],
     "institutional_mmf_assets_qoq": ["institutional_mmf_assets_qoq"],
     "reserve_balances": ["reserve_balances", "WRESBAL", "TOTRESNS"],
     "reserve_balances_qoq": ["reserve_balances_qoq"],
+    "foreign_official_deposits_qoq": ["foreign_official_deposits_qoq"],
+    "total_reserve_balances_plus_foreign_official_qoq": [
+        "total_reserve_balances_plus_foreign_official_qoq"
+    ],
     "fed_total_assets_qoq": ["fed_total_assets_qoq"],
     "fed_treasury_holdings_qoq": ["fed_treasury_holdings_qoq"],
     "reserve_balances_net_fed_assets_qoq": ["reserve_balances_net_fed_assets_qoq"],
     "reserve_balances_net_fed_treasury_qoq": ["reserve_balances_net_fed_treasury_qoq"],
+    "total_reserves_plus_foreign_official_net_fed_treasury_qoq": [
+        "total_reserves_plus_foreign_official_net_fed_treasury_qoq"
+    ],
     "repo_spread": ["repo_spread"],
     "fed_funds": ["fed_funds", "FEDFUNDS"],
     "sofr": ["sofr", "SOFR"],
+    "dgs3mo": ["dgs3mo", "DGS3MO"],
+    "dgs2": ["dgs2", "DGS2"],
+    "dgs5": ["dgs5", "DGS5"],
+    "dgs10": ["dgs10", "DGS10"],
+    "dgs30": ["dgs30", "DGS30"],
+    "term_premium_10y": ["term_premium_10y", "THREEFYTP10"],
+    "mortgage_30y": ["mortgage_30y", "MORTGAGE30US"],
+    "mortgage_30y_dgs10_spread": ["mortgage_30y_dgs10_spread"],
+    "dgs10_2y_spread": ["dgs10_2y_spread"],
+    "dgs10_3mo_spread": ["dgs10_3mo_spread"],
     "baa_aaa": ["baa_aaa"],
     "investment_grade_oas": ["investment_grade_oas", "BAMLC0A0CM"],
+    "bbb_oas": ["bbb_oas", "BAMLC0A4CBBB"],
     "high_yield_oas": ["high_yield_oas", "BAMLH0A0HYM2"],
     "headline_cpi_inflation_qoq_ann": ["headline_cpi_inflation_qoq_ann"],
     "core_cpi_inflation_qoq_ann": ["core_cpi_inflation_qoq_ann"],
+    "headline_pce_inflation_qoq_ann": ["headline_pce_inflation_qoq_ann"],
     "core_pce_inflation_qoq_ann": ["core_pce_inflation_qoq_ann"],
     "broad_dollar_change": ["broad_dollar_change"],
     "bank_credit_qoq": ["bank_credit_qoq"],
@@ -194,12 +699,22 @@ OUTCOME_ALIASES = {
     "bank_ci_loans_h8_qoq": ["bank_ci_loans_h8_qoq"],
     "bank_short_term_loans_z1_qoq": ["bank_short_term_loans_z1_qoq"],
     "bank_non_treasury_securities_qoq": ["bank_non_treasury_securities_qoq"],
+    "bank_treasury_securities_qoq": ["bank_treasury_securities_qoq"],
+    "bank_treasury_securities_transactions_qoq": ["bank_treasury_securities_transactions_qoq"],
+    "bank_treasury_agency_securities_qoq": ["bank_treasury_agency_securities_qoq"],
     "bank_consumer_loans_qoq": ["bank_consumer_loans_qoq"],
     "bank_real_estate_loans_qoq": ["bank_real_estate_loans_qoq"],
     "row_loans_assets_qoq": ["row_loans_assets_qoq"],
     "row_corp_bonds_flow": ["row_corp_bonds_flow"],
     "row_private_flow_block": ["row_private_flow_block"],
+    "tdc_no_toc_bank_only_qoq": ["tdc_no_toc_bank_only_qoq"],
+    "tdc_no_toc_no_row_bank_only_qoq": ["tdc_no_toc_no_row_bank_only_qoq"],
+    "tdc_core_deposit_proximate_bank_only_qoq": ["tdc_core_deposit_proximate_bank_only_qoq"],
+    "tdc_toc_row_support_bundle_qoq": ["tdc_toc_row_support_bundle_qoq"],
     "current_account_balance": ["current_account_balance"],
+    "tga_balance_qoq": ["tga_balance_qoq"],
+    "on_rrp_balance_qoq": ["on_rrp_balance_qoq"],
+    "mmf_on_rrp_plumbing_absorption_qoq": ["mmf_on_rrp_plumbing_absorption_qoq"],
     "deposit_substitution_block_qoq": ["deposit_substitution_block_qoq"],
     "bank_balance_sheet_proxy_block_qoq": ["bank_balance_sheet_proxy_block_qoq"],
     "public_liquidity_proxy_block_qoq": ["public_liquidity_proxy_block_qoq"],
@@ -213,6 +728,41 @@ OUTCOME_ALIASES = {
     "accounting_identity_total_qoq": ["accounting_identity_total_qoq"],
     "accounting_identity_gap_qoq": ["accounting_identity_gap_qoq"],
     "other_component_tier2_bank_only_qoq": ["other_component_tier2_bank_only_qoq"],
+    "other_component_tier2_regression_bank_only_qoq": ["other_component_tier2_regression_bank_only_qoq"],
+    "other_component_tier2_regression_di_np_cu_qoq": ["other_component_tier2_regression_di_np_cu_qoq"],
+    "other_component_tier2_mmf_rrp_prop_bank_only_qoq": [
+        "other_component_tier2_mmf_rrp_prop_bank_only_qoq"
+    ],
+    "other_component_tier2_mmf_rrp_lb_bank_only_qoq": [
+        "other_component_tier2_mmf_rrp_lb_bank_only_qoq"
+    ],
+    "other_component_tier2_mmf_rrp_ub_bank_only_qoq": [
+        "other_component_tier2_mmf_rrp_ub_bank_only_qoq"
+    ],
+    "other_component_tier2_mmf_rrp_prop_di_np_cu_qoq": [
+        "other_component_tier2_mmf_rrp_prop_di_np_cu_qoq"
+    ],
+    "other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq": [
+        "other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq"
+    ],
+    "other_component_tier2_canonical_di_mmf_rrp_prop_qoq": [
+        "other_component_tier2_canonical_di_mmf_rrp_prop_qoq"
+    ],
+    "other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq": [
+        "other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq"
+    ],
+    "other_component_tier1_mmf_rrp_plumbing_adjusted_qoq": [
+        "other_component_tier1_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq": [
+        "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq": [
+        "other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq"
+    ],
+    "other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq": [
+        "other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq"
+    ],
     "other_component_tier3_bank_only_qoq": ["other_component_tier3_bank_only_qoq"],
     "other_component_tier2_broad_depository_qoq": ["other_component_tier2_broad_depository_qoq"],
     "other_component_tier3_broad_depository_qoq": ["other_component_tier3_broad_depository_qoq"],
@@ -361,6 +911,19 @@ ROW_LINEAR_COMBO_SERIES = {
         ("other_component_tier3_broad_depository_qoq", 1.0),
         ("accounting_identity_total_qoq", -1.0),
     ),
+    "tdc_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq": (
+        ("tdc_tier2_canonical_di_mmf_rrp_prop_qoq", 1.0),
+        ("tdc_no_toc_bank_only_qoq", 1.0),
+        ("tdc_bank_only_qoq", -1.0),
+    ),
+    "tdc_toc_row_support_bundle_qoq": (
+        ("tdc_bank_only_qoq", 1.0),
+        ("tdc_core_deposit_proximate_bank_only_qoq", -1.0),
+    ),
+    "du_net_noninterest_fiscal_payment_proxy": (
+        ("du_noninterest_outlay_proxy", 1.0),
+        ("du_receipt_proxy", -1.0),
+    ),
 }
 
 INSTRUMENT_COMPONENTS = {
@@ -393,6 +956,7 @@ RAW_FRED_LEVEL_CHANGE_SERIES = {
     "institutional_mmf_assets_qoq": "WIMFSL",
     "institutional_mmf_assets_z1_qoq": "BOGZ1FL883034010Q",
     "reserve_balances_qoq": "WRESBAL",
+    "foreign_official_deposits_qoq": "WDFOL",
     "fed_total_assets_qoq": "WALCL",
     "fed_treasury_holdings_qoq": "TREAST",
     "exports_qoq": "EXPGS",
@@ -404,6 +968,8 @@ RAW_FRED_LEVEL_CHANGE_SERIES = {
     "bank_ci_loans_h8_qoq": "TOTCI",
     "bank_short_term_loans_z1_qoq": "BOGZ1FL704041005Q",
     "bank_non_treasury_securities_qoq": "OSEACBW027SBOG",
+    "bank_treasury_securities_qoq": "BOGZ1FL763061100Q",
+    "bank_treasury_agency_securities_qoq": "TASACBW027SBOG",
     "bank_consumer_loans_qoq": "CLSACBW027SBOG",
     "bank_real_estate_loans_qoq": "RELACBW027SBOG",
     "row_loans_assets_qoq": "BOGZ1FL264035005Q",
@@ -414,19 +980,29 @@ RAW_FRED_QOQ_FALLBACK_SERIES = {
 }
 
 RAW_FRED_DIRECT_SERIES = {
+    "bank_treasury_securities_transactions_qoq": "BOGZ1FU763061100Q",
     "current_account_balance": "BOPBCA",
     "row_corp_bonds_flow": "ROWCBAQ027S",
     "row_corp_equities_flow": "ROWCEAQ027S",
     "row_agency_flow": "ROWGSEQ027S",
     "row_nonfin_business_loans_flow": "ROWNBLQ027S",
     "reserve_balances": "WRESBAL",
+    "dgs3mo": "DGS3MO",
+    "dgs2": "DGS2",
+    "dgs5": "DGS5",
+    "dgs10": "DGS10",
+    "dgs30": "DGS30",
+    "term_premium_10y": "THREEFYTP10",
+    "mortgage_30y": "MORTGAGE30US",
     "investment_grade_oas": "BAMLC0A0CM",
+    "bbb_oas": "BAMLC0A4CBBB",
     "high_yield_oas": "BAMLH0A0HYM2",
 }
 
 RAW_FRED_LOG_DIFF_ANNUALIZED_SERIES = {
     "headline_cpi_inflation_qoq_ann": "CPIAUCSL",
     "core_cpi_inflation_qoq_ann": "CPILFESL",
+    "headline_pce_inflation_qoq_ann": "PCEPI",
     "core_pce_inflation_qoq_ann": "PCEPILFE",
 }
 
@@ -437,7 +1013,18 @@ RAW_FRED_LEVEL_CHANGE_FROM_AGGREGATES = {
 RAW_FRED_DIFFERENCE_SERIES = {
     "reserve_balances_net_fed_assets_qoq": ("reserve_balances_qoq", "fed_total_assets_qoq"),
     "reserve_balances_net_fed_treasury_qoq": ("reserve_balances_qoq", "fed_treasury_holdings_qoq"),
+    "total_reserves_plus_foreign_official_net_fed_treasury_qoq": (
+        "total_reserve_balances_plus_foreign_official_qoq",
+        "fed_treasury_holdings_qoq",
+    ),
     "net_exports_qoq": ("exports_qoq", "imports_qoq"),
+}
+
+RAW_FRED_QOQ_SUM_SERIES = {
+    "total_reserve_balances_plus_foreign_official_qoq": (
+        "reserve_balances_qoq",
+        "foreign_official_deposits_qoq",
+    ),
 }
 
 RAW_FRED_SUM_SERIES = {
@@ -452,6 +1039,9 @@ RAW_FRED_SUM_SERIES = {
 RAW_FRED_SPREAD_SERIES = {
     "repo_spread": ("TGCRRATE", "RRPONTSYAWARD", 100.0),
     "baa_aaa": ("BAA", "AAA", 100.0),
+    "mortgage_30y_dgs10_spread": ("MORTGAGE30US", "DGS10", 100.0),
+    "dgs10_2y_spread": ("DGS10", "DGS2", 100.0),
+    "dgs10_3mo_spread": ("DGS10", "DGS3MO", 100.0),
 }
 
 RAW_FRED_LAG_DAYS = {
@@ -470,10 +1060,13 @@ RAW_FRED_LAG_DAYS = {
     "broad_dollar_change": 7,
     "fed_total_assets_qoq": 14,
     "fed_treasury_holdings_qoq": 14,
+    "foreign_official_deposits_qoq": 14,
+    "total_reserve_balances_plus_foreign_official_qoq": 14,
     "current_account_balance": 90,
     "reserve_balances_qoq": 14,
     "reserve_balances_net_fed_assets_qoq": 14,
     "reserve_balances_net_fed_treasury_qoq": 14,
+    "total_reserves_plus_foreign_official_net_fed_treasury_qoq": 14,
     "exports_qoq": 30,
     "imports_qoq": 30,
     "net_exports_qoq": 30,
@@ -484,6 +1077,9 @@ RAW_FRED_LAG_DAYS = {
     "bank_ci_loans_h8_qoq": 14,
     "bank_short_term_loans_z1_qoq": 90,
     "bank_non_treasury_securities_qoq": 30,
+    "bank_treasury_securities_qoq": 90,
+    "bank_treasury_securities_transactions_qoq": 90,
+    "bank_treasury_agency_securities_qoq": 30,
     "bank_consumer_loans_qoq": 30,
     "bank_real_estate_loans_qoq": 30,
     "row_loans_assets_qoq": 90,
@@ -504,9 +1100,18 @@ FRED_QUARTERLY_AGGREGATION = {
     "BAA": "mean",
     "AAA": "mean",
     "BAMLC0A0CM": "mean",
+    "BAMLC0A4CBBB": "mean",
     "BAMLH0A0HYM2": "mean",
+    "DGS3MO": "mean",
+    "DGS2": "mean",
+    "DGS5": "mean",
+    "DGS10": "mean",
+    "DGS30": "mean",
+    "THREEFYTP10": "mean",
+    "MORTGAGE30US": "mean",
     "CPIAUCSL": "mean",
     "CPILFESL": "mean",
+    "PCEPI": "mean",
     "PCEPILFE": "mean",
     "DTWEXBGS": "mean",
 }
@@ -881,6 +1486,194 @@ def _set_row_linear_combo(
     row[f"{output_name}__source_repo"] = "derived"
 
 
+def _set_simple_derived_series(
+    row: dict[str, str],
+    *,
+    output_name: str,
+    value: float | None,
+    available_at: str,
+    source_repo: str = "derived",
+) -> None:
+    row[output_name] = "" if value is None else _stable_float_text(value)
+    row[f"{output_name}__available_at"] = available_at if value is not None else ""
+    row[f"{output_name}__source_repo"] = source_repo
+
+
+def _set_mmf_rrp_plumbing_adjustments(row: dict[str, str]) -> None:
+    plumbing_absorption = _coerce_float(row.get("mmf_rrp_adjustment_prop_qoq", ""))
+    plumbing_available_at = row.get("mmf_rrp_adjustment_prop_qoq__available_at", "")
+
+    if plumbing_absorption is None:
+        mmf_reallocation = _coerce_float(row.get("mmf_treasury_bills_reallocation_qoq", ""))
+        on_rrp_balance_qoq = _coerce_float(row.get("on_rrp_balance_qoq", ""))
+        if mmf_reallocation is None or on_rrp_balance_qoq is None:
+            plumbing_absorption = None
+        else:
+            # Legacy fallback for older bundles: aggregate bills/RRP min rule.
+            # Current bundles should use the fund-month proportional adjustment
+            # from tdcest via mmf_rrp_adjustment_prop_qoq.
+            mmf_bill_absorption = max(0.0, -mmf_reallocation)
+            on_rrp_runoff = max(0.0, -on_rrp_balance_qoq * 1000.0)
+            plumbing_absorption = min(mmf_bill_absorption, on_rrp_runoff)
+        plumbing_available_at = _max_available_iso(
+            row.get("mmf_treasury_bills_reallocation_qoq__available_at", ""),
+            row.get("on_rrp_balance_qoq__available_at", ""),
+        )
+    _set_simple_derived_series(
+        row,
+        output_name="mmf_on_rrp_plumbing_absorption_qoq",
+        value=plumbing_absorption,
+        available_at=plumbing_available_at,
+    )
+
+    for output_name, base_tdc_name in (
+        ("tdc_tier1_mmf_rrp_plumbing_adjusted_qoq", "tdc_bank_only_qoq"),
+        ("tdc_tier2_mmf_rrp_plumbing_adjusted_qoq", "tdc_tier2_interest_corrected_bank_only_ru_flow"),
+        ("tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq", "tdc_du_selected_domestic_nonfinancial_proxy"),
+        ("tdc_du_residual_mmf_rrp_plumbing_adjusted_qoq", "tdc_du_residual_proxy_full_cu_ru"),
+        ("tdc_no_row_mmf_rrp_plumbing_adjusted_qoq", "tdc_domestic_bank_only_qoq"),
+        ("tdc_no_toc_mmf_rrp_plumbing_adjusted_qoq", "tdc_no_toc_bank_only_qoq"),
+        ("tdc_no_toc_no_row_mmf_rrp_plumbing_adjusted_qoq", "tdc_no_toc_no_row_bank_only_qoq"),
+        ("tdc_core_mmf_rrp_plumbing_adjusted_qoq", "tdc_core_deposit_proximate_bank_only_qoq"),
+        ("tdc_us_chartered_mmf_rrp_plumbing_adjusted_qoq", "tdc_us_chartered_bank_only_qoq"),
+        ("tdc_no_foreign_bank_sectors_mmf_rrp_plumbing_adjusted_qoq", "tdc_no_foreign_bank_sectors_qoq"),
+    ):
+        base_tdc = _coerce_float(row.get(base_tdc_name, ""))
+        if base_tdc is None or plumbing_absorption is None:
+            adjusted_tdc = None
+            adjusted_available_at = ""
+        else:
+            adjusted_tdc = base_tdc + plumbing_absorption
+            adjusted_available_at = _max_available_iso(
+                row.get(f"{base_tdc_name}__available_at", ""),
+                plumbing_available_at,
+            )
+        _set_simple_derived_series(
+            row,
+            output_name=output_name,
+            value=adjusted_tdc,
+            available_at=adjusted_available_at,
+        )
+
+
+def _set_domestic_nonbank_adjusted_residuals(row: dict[str, str]) -> None:
+    domestic_deposits = _coerce_float(row.get("domestic_nonbank_deposits_qoq", ""))
+    for output_name, treatment_name in (
+        (
+            "domestic_nonbank_other_component_tier1_qoq",
+            "tdc_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_bank_only_qoq",
+            "tdc_tier2_interest_corrected_bank_only_ru_flow",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_mmf_rrp_prop_bank_only_qoq",
+            "tdc_tier2_mmf_rrp_prop_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_mmf_rrp_lb_bank_only_qoq",
+            "tdc_tier2_mmf_rrp_lb_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_mmf_rrp_ub_bank_only_qoq",
+            "tdc_tier2_mmf_rrp_ub_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_mmf_rrp_prop_di_np_cu_qoq",
+            "tdc_tier2_mmf_rrp_prop_di_np_cu_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq",
+            "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
+            "tdc_tier2_canonical_di_mmf_rrp_prop_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq",
+            "tdc_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_du_selected_qoq",
+            "tdc_du_selected_domestic_nonfinancial_proxy",
+        ),
+        (
+            "domestic_nonbank_other_component_du_residual_qoq",
+            "tdc_du_residual_proxy_full_cu_ru",
+        ),
+        (
+            "domestic_nonbank_other_component_no_row_qoq",
+            "tdc_domestic_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_no_toc_qoq",
+            "tdc_no_toc_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_no_toc_no_row_qoq",
+            "tdc_no_toc_no_row_bank_only_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier1_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_tier1_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_tier2_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_du_residual_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_no_row_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_no_row_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_no_toc_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_no_toc_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_no_toc_no_row_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_no_toc_no_row_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_core_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_core_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_us_chartered_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_us_chartered_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+        (
+            "domestic_nonbank_other_component_no_foreign_bank_sectors_mmf_rrp_plumbing_adjusted_qoq",
+            "tdc_no_foreign_bank_sectors_mmf_rrp_plumbing_adjusted_qoq",
+        ),
+    ):
+        treatment_value = _coerce_float(row.get(treatment_name, ""))
+        if domestic_deposits is None or treatment_value is None:
+            residual = None
+            residual_available_at = ""
+        else:
+            residual = domestic_deposits - treatment_value
+            residual_available_at = _max_available_iso(
+                row.get("domestic_nonbank_deposits_qoq__available_at", ""),
+                row.get(f"{treatment_name}__available_at", ""),
+            )
+        _set_simple_derived_series(
+            row,
+            output_name=output_name,
+            value=residual,
+            available_at=residual_available_at,
+        )
+
+
 def _derive_quarterly_low_liquidity_state(
     *,
     reserves_by_quarter: dict[str, str],
@@ -1031,6 +1824,11 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
         )
         for output_name, (left_series, right_series, scale) in RAW_FRED_SPREAD_SERIES.items()
     }
+    derived_fred_qoq_sums = {
+        output_name: _compute_sum_series([derived_fred_qoq.get(component, {}) for component in component_ids])
+        for output_name, component_ids in RAW_FRED_QOQ_SUM_SERIES.items()
+    }
+    derived_fred_qoq.update(derived_fred_qoq_sums)
     derived_fred_differences = {
         output_name: _compute_difference_series(
             derived_fred_qoq.get(left_series, {}),
@@ -1109,7 +1907,11 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
         for output_name, (source_repo, series_id) in BASELINE_SERIES_MAP.items():
             standardized = by_series_quarter.get((series_id, quarter))
             if standardized:
-                row[output_name] = standardized.get("value", "")
+                value = standardized.get("value", "")
+                scale = BASELINE_SERIES_SCALE.get(output_name)
+                if value and scale is not None:
+                    value = _stable_float_text(float(value) * scale)
+                row[output_name] = value
                 row[f"{output_name}__available_at"] = standardized.get("available_at", "")
                 row[f"{output_name}__source_repo"] = source_repo
                 available = _parse_available_at(standardized.get("available_at", ""))
@@ -1137,6 +1939,7 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
             "BAMLC0A0CM",
             "BAMLH0A0HYM2",
             "WRESBAL",
+            "WDFOL",
             "WALCL",
             "TREAST",
             "TGCRRATE",
@@ -1273,6 +2076,8 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
             row["other_component_qoq__available_at"] = ""
             row["other_component_qoq__source_repo"] = "derived"
 
+        _set_mmf_rrp_plumbing_adjustments(row)
+
         for output_name, components in ROW_LINEAR_COMBO_SERIES.items():
             _set_row_linear_combo(
                 row,
@@ -1330,6 +2135,8 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
                 row[output_name] = ""
                 row[f"{output_name}__available_at"] = ""
                 row[f"{output_name}__source_repo"] = "derived"
+
+        _set_domestic_nonbank_adjusted_residuals(row)
 
         for output_name, components in ROW_LINEAR_COMBO_SERIES.items():
             if output_name.startswith("accounting_identity_gap_tier"):

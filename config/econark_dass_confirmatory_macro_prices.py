@@ -3,8 +3,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import numpy as np
-
 # EA-TDC-owned confirmatory config focused on spreads, repo, and inflation.
 # This keeps the treatment on TREAST shock mode and tests outcome constructions
 # that are closer to the economic channels of interest than raw deposit levels.
@@ -20,6 +18,12 @@ ECONARK_ROOT = Path(
 # not be described as TDC-confirmatory without a treatment switch.
 CONFIRMATORY_SCOPE = "treast_diagnostic"
 PUBLIC_TREATMENT_LABEL = "TREAST"
+
+
+def _log(series):
+    import numpy as np
+
+    return np.log(series)
 
 START_DATE = "1985-03-31"
 END_DATE = "2025-12-31"
@@ -90,12 +94,12 @@ SERIES_TO_GENERATE = {
         "freq": "q",
     },
     "PCEPILFE_DLOG_Q": {
-        "func": lambda df: np.log(df["PCEPILFE"]).diff() * 100.0,
+        "func": lambda df: _log(df["PCEPILFE"]).diff() * 100.0,
         "components": ["PCEPILFE"],
         "freq": "q",
     },
     "CPIAUCSL_DLOG_Q": {
-        "func": lambda df: np.log(df["CPIAUCSL"]).diff() * 100.0,
+        "func": lambda df: _log(df["CPIAUCSL"]).diff() * 100.0,
         "components": ["CPIAUCSL"],
         "freq": "q",
     },

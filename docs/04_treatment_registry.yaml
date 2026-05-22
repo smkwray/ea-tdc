@@ -71,6 +71,34 @@ treatments:
     direct_effect_risk: low
     notes: Current live positive-remittance add-back exported by the upstream bundle.
 
+  - treatment_id: tdc_du_fiscal_flow_first_pass_narrow
+    family: diagnostic_treatment
+    source_repo: tdcest
+    upstream_object: tdc_du_fiscal_flow_first_pass_narrow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_du_fiscal_flow
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: high
+    notes: Residual-defined DU-facing fiscal-flow diagnostic from tdcest; DU Treasury-security purchases are all-sector Treasury-security transactions less Fed, ROW, bank, and credit-union transactions, and DU coupon interest is added as a deposit inflow using gross Treasury interest less Fed, bank, and ROW coupon proxies. Not a promoted headline estimator.
+
+  - treatment_id: tdc_du_net_noninterest_fiscal_payment_proxy
+    family: diagnostic_treatment
+    source_repo: tdcest
+    upstream_object: du_noninterest_outlay_proxy_minus_du_receipt_proxy
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_net_noninterest_fiscal_payment_to_du
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: high
+    notes: Simple DU government-spending-minus-receipts diagnostic derived inside EA-TDC from upstream DU outlay and receipt proxies.
+
   - treatment_id: tdc_tier2_interest_corrected_bank_only_ru_flow
     family: measurement_variant
     source_repo: tdcest
@@ -112,6 +140,118 @@ treatments:
     instrument_ok: false
     direct_effect_risk: medium
     notes: Interest-corrected broad-depository perimeter comparison that adds natural-person credit unions.
+
+  - treatment_id: tdc_tier2_mmf_rrp_prop_bank_only_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_mmf_rrp_prop_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Preferred corrected Tier 2 bank-deposit-scope sensitivity. It adds the fund-month proportional MMF/RRP source-of-funds adjustment to the Tier 2 bank-only row; use as measurement sensitivity, not as the EA-TDC headline.
+
+  - treatment_id: tdc_tier2_mmf_rrp_lb_bank_only_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_mmf_rrp_lb_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Lower-bound MMF/RRP source-of-funds sensitivity for the corrected Tier 2 bank-only row.
+
+  - treatment_id: tdc_tier2_mmf_rrp_ub_bank_only_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_mmf_rrp_ub_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Upper-bound MMF/RRP source-of-funds sensitivity for the corrected Tier 2 bank-only row.
+
+  - treatment_id: tdc_tier2_mmf_rrp_prop_di_np_cu_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Depository-institution scope check adding natural-person credit unions plus the preferred proportional MMF/RRP adjustment; keep as scope robustness unless the outcome also broadens beyond bank deposits.
+
+  - treatment_id: tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Bill-discount-interest robustness row layered on the preferred Tier 2 MMF/RRP proportional bank-only sensitivity; do not describe this as the headline estimator.
+
+  - treatment_id: tdc_tier2_canonical_di_mmf_rrp_prop_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Canonical Tier 2 policy target with depository-institution scope, Fed/bank/ROW/CU coupon corrections, bank/ROW/CU bill-discount corrections, and the proportional MMF/RRP source-of-funds adjustment.
+
+  - treatment_id: tdc_tier2_regression_bank_only_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_regression_bank_only_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Regression-source Tier 2 bank-only row from tdcest. It uses constrained component support from 2022 onward, component-pool/WAMEST-bucket backcast for 2010-2021, and scaled H15 backcast before 2010.
+
+  - treatment_id: tdc_tier2_regression_di_np_cu_qoq
+    family: measurement_variant
+    source_repo: tdcest
+    upstream_object: tdc_tier2_regression_depository_institution_np_cu_ru_flow
+    freq: quarterly
+    units: usd_flow
+    scaling: divide_by_nominal_gdp
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: quarter_start_default
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Regression-source Tier 2 depository-institution row from tdcest. Use for long-sample sensitivity runs, with method-tier caveats around the pre-2010 scaled-H15 segment.
 
   - treatment_id: tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow
     family: measurement_variant

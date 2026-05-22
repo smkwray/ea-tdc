@@ -129,6 +129,212 @@ def normalize_schema(payload: dict[str, Any]) -> list[dict[str, str]]:
     return rows
 
 
+def _discover_regression_series_path(bundle_path: Path) -> Path | None:
+    for parent in [bundle_path.parent, *bundle_path.parents]:
+        candidate = parent / "data" / "processed" / "tdc_tier2_regression_series.csv"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _discover_processed_estimates_path(bundle_path: Path) -> Path | None:
+    for parent in [bundle_path.parent, *bundle_path.parents]:
+        candidate = parent / "data" / "processed" / "tdc_estimates.csv"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _append_regression_series_rows(rows: list[dict[str, str]], regression_series_path: Path | None) -> None:
+    if regression_series_path is None or not regression_series_path.exists():
+        return
+    numeric_series = {
+        "tdc_tier2_regression_domestic_bank_only_ru_flow",
+        "tdc_tier2_regression_bank_only_ru_flow",
+        "tdc_tier2_regression_broad_depository_np_cu_ru_flow",
+        "tdc_tier2_regression_depository_institution_np_cu_ru_flow",
+        "tdc_tier2_regression_mmf_rrp_lb_bank_only_ru_flow",
+        "tdc_tier2_regression_mmf_rrp_prop_bank_only_ru_flow",
+        "tdc_tier2_regression_mmf_rrp_ub_bank_only_ru_flow",
+        "tdc_tier2_regression_mmf_rrp_lb_depository_institution_np_cu_ru_flow",
+        "tdc_tier2_regression_mmf_rrp_prop_depository_institution_np_cu_ru_flow",
+        "tdc_tier2_regression_mmf_rrp_ub_depository_institution_np_cu_ru_flow",
+    }
+    tier_series = {
+        "bank_method_tier",
+        "row_method_tier",
+        "credit_union_method_tier",
+        "tier2_regression_bank_row_method_tier",
+        "tier2_regression_di_method_tier",
+    }
+    tier_dummy_values = {
+        "pre_component_h15_scaled_backcast",
+        "component_pool_wamest_bucket_backcast",
+        "constrained_component",
+    }
+
+    def append_row(
+        *,
+        series_id: str,
+        value: str,
+        period_end: str,
+        available_at: str,
+        units: str,
+        component_group: str,
+        role: str,
+        notes: str,
+    ) -> None:
+        rows.append(
+            {
+                "series_id": series_id,
+                "series_label": series_id,
+                "source_family": "repo_processed_csv",
+                "source_repo": "tdcest",
+                "source_table": "tier2_regression_series",
+                "freq": "quarterly",
+                "period_end": period_end,
+                "release_date": available_at,
+                "available_at": available_at,
+                "vintage_policy": "processed_regression_series_conservative_90d_lag",
+                "units": units,
+                "value": value,
+                "transform_default": "none",
+                "seasonal_adjustment_flag": "unknown",
+                "interpolated_flag": "false",
+                "component_group": component_group,
+                "role": role,
+                "notes": notes,
+            }
+        )
+
+    with regression_series_path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for source_row in reader:
+            period_end = str(source_row.get("date", "")).strip()
+            if not period_end:
+                continue
+            available_at = _conservative_quarterly_available_at(period_end)
+            for series_id in numeric_series:
+                value = str(source_row.get(series_id, "")).strip()
+                if not value:
+                    continue
+                append_row(
+                    series_id=series_id,
+                    value=value,
+                    period_end=period_end,
+                    available_at=available_at,
+                    units="usd_millions",
+                    component_group="estimate_variant",
+                    role="treatment",
+                    notes="regression_tier2_interest_backcast_source|availability_proxy=period_end_plus_90d",
+                )
+            for series_id in tier_series:
+                value = str(source_row.get(series_id, "")).strip()
+                if not value:
+                    continue
+                append_row(
+                    series_id=series_id,
+                    value=value,
+                    period_end=period_end,
+                    available_at=available_at,
+                    units="category",
+                    component_group="method_tier",
+                    role="metadata",
+                    notes="regression_tier2_method_tier|availability_proxy=period_end_plus_90d",
+                )
+                for tier_value in tier_dummy_values:
+                    append_row(
+                        series_id=f"{series_id}__is_{tier_value}",
+                        value="1" if value == tier_value else "0",
+                        period_end=period_end,
+                        available_at=available_at,
+                        units="indicator",
+                        component_group="method_tier_indicator",
+                        role="control",
+                        notes=(
+                            f"regression_tier2_method_tier_indicator|source_column={series_id}"
+                            f"|tier={tier_value}|availability_proxy=period_end_plus_90d"
+                        ),
+                    )
+
+
+PROCESSED_ESTIMATE_SERIES_MAP = {
+    "tdc_tier2_h15_intensity_corrected_bank_only_ru_flow": (
+        "tdc_tier2_h15_intensity_corrected_bank_only_ru_flow"
+    ),
+    "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow"
+    ),
+    "tdc_tier2_mmf_rrp_prop_bank_only_ru_flow": "tdc_tier2_mmf_rrp_prop_bank_only_ru_flow",
+    "tdc_tier2_mmf_rrp_lb_bank_only_ru_flow": "tdc_tier2_mmf_rrp_lb_bank_only_ru_flow",
+    "tdc_tier2_mmf_rrp_ub_bank_only_ru_flow": "tdc_tier2_mmf_rrp_ub_bank_only_ru_flow",
+    "tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow": (
+        "tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow"
+    ),
+    "tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow": (
+        "tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow"
+    ),
+    "tdc_tier2_treasury_interest_robust_bank_only_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow"
+    ),
+    "tdc_tier2_treasury_interest_robust_depository_institution_np_cu_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_depository_institution_np_cu_ru_flow"
+    ),
+    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow"
+    ),
+    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_depository_institution_np_cu_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_mmf_rrp_prop_depository_institution_np_cu_ru_flow"
+    ),
+}
+
+
+def _append_processed_estimate_rows(rows: list[dict[str, str]], estimates_path: Path | None) -> None:
+    if estimates_path is None or not estimates_path.exists():
+        return
+
+    output_series = set(PROCESSED_ESTIMATE_SERIES_MAP)
+    rows[:] = [row for row in rows if row.get("series_id") not in output_series]
+
+    with estimates_path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for source_row in reader:
+            period_end = str(source_row.get("date", "")).strip()
+            if not period_end:
+                continue
+            available_at = _conservative_quarterly_available_at(period_end)
+            for series_id, source_column in PROCESSED_ESTIMATE_SERIES_MAP.items():
+                value = str(source_row.get(source_column, "")).strip()
+                if not value:
+                    continue
+                rows.append(
+                    {
+                        "series_id": series_id,
+                        "series_label": series_id,
+                        "source_family": "repo_processed_csv",
+                        "source_repo": "tdcest",
+                        "source_table": "tdc_estimates",
+                        "freq": "quarterly",
+                        "period_end": period_end,
+                        "release_date": available_at,
+                        "available_at": available_at,
+                        "vintage_policy": "processed_estimates_conservative_90d_lag",
+                        "units": "usd_millions",
+                        "value": value,
+                        "transform_default": "none",
+                        "seasonal_adjustment_flag": "unknown",
+                        "interpolated_flag": "false",
+                        "component_group": "estimate_variant",
+                        "role": "treatment",
+                        "notes": (
+                            "processed_tdc_estimates_source"
+                            f"|source_column={source_column}"
+                            "|availability_proxy=period_end_plus_90d"
+                        ),
+                    }
+                )
+
+
 def validate_contract(rows: list[dict[str, str]]) -> None:
     required = {
         "series_id",
@@ -199,6 +405,8 @@ def adapt_tdcest(paths: ProjectPaths, *, bundle_path: str | None = None) -> Adap
     source_path = resolve_seed_bundle(paths, bundle_path)
     payload = read_raw(source_path)
     rows = normalize_schema(payload)
+    _append_regression_series_rows(rows, _discover_regression_series_path(source_path))
+    _append_processed_estimate_rows(rows, _discover_processed_estimates_path(source_path))
     validate_contract(rows)
     standardized_path = write_standard_bundle(paths, rows)
     bundle_hash = _sha256_file(source_path)

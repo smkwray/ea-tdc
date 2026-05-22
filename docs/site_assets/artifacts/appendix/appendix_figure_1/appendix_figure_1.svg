@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="648" viewBox="0 0 1020 648">
+<rect width="100%" height="100%" fill="#fbfaf6"/>
+<rect x="36" y="28" width="72" height="4" rx="2" fill="#204b57"/>
+<text x="36" y="54" font-size="24" font-family="Georgia, serif" fill="#1d1d1b">Older baseline K=200 sensitivity</text>
+<text x="36" y="82" font-size="12" font-family="Helvetica, Arial, sans-serif" fill="#555">Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 85-93 obs</text>
+<text x="36" y="98" font-size="12" font-family="Helvetica, Arial, sans-serif" fill="#555">Impulse responses for Matched total deposits, Other component (q/q) to Baseline TDC estimate. Points are</text>
+<text x="36" y="114" font-size="12" font-family="Helvetica, Arial, sans-serif" fill="#555">local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.</text>
+<rect x="36" y="130" width="440" height="220" rx="10" fill="#fffef9" stroke="#d9d2c3"/>
+<rect x="36" y="130" width="440" height="10" rx="10" fill="#ece6d8" stroke="none"/>
+<text x="52" y="148" font-size="14" font-family="Helvetica, Arial, sans-serif" fill="#222">Matched total deposits</text>
+<line x1="88" y1="314" x2="460" y2="314" stroke="#888" stroke-width="1"/>
+<line x1="88" y1="154" x2="88" y2="314" stroke="#888" stroke-width="1"/>
+<line x1="88" y1="274.74" x2="460" y2="274.74" stroke="#c9c1b0" stroke-dasharray="4 4" stroke-width="1"/>
+<text x="44" y="318.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">-0.313</text>
+<text x="44" y="278.74" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">0.000</text>
+<text x="44" y="158.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">0.963</text>
+<line x1="88.00" y1="263.74" x2="88.00" y2="167.60" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="88.00" cy="215.67" r="4" fill="#204b57"/>
+<text x="88.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">0</text>
+<line x1="134.50" y1="300.48" x2="134.50" y2="167.33" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="134.50" cy="233.91" r="4" fill="#7f8d93"/>
+<text x="134.50" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">1</text>
+<line x1="181.00" y1="300.67" x2="181.00" y2="229.04" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="181.00" cy="264.85" r="4" fill="#7f8d93"/>
+<text x="181.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">2</text>
+<line x1="274.00" y1="267.23" x2="274.00" y2="191.77" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="274.00" cy="229.50" r="4" fill="#204b57"/>
+<text x="274.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">4</text>
+<line x1="460.00" y1="280.86" x2="460.00" y2="197.67" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="460.00" cy="239.27" r="4" fill="#204b57"/>
+<text x="460.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">8</text>
+<polyline points="88.00,215.67 134.50,233.91 181.00,264.85 274.00,229.50 460.00,239.27" fill="none" stroke="#204b57" stroke-width="2.5"/>
+<text x="274.00" y="346.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">Quarters after TDC change</text>
+<rect x="516" y="130" width="440" height="220" rx="10" fill="#fffef9" stroke="#d9d2c3"/>
+<rect x="516" y="130" width="440" height="10" rx="10" fill="#ece6d8" stroke="none"/>
+<text x="532" y="148" font-size="14" font-family="Helvetica, Arial, sans-serif" fill="#222">Other component (q/q)</text>
+<line x1="568" y1="314" x2="940" y2="314" stroke="#888" stroke-width="1"/>
+<line x1="568" y1="154" x2="568" y2="314" stroke="#888" stroke-width="1"/>
+<line x1="568" y1="228.20" x2="940" y2="228.20" stroke="#c9c1b0" stroke-dasharray="4 4" stroke-width="1"/>
+<text x="524" y="318.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">-1.080</text>
+<text x="524" y="232.20" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">0.000</text>
+<text x="524" y="158.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">0.934</text>
+<line x1="568.00" y1="300.67" x2="568.00" y2="239.74" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="568.00" cy="270.20" r="4" fill="#204b57"/>
+<text x="568.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">0</text>
+<line x1="614.50" y1="252.59" x2="614.50" y2="167.33" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="614.50" cy="209.96" r="4" fill="#7f8d93"/>
+<text x="614.50" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">1</text>
+<line x1="661.00" y1="263.09" x2="661.00" y2="203.60" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="661.00" cy="233.35" r="4" fill="#7f8d93"/>
+<text x="661.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">2</text>
+<line x1="754.00" y1="276.13" x2="754.00" y2="210.97" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="754.00" cy="243.55" r="4" fill="#7f8d93"/>
+<text x="754.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">4</text>
+<line x1="940.00" y1="253.93" x2="940.00" y2="219.76" stroke="#5c6f7b" stroke-width="2"/>
+<circle cx="940.00" cy="236.84" r="4" fill="#7f8d93"/>
+<text x="940.00" y="332.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">8</text>
+<polyline points="568.00,270.20 614.50,209.96 661.00,233.35 754.00,243.55 940.00,236.84" fill="none" stroke="#204b57" stroke-width="2.5"/>
+<text x="754.00" y="346.00" text-anchor="middle" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#666">Quarters after TDC change</text>
+<text x="36" y="390.00" font-size="12" font-family="Helvetica, Arial, sans-serif" fill="#444">Notes</text>
+<text x="36" y="422.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Treatment: Baseline TDC estimate</text>
+<text x="36" y="436.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Response: Direct response at horizon h</text>
+<text x="36" y="450.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Dflmx K200 F1, Dflmx K200 F2, Dflmx</text>
+<text x="36" y="464.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">K200 F3, Dflmx K200 F4</text>
+<text x="36" y="478.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Covariance: Newey-West HAC</text>
+<text x="36" y="492.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Sample span: 1945Q4 to 2026Q2</text>
+<text x="36" y="506.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Observations: 85 to 93</text>
+<text x="36" y="520.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.</text>
+<text x="36" y="534.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Displayed branch: K=200 screened branch</text>
+<text x="36" y="548.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Relabeled legacy surface: baseline_tdc_lp_deposits with the K=200 screened branch. This is preserved as</text>
+<text x="36" y="562.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">appendix/sensitivity output and is no longer the paper-facing main surface.</text>
+<text x="36" y="576.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-05-22 and may reflect an in-progress quarter</text>
+<text x="36" y="590.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">endpoint.</text>
+<text x="36" y="604.00" font-size="11" font-family="Helvetica, Arial, sans-serif" fill="#555">Artifact source: Deposit responses to the baseline TDC estimate</text>
+</svg>

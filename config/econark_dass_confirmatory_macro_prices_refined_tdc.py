@@ -4,8 +4,6 @@ import csv
 import os
 from pathlib import Path
 
-import numpy as np
-
 # EA-TDC-owned confirmatory config focused on cleaner macro-price targets.
 # This is the canonical-public-TDC version of the refined macro-price branch:
 # DGS10-based spread changes, repo-spread changes from the EA-TDC bundle, and

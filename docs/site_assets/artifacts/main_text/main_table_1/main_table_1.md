@@ -1,32 +1,28 @@
-# Deposit responses to the baseline TDC estimate coefficient table
+# Long-history Tier 2 selected-lag h=0 coefficient table
 
-Local projection | Committed headline design | 1946Q4 to 2026Q2 | 2 outcomes | 85-93 obs
+Local projection | Committed headline design | 2002Q1 to 2025Q4 | 6 outcomes | 96-96 obs
 
-Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.
+H=0 coefficient table for Matched total deposits, Other component, same Tier 2 treatment, Strict loan core, Mortgages, Consumer credit, Bank credit in response to Long-history Tier 2 TDC. Entries are $B per +$100B TDC, with p-values and observations.
 
-Generated at: 2026-04-22T10:04:37+00:00
+Generated at: 2026-05-22T17:38:04+00:00
 
 ## Notes
-- Treatment: Baseline TDC estimate
+- Treatment: Long-history Tier 2 TDC
 - Response: Direct response at horizon h
-- Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Dflmx K200 F1, Dflmx K200 F2, Dflmx K200 F3, Dflmx K200 F4
+- Controls: Real GDP, GDP deflator, Effective federal funds rate, Total reserves, Tier 2 method-tier control, Strict loan-core lag 2, Strict loan-core lag 4, Consumer-credit lag 4, Bank-credit lag 4, 2Y Treasury-yield lag 4, 10Y Treasury-yield lag 1, 10Y Treasury-yield lag 2, Dflmx K100 F1, Dflmx K100 F2, Dflmx K100 F3, Dflmx K100 F4
 - Covariance: Newey-West HAC
-- Sample span: 1946Q4 to 2026Q2
-- Observations: 85 to 93
-- Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.
-- Displayed branch: K=200 screened branch
-- Sample endpoint note: 2026Q2 is the latest labeled quarter as of 2026-04-22 and may reflect an in-progress quarter endpoint.
-- Artifact source: Deposit responses to the baseline TDC estimate
+- Sample span: 2002Q1 to 2025Q4
+- Observations: 88 to 96
+- Scale: coefficients are $B responses per +$100B TDC.
+- Run/specification: regression_mmf_rrp_bank_long_selected_credit_rate_lags. Rows report h=0 effects in $B per +$100B TDC.
+- Claim boundary: consumer credit is a guarded candidate margin, not a broad crowding-out headline.
+- Artifact source: Long-history Tier 2 selected-lag pass-through
 
-| Outcome | Horizon | Beta | Se | Lower 95% | Upper 95% | P-value | Observations | Significance |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Matched total deposits | 0 | 0.471 | 0.196 | 0.088 | 0.855 | 0.0161 | 93 | ** |
-| Matched total deposits | 1 | 0.326 | 0.271 | -0.205 | 0.857 | 0.2293 | 92 |  |
-| Matched total deposits | 2 | 0.079 | 0.146 | -0.207 | 0.365 | 0.5883 | 91 |  |
-| Matched total deposits | 4 | 0.361 | 0.154 | 0.060 | 0.662 | 0.0187 | 89 | ** |
-| Matched total deposits | 8 | 0.283 | 0.169 | -0.049 | 0.615 | 0.0946 | 85 | * |
-| Other component (q/q) | 0 | -0.529 | 0.196 | -0.912 | -0.145 | 0.0069 | 93 | *** |
-| Other component (q/q) | 1 | 0.230 | 0.274 | -0.307 | 0.766 | 0.4017 | 92 |  |
-| Other component (q/q) | 2 | -0.065 | 0.191 | -0.439 | 0.310 | 0.7347 | 91 |  |
-| Other component (q/q) | 4 | -0.193 | 0.209 | -0.603 | 0.217 | 0.3560 | 89 |  |
-| Other component (q/q) | 8 | -0.109 | 0.110 | -0.324 | 0.106 | 0.3216 | 85 |  |
+| Outcome | Horizon | Beta | P-value | Observations | Significance |
+| --- | --- | --- | --- | --- | --- |
+| Matched total deposits | 0 | 61.635 | 0.0023 | 96 | *** |
+| Other component, same Tier 2 treatment | 0 | -38.365 | 0.0578 | 96 | * |
+| Strict loan core | 0 | -3.750 | 0.2006 | 96 |  |
+| Mortgages | 0 | -0.399 | 0.8520 | 96 |  |
+| Consumer credit | 0 | -3.351 | 0.0332 | 96 | ** |
+| Bank credit | 0 | 7.369 | 0.5272 | 96 |  |
