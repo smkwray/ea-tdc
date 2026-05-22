@@ -96,6 +96,69 @@ def test_estimate_quarterly_job_writes_reference_comparison(tmp_path: Path) -> N
     assert summary["warning_rows"] == 0
 
 
+def test_estimate_job_quarterly_lp_drops_collinear_controls(tmp_path: Path) -> None:
+    paths = project_paths(tmp_path)
+    ensure_repo_dirs(paths)
+    _write_text(
+        paths.config / "dass_job_blueprint.yaml",
+        "\n".join(
+            [
+                "jobs:",
+                "  - job_id: custom_quarterly_collinear",
+                "    estimator: lp",
+                "    freq: quarterly",
+                "    treatment_id: tdc_bank_only_qoq",
+                "    outcomes: [matched_total_deposits]",
+                "    controls_explicit: [ctrl, ctrl_duplicate]",
+                "    horizons: [0]",
+                "    response_type: direct_at_h",
+                "    output_family: supporting_reduced_form",
+            ]
+        ),
+    )
+    bundle_path = paths.bundles / "designs" / "custom_quarterly_collinear__quarterly_bundle.csv"
+    _write_text(
+        bundle_path,
+        "\n".join(
+            [
+                "quarter,tdc_bank_only_qoq,ctrl,ctrl_duplicate,matched_total_deposits",
+                "2023Q1,1.0,1.0,1.0,2.0",
+                "2023Q2,2.0,0.0,0.0,3.1",
+                "2023Q3,3.0,1.0,1.0,4.1",
+                "2023Q4,4.0,0.0,0.0,5.2",
+                "2024Q1,5.0,1.0,1.0,6.0",
+                "2024Q2,6.0,0.0,0.0,7.3",
+            ]
+        ),
+    )
+    _write_text(
+        paths.manifests / "custom_quarterly_collinear__design_manifest.json",
+        json.dumps(
+            {
+                "job_id": "custom_quarterly_collinear",
+                "status": "ready_for_estimation",
+                "bundle_path": str(bundle_path),
+                "treatment_id": "tdc_bank_only_qoq",
+                "instrument_ids": [],
+                "control_ids": ["ctrl", "ctrl_duplicate"],
+                "outcome_ids": ["matched_total_deposits"],
+                "horizon_grid": [0],
+                "response_type": "direct_at_h",
+            }
+        ),
+    )
+
+    result = estimate_job(paths, job_id="custom_quarterly_collinear")
+
+    with result.estimates_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 1
+    assert rows[0]["control_ids_used"] == "ctrl"
+    assert rows[0]["dropped_control_ids"] == "ctrl_duplicate"
+    assert rows[0]["inference_method"] == "ols_newey_west_scaffold_adaptive_controls"
+    assert "adaptive_controls" in rows[0]["warning_flags"]
+
+
 def test_estimate_quarterly_job_supports_tdcpass_strict_source_side_job(tmp_path: Path) -> None:
     paths = project_paths(tmp_path)
     ensure_repo_dirs(paths)

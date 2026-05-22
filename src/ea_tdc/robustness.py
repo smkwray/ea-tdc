@@ -31,6 +31,31 @@ MONTHLY_LAGS = 12
 QUARTERLY_LAGS = 8
 MIN_COVERAGE = 0.4
 TOP_LOADINGS_PER_FACTOR = 12
+DEFAULT_CONTROL_POLICY_MODE = "balanced"
+CONTROL_POLICY_STRICT_EXCLUDE_TERMS = [
+    "tdc",
+    "accounting_identity",
+    "identity_total",
+    "identity_gap",
+]
+CONTROL_POLICY_CAUTION_TERMS = [
+    "tga",
+    "rrp",
+    "reserve",
+    "reserves",
+    "deposit",
+    "deposits",
+    "tsy",
+    "treasury",
+    "tres",
+    "cash",
+    "fed_rrp",
+    "fedfunds",
+]
+CONTROL_POLICY_CLEAN_MACRO_EXCLUDE_TERMS = [
+    *CONTROL_POLICY_STRICT_EXCLUDE_TERMS,
+    *CONTROL_POLICY_CAUTION_TERMS,
+]
 DEFAULT_REGIME_STATES = [
     "coord_low_reserve_state_l1",
     "coord_on_rrp_drain_state_l1",
@@ -42,6 +67,12 @@ DEFAULT_REGIME_STATES = [
 ALTERNATIVE_TREATMENTS = [
     "tdc_base_broad_depository_np_cu_ru_flow",
     "tdc_tier2_interest_corrected_bank_only_ru_flow",
+    "tdc_tier2_mmf_rrp_prop_bank_only_qoq",
+    "tdc_tier2_mmf_rrp_lb_bank_only_qoq",
+    "tdc_tier2_mmf_rrp_ub_bank_only_qoq",
+    "tdc_tier2_mmf_rrp_prop_di_np_cu_qoq",
+    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_qoq",
+    "tdc_tier2_canonical_di_mmf_rrp_prop_qoq",
     "tdc_tier3_fiscal_corrected_bank_only_ru_flow",
     "tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow",
     "tdc_tier3_fiscal_corrected_broad_depository_np_cu_ru_flow",
@@ -87,6 +118,103 @@ def _safe_slug(text: str) -> str:
     while "__" in lowered:
         lowered = lowered.replace("__", "_")
     return lowered.strip("_")
+
+
+def _feature_base_from_id(feature_id: str) -> str:
+    parts = str(feature_id).split("__", 2)
+    if len(parts) == 3:
+        return parts[1]
+    return str(feature_id)
+
+
+def _term_matches(text: str, terms: list[str]) -> list[str]:
+    safe_text = f"_{_safe_slug(text)}_"
+    matches: list[str] = []
+    for term in terms:
+        safe_term = _safe_slug(term)
+        if safe_term and f"_{safe_term}_" in safe_text:
+            matches.append(term)
+    return matches
+
+
+def _control_policy_rows(
+    *,
+    candidate_ids: list[str],
+    treatment_id: str,
+    outcome_ids: list[str],
+    mode: str = DEFAULT_CONTROL_POLICY_MODE,
+) -> list[dict[str, Any]]:
+    mode = str(mode or DEFAULT_CONTROL_POLICY_MODE).strip() or DEFAULT_CONTROL_POLICY_MODE
+    if mode not in {"off", "balanced", "clean_macro"}:
+        raise ValueError(f"Unknown control policy mode '{mode}'")
+
+    del treatment_id, outcome_ids
+    strict_terms = sorted(CONTROL_POLICY_STRICT_EXCLUDE_TERMS)
+    macro_exclude_terms = sorted(CONTROL_POLICY_CLEAN_MACRO_EXCLUDE_TERMS)
+
+    rows: list[dict[str, Any]] = []
+    for feature_id in candidate_ids:
+        base_series = _feature_base_from_id(feature_id)
+        strict_matches = (
+            []
+            if mode == "off"
+            else _term_matches(feature_id, strict_terms) + _term_matches(base_series, strict_terms)
+        )
+        caution_matches = (
+            []
+            if mode == "off"
+            else _term_matches(feature_id, CONTROL_POLICY_CAUTION_TERMS)
+            + _term_matches(base_series, CONTROL_POLICY_CAUTION_TERMS)
+        )
+        clean_matches = (
+            []
+            if mode == "off"
+            else _term_matches(feature_id, macro_exclude_terms)
+            + _term_matches(base_series, macro_exclude_terms)
+        )
+        exclude = False
+        reason = ""
+        category = "eligible"
+        if mode == "balanced" and strict_matches:
+            exclude = True
+            category = "strict_exclusion"
+            reason = "strict_identity_or_tdc_term:" + ",".join(sorted(set(strict_matches)))
+        elif mode == "clean_macro" and clean_matches:
+            exclude = True
+            category = "clean_macro_exclusion"
+            reason = "clean_macro_excludes_identity_or_mechanism_term:" + ",".join(sorted(set(clean_matches)))
+        elif caution_matches:
+            category = "caution_included"
+            reason = "included_predetermined_state_or_mechanism_lag:" + ",".join(sorted(set(caution_matches)))
+
+        rows.append(
+            {
+                "feature_id": feature_id,
+                "base_series": base_series,
+                "policy_mode": mode,
+                "eligible": not exclude,
+                "policy_category": category,
+                "policy_reason": reason,
+            }
+        )
+    return rows
+
+
+def _apply_control_policy(
+    *,
+    candidate_ids: list[str],
+    treatment_id: str,
+    outcome_ids: list[str],
+    mode: str = DEFAULT_CONTROL_POLICY_MODE,
+) -> tuple[list[str], list[dict[str, Any]]]:
+    rows = _control_policy_rows(
+        candidate_ids=candidate_ids,
+        treatment_id=treatment_id,
+        outcome_ids=outcome_ids,
+        mode=mode,
+    )
+    eligible = [str(row["feature_id"]) for row in rows if bool(row["eligible"])]
+    return eligible, rows
 
 
 def _repo_relative_text(path: Path, repo_root: Path) -> str:
@@ -694,7 +822,9 @@ def build_quarterly_robustness(
     k_grid: list[int] | None = None,
     factor_count: int = DEFAULT_FACTOR_COUNT,
     min_coverage: float = MIN_COVERAGE,
+    control_policy_mode: str = DEFAULT_CONTROL_POLICY_MODE,
 ) -> QuarterlyRobustnessResult:
+    control_policy_mode = str(control_policy_mode or DEFAULT_CONTROL_POLICY_MODE).strip() or DEFAULT_CONTROL_POLICY_MODE
     jobs = _load_jobs(paths.config / "dass_job_blueprint.yaml")
     if job_id not in jobs:
         raise KeyError(f"Unknown job_id: {job_id}")
@@ -729,9 +859,15 @@ def build_quarterly_robustness(
 
     treatment_id = str(design_manifest.get("treatment_id", "")).strip()
     outcome_ids = [str(item) for item in design_manifest.get("outcome_ids", [])]
+    eligible_feature_ids, control_policy_rows = _apply_control_policy(
+        candidate_ids=universe_feature_ids,
+        treatment_id=treatment_id,
+        outcome_ids=outcome_ids,
+        mode=control_policy_mode,
+    )
     screened = _screen_features(
         rows=merged_rows,
-        candidate_ids=universe_feature_ids,
+        candidate_ids=eligible_feature_ids,
         treatment_id=treatment_id,
         outcome_ids=outcome_ids,
         min_coverage=min_coverage,
@@ -932,6 +1068,7 @@ def build_quarterly_robustness(
     factor_meta_path = reports_dir / f"{job_id}__dflmx_factor_meta.json"
     factor_loadings_path = reports_dir / f"{job_id}__dflmx_top_loadings.csv"
     screen_path = reports_dir / f"{job_id}__control_screen.csv"
+    control_policy_path = reports_dir / f"{job_id}__control_policy.csv"
     regime_estimates_path = reports_dir / f"{job_id}__regime_sensitivity_estimates.csv"
     treatment_estimates_path = reports_dir / f"{job_id}__treatment_sensitivity_estimates.csv"
     summary_path = paths.manifests / f"{job_id}__robustness_summary.json"
@@ -971,6 +1108,11 @@ def build_quarterly_robustness(
         screened,
         fieldnames=["feature_id", "coverage_share", "abs_corr_treatment", "abs_corr_outcome_max", "screen_score"],
     )
+    _write_csv(
+        control_policy_path,
+        control_policy_rows,
+        fieldnames=["feature_id", "base_series", "policy_mode", "eligible", "policy_category", "policy_reason"],
+    )
     write_json(
         factor_meta_path,
         {
@@ -990,6 +1132,7 @@ def build_quarterly_robustness(
             "control_universe_meta_path": _repo_relative_text(control_universe.meta_path, paths.root),
             "control_universe_columns_path": _repo_relative_text(control_universe.columns_path, paths.root),
             "control_screen_path": _repo_relative_text(screen_path, paths.root),
+            "control_policy_path": _repo_relative_text(control_policy_path, paths.root),
             "ladder_path": _repo_relative_text(ladder_path, paths.root),
             "regime_path": _repo_relative_text(regime_path, paths.root),
             "treatment_path": _repo_relative_text(treatment_path, paths.root),
@@ -1000,6 +1143,10 @@ def build_quarterly_robustness(
             "recommended_k": recommended_k,
             "recommended_k_reason": recommended_k_reason,
             "control_universe_feature_count": control_universe.feature_count,
+            "control_policy_mode": control_policy_mode,
+            "control_policy_eligible_feature_count": len(eligible_feature_ids),
+            "control_policy_excluded_feature_count": sum(1 for row in control_policy_rows if not bool(row["eligible"])),
+            "control_policy_caution_included_feature_count": sum(1 for row in control_policy_rows if row.get("policy_category") == "caution_included"),
             "screened_feature_count": len(screened),
             "base_controls": base_controls,
             "recommended_factor_ids": recommended_factor_ids,

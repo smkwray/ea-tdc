@@ -16,7 +16,9 @@ TOTBKCR,private_credit,outcome,secondary,diff,Total bank credit for bank non-Tre
 BUSLOANS,private_credit,outcome,secondary,diff,Commercial and industrial loans at commercial banks for business-credit decomposition
 TOTCI,private_credit,outcome,secondary,diff,H.8 commercial and industrial loans cross-check for business-credit decomposition
 BOGZ1FL704041005Q,private_credit,outcome,secondary,diff,Z.1 short-term U.S. bank loans for alternative bank-credit decomposition
-TASACBW027SBOG,private_credit,outcome,secondary,diff,Bank holdings of agency and GSE-backed securities
+BOGZ1FL763061100Q,private_credit,outcome,secondary,diff,Z.1 U.S.-chartered depository institution Treasury securities
+BOGZ1FU763061100Q,private_credit,outcome,secondary,level,Z.1 U.S.-chartered depository institution Treasury securities transactions, quarterly not seasonally adjusted
+TASACBW027SBOG,private_credit,outcome,secondary,diff,Bank holdings of Treasury and agency securities
 OSEACBW027SBOG,private_credit,outcome,secondary,diff,Bank holdings of other non-Treasury securities
 CLSACBW027SBOG,private_credit,outcome,secondary,diff,Consumer loans at all commercial banks
 RELACBW027SBOG,private_credit,outcome,secondary,diff,Real estate loans at all commercial banks
@@ -39,6 +41,7 @@ FEDFUNDS,funding_liquidity,outcome,headline,level_change,Fed funds
 DFF,funding_liquidity,control,headline,level_change,Daily effective federal funds rate for event controls
 SOFR,funding_liquidity,outcome,headline,level_change,SOFR
 WRESBAL,funding_liquidity,outcome,headline,level_change,Reserve balances
+WDFOL,funding_liquidity,outcome,secondary,level_change,Foreign official deposits at Federal Reserve Banks
 TGCRRATE,funding_liquidity,outcome,headline,level_change,Tri-party general collateral rate
 RRPONTSYAWARD,funding_liquidity,outcome,headline,level_change,ON RRP award rate
 RRPONTSYD,funding_liquidity,control,secondary,level_change,ON RRP take-up amount
@@ -59,3 +62,4 @@ INDPRO,real_activity,outcome,secondary,logdiff,Industrial production
 HOUST,real_activity,outcome,secondary,logdiff,Housing starts
 RSXFS,real_activity,outcome,secondary,logdiff,Retail sales ex food services maybe depending on label
 DTWEXBGS,external_balance,control,secondary,level_change,Broad dollar index
+MORTGAGE30US,credit_spreads,outcome,secondary,level_change,30-year fixed mortgage rate for mortgage-Treasury spread checks

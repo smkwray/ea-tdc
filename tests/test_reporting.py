@@ -637,17 +637,14 @@ def test_release_artifact_contract_builds_committed_figure_and_table_plan(tmp_pa
 
     result = build_release_artifact_contract(paths)
 
-    assert result.committed_jobs == 2
-    assert result.main_text_artifacts == 2
+    assert result.committed_jobs == 1
+    assert result.main_text_artifacts == 0
     assert result.appendix_artifacts == 1
     summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
-    assert summary["committed_jobs"] == 2
-    assert summary["main_text_artifacts"] == 2
+    assert summary["committed_jobs"] == 1
+    assert summary["main_text_artifacts"] == 0
     assert summary["appendix_artifacts"] == 1
     rows = {row["artifact_id"]: row for row in summary["rows"]}
-    assert rows["main_figure_1"]["job_id"] == "custom_lp_job"
-    assert rows["main_figure_1"]["display_spec"] == "impulse_response_grid"
-    assert rows["main_table_1"]["release_channel"] == "main_text"
     assert rows["appendix_table_1"]["job_id"] == "custom_appendix_job"
     assert rows["appendix_table_1"]["display_spec"] == "supporting_table"
 

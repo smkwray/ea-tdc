@@ -28,6 +28,8 @@ from ea_tdc.estimation import (
 )
 from ea_tdc.paths import ProjectPaths
 from ea_tdc.robustness import (
+    DEFAULT_CONTROL_POLICY_MODE,
+    _apply_control_policy,
     _base_controls_from_design,
     _extract_factor_controls,
     _load_alt_treatments,
@@ -447,10 +449,11 @@ def _load_recommended_factor_rows(
     *,
     job_id: str,
     design_manifest: dict[str, Any],
+    control_policy_mode: str = DEFAULT_CONTROL_POLICY_MODE,
 ) -> tuple[list[dict[str, str]], list[str], int]:
     summary_path = paths.manifests / f"{job_id}__robustness_summary.json"
     if not summary_path.exists():
-        build_quarterly_robustness(paths, job_id=job_id)
+        build_quarterly_robustness(paths, job_id=job_id, control_policy_mode=control_policy_mode)
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     bundle_path = Path(str(design_manifest.get("bundle_path", "")))
     bundle_rows = _read_csv(bundle_path)
@@ -472,9 +475,15 @@ def _load_recommended_factor_rows(
             row.setdefault(treatment_id, alt_treatment_map.get((treatment_id, quarter), ""))
     treatment_id = str(design_manifest.get("treatment_id", "")).strip()
     outcome_ids = [str(item) for item in design_manifest.get("outcome_ids", [])]
+    eligible_feature_ids, _ = _apply_control_policy(
+        candidate_ids=universe_feature_ids,
+        treatment_id=treatment_id,
+        outcome_ids=outcome_ids,
+        mode=str(summary.get("control_policy_mode", DEFAULT_CONTROL_POLICY_MODE) or DEFAULT_CONTROL_POLICY_MODE),
+    )
     screened = _screen_features(
         rows=merged_rows,
-        candidate_ids=universe_feature_ids,
+        candidate_ids=eligible_feature_ids,
         treatment_id=treatment_id,
         outcome_ids=outcome_ids,
         min_coverage=0.4,
@@ -482,12 +491,13 @@ def _load_recommended_factor_rows(
     recommended_k = int(summary.get("recommended_k", 0) or 0)
     if recommended_k <= 0:
         return merged_rows, _base_controls_from_design(design_manifest), 0
+    recommended_factor_count = int(summary.get("recommended_factor_count", 4) or 4)
     selected = [item["feature_id"] for item in screened[:recommended_k]]
     factor_ids, factor_rows, _, _ = _extract_factor_controls(
         rows=merged_rows,
         feature_ids=selected,
         prefix=f"dflmx_k{recommended_k}",
-        n_factors=4,
+        n_factors=recommended_factor_count,
     )
     return factor_rows if factor_rows else merged_rows, [*_base_controls_from_design(design_manifest), *factor_ids], recommended_k
 
@@ -498,6 +508,7 @@ def build_quarterly_dml(
     job_id: str,
     fold_count: int = DEFAULT_DML_FOLD_COUNT,
     ridge_alpha: float = DEFAULT_RIDGE_ALPHA,
+    control_policy_mode: str = DEFAULT_CONTROL_POLICY_MODE,
 ) -> QuarterlyDMLResult:
     from ea_tdc.designs.quarterly import _load_jobs
 
@@ -519,6 +530,7 @@ def build_quarterly_dml(
         paths,
         job_id=job_id,
         design_manifest=design_manifest,
+        control_policy_mode=control_policy_mode,
     )
     treatment_id = str(design_manifest.get("treatment_id", "")).strip()
     outcome_ids = [str(item) for item in design_manifest.get("outcome_ids", [])]
@@ -642,6 +654,7 @@ def build_quarterly_forest(
     max_depth: int = DEFAULT_FOREST_MAX_DEPTH,
     min_leaf: int = DEFAULT_FOREST_MIN_LEAF,
     feature_fraction: float = DEFAULT_FOREST_FEATURE_FRACTION,
+    control_policy_mode: str = DEFAULT_CONTROL_POLICY_MODE,
 ) -> QuarterlyForestResult:
     from ea_tdc.designs.quarterly import _load_jobs
 
@@ -663,6 +676,7 @@ def build_quarterly_forest(
         paths,
         job_id=job_id,
         design_manifest=design_manifest,
+        control_policy_mode=control_policy_mode,
     )
     treatment_id = str(design_manifest.get("treatment_id", "")).strip()
     outcome_ids = [str(item) for item in design_manifest.get("outcome_ids", [])]
@@ -791,6 +805,7 @@ def build_quarterly_tmle(
     ridge_alpha: float = DEFAULT_RIDGE_ALPHA,
     h_clip: float = DEFAULT_TMLE_H_CLIP,
     epsilon_scale_multiple: float = DEFAULT_TMLE_EPSILON_SCALE_MULTIPLE,
+    control_policy_mode: str = DEFAULT_CONTROL_POLICY_MODE,
 ) -> QuarterlyTMLEResult:
     from ea_tdc.designs.quarterly import _load_jobs
 
@@ -812,6 +827,7 @@ def build_quarterly_tmle(
         paths,
         job_id=job_id,
         design_manifest=design_manifest,
+        control_policy_mode=control_policy_mode,
     )
     treatment_id = str(design_manifest.get("treatment_id", "")).strip()
     outcome_ids = [str(item) for item in design_manifest.get("outcome_ids", [])]
@@ -1046,6 +1062,7 @@ def build_negative_control_mining(
     *,
     job_id: str,
     top_n: int = DEFAULT_NEGATIVE_CONTROL_TOP_N,
+    control_policy_mode: str = DEFAULT_CONTROL_POLICY_MODE,
 ) -> NegativeControlMiningResult:
     from ea_tdc.designs.quarterly import _load_jobs
 
@@ -1057,7 +1074,12 @@ def build_negative_control_mining(
         raise ValueError("Negative-control mining currently supports quarterly lp jobs only")
 
     design_manifest = json.loads((paths.manifests / f"{job_id}__design_manifest.json").read_text(encoding="utf-8"))
-    rows, control_ids, recommended_k = _load_recommended_factor_rows(paths, job_id=job_id, design_manifest=design_manifest)
+    rows, control_ids, recommended_k = _load_recommended_factor_rows(
+        paths,
+        job_id=job_id,
+        design_manifest=design_manifest,
+        control_policy_mode=control_policy_mode,
+    )
     treatment_id = str(design_manifest.get("treatment_id", "")).strip()
     outcome_ids = [str(item) for item in design_manifest.get("outcome_ids", [])]
     instrument_ids = [str(item) for item in design_manifest.get("instrument_ids", [])]

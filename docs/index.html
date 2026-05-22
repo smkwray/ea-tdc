@@ -11,13 +11,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="assets/js/theme.js?v=2026-04-22T10%3A04%3A40%2B00%3A00"></script>
-<link rel="stylesheet" href="assets/css/style.css?v=2026-04-22T10%3A04%3A40%2B00%3A00">
+<script src="assets/js/theme.js?v=2026-05-22T17%3A38%3A12%2B00%3A00"></script>
+<link rel="stylesheet" href="assets/css/style.css?v=2026-05-22T17%3A38%3A12%2B00%3A00">
 <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-<script defer src="assets/js/main.js?v=2026-04-22T10%3A04%3A40%2B00%3A00"></script>
+<script defer src="assets/js/main.js?v=2026-05-22T17%3A38%3A12%2B00%3A00"></script>
 </head>
-<body data-page="home" data-root-prefix="" data-site-version="2026-04-22T10:04:40+00:00">
+<body data-page="home" data-root-prefix="" data-site-version="2026-05-22T17:38:12+00:00">
 <header class="nav">
 <div class="container nav-inner">
 <div class="brand">
@@ -42,7 +42,7 @@
 <div class="hero-copy reveal">
 <div class="eyebrow">EA-TDC</div>
 <h1>Treasury contribution to deposits: estimates and transmission.</h1>
-<p>This work asks whether the baseline estimate of Treasury Deposit Contribution produces an early deposit response, how that result survives broader holder definitions, and what remains under a narrower independent source-side comparison imported from `tdcpass`.</p>
+<p>This work asks whether the long-history Tier 2 estimate of Treasury Deposit Contribution produces an early deposit response, how that result changes after selected credit/rate lags, and what remains under narrower source-side comparisons imported from `tdcpass`.</p>
 <div class="button-row">
 <a class="button primary" href="#headline-results">Read the results</a>
 <a class="button" href="#definitions">See the TDC definition</a>
@@ -54,14 +54,14 @@
 <section class="section container" id="claim-hierarchy">
 <div class="section-header reveal">
 <div><div class="eyebrow">Claim hierarchy</div><h2>What the release claims.</h2></div>
-<p>The public package is intentionally narrow: baseline deposits are the headline, strict independent non-TDC evidence comes from the narrower `tdcpass` source-side lane, component regressions are explanatory sidecars, and corrected Tier 2 / Tier 3 treatments stay sensitivity-only.</p>
+<p>The public package is intentionally narrow: long-history Tier 2 deposit pass-through is the headline, the same-treatment residual is a perimeter/plumbing-sensitive offset, broad mortgage/core-loan crowding-out is weak after selected lags, and consumer credit remains a guarded candidate margin.</p>
 </div>
-<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Baseline deposit response.</h3><p>The selected quarterly baseline delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Boundary</div><h3>Strict source-side comparison.</h3><p>The valid independent non-TDC comparison is the narrower `tdcpass` source-side lane, not residual closure.</p></article><article class="insight-card reveal"><div class="eyebrow">Explanation</div><h3>Component sidecars.</h3><p>RU acquisition, Treasury cash, and remittances help interpret the deposit result.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Corrected variants.</h3><p>Tier 2 and Tier 3 treatments remain public sensitivity branches only.</p></article></div>
+<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Tier 2 deposit response.</h3><p>The selected-lag long-history surface delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Boundary</div><h3>Residual is not a channel.</h3><p>The same-treatment non-TDC deposit component is treated as perimeter and plumbing-sensitive.</p></article><article class="insight-card reveal"><div class="eyebrow">Credit</div><h3>Broad crowding-out weakens.</h3><p>Mortgage and strict core-loan rows are weak after selected lags; consumer credit is guarded.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Older baseline preserved.</h3><p>The K=200 baseline branch is retained as an appendix sensitivity, not the main surface.</p></article></div>
 </section>
 <section class="section container" id="questions">
 <div class="section-header reveal">
 <div><div class="eyebrow">Questions</div><h2>Research questions.</h2></div>
-<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives broader holder definitions, and what remains under the narrower strict independent non-TDC evidence surface imported from `tdcpass`.</p>
+<p>The central questions are whether Treasury Deposit Contribution produces an early deposit response, whether that result survives selected credit/rate controls, and how to delimit residual and credit evidence without over-naming mechanisms.</p>
 </div>
 <div id="questions-grid" class="insight-grid"></div>
 </section>
@@ -253,7 +253,7 @@
 <section class="section container" id="headline-results">
 <div class="section-header reveal">
 <div><div class="eyebrow">Results</div><h2>Deposits are the clearest headline response.</h2></div>
-<p>This figure traces the main deposit response to the baseline TDC estimate using the selected public version of the quarterly model.</p>
+<p>This figure traces the selected-lag long-history Tier 2 deposit response and the same-treatment non-TDC deposit offset.</p>
 </div>
 <div id="headline-job-list" class="job-list"></div>
 </section>
@@ -267,7 +267,7 @@
 <section class="section container" id="additional-evidence">
 <div class="section-header reveal">
 <div><div class="eyebrow">Additional evidence</div><h2>Inflation, FX, and private balance sheets.</h2></div>
-<p>These branches extend the same baseline TDC estimate into prices, exchange rates, and private non-Treasury balance sheets without changing the main public claim hierarchy.</p>
+<p>These branches extend the TDC surface into prices, exchange rates, and private non-Treasury balance sheets without changing the main public claim boundaries.</p>
 </div>
 <div id="additional-evidence-grid" class="insight-grid"></div>
 <div style="height:18px"></div>
@@ -318,7 +318,7 @@
 <footer class="site-footer container">
 <div class="footer-grid reveal">
 <div><div class="eyebrow">About EA-TDC</div><h2>Treasury contribution to deposits: definitions, estimates, and evidence.</h2><p>Definitions, estimates, figures, and downloadable result files are collected here together.</p></div>
-<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="site_assets/reports/release_scorecard.json" download>Scorecard JSON</a><a class="link-chip" href="site_assets/reports/release_contract.json" download>Contract JSON</a><a class="link-chip" href="#robustness">Robustness</a></div><p class="footer-note">Generated 2026-04-22T10:04:40+00:00</p></div>
+<div><div class="eyebrow">Downloads</div><div class="button-row"><a class="link-chip" href="site_assets/reports/release_scorecard.json" download>Scorecard JSON</a><a class="link-chip" href="site_assets/reports/release_contract.json" download>Contract JSON</a><a class="link-chip" href="#robustness">Robustness</a></div><p class="footer-note">Generated 2026-05-22T17:38:12+00:00</p></div>
 </div>
 </footer>
 </main>

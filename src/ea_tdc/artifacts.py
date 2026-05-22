@@ -16,7 +16,11 @@ from ea_tdc.utils import utc_now_iso, write_json
 
 LABEL_OVERRIDES = {
     "matched_total_deposits": "Matched total deposits",
+    "domestic_nonbank_deposits_qoq": "Domestic nonbank deposits",
+    "domestic_nonbank_other_component_qoq": "Domestic nonbank residual",
+    "domestic_nonbank_other_component_core_deposit_proximate_qoq": "Domestic nonbank residual, TOC/ROW-excluded core",
     "other_component_qoq": "Other component (q/q)",
+    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq": "Other component, same Tier 2 treatment",
     "m2": "M2",
     "GDP": "Real GDP",
     "gdp_deflator": "GDP deflator",
@@ -25,6 +29,8 @@ LABEL_OVERRIDES = {
     "DFF": "Daily federal funds rate",
     "DGS2": "2Y Treasury yield",
     "DGS10": "10Y Treasury yield",
+    "dgs2": "2Y Treasury yield",
+    "dgs10": "10Y Treasury yield",
     "THREEFYTP10": "10Y term premium",
     "WDTGAL": "Treasury General Account",
     "WRESBAL": "Reserve balances",
@@ -39,7 +45,13 @@ LABEL_OVERRIDES = {
     "investment_grade_oas": "Investment-grade OAS",
     "high_yield_oas": "High-yield OAS",
     "bank_non_treasury_securities_qoq": "Bank non-Treasury securities",
+    "bank_treasury_securities_qoq": "Bank Treasury securities",
+    "bank_treasury_securities_transactions_qoq": "Bank Treasury securities transactions",
+    "bank_treasury_agency_securities_qoq": "Bank Treasury and agency securities",
     "bank_credit_qoq": "Bank credit",
+    "tdcpass_strict_loan_core_min_qoq": "Strict loan core",
+    "tdcpass_strict_loan_mortgages_qoq": "Mortgages",
+    "tdcpass_strict_loan_consumer_credit_qoq": "Consumer credit",
     "bank_business_loans_qoq": "Business loans",
     "bank_ci_loans_h8_qoq": "C&I loans (H.8)",
     "bank_short_term_loans_z1_qoq": "Short-term bank loans (Z.1)",
@@ -76,6 +88,9 @@ LABEL_OVERRIDES = {
     "bank_ci_loans_h8_qoq_pct_gdp": "C&I loans (H.8, % GDP)",
     "bank_short_term_loans_z1_qoq_pct_gdp": "Short-term bank loans (Z.1, % GDP)",
     "bank_non_treasury_securities_qoq_pct_gdp": "Bank non-Treasury securities (% GDP)",
+    "bank_treasury_securities_qoq_pct_gdp": "Bank Treasury securities (% GDP)",
+    "bank_treasury_securities_transactions_qoq_pct_gdp": "Bank Treasury securities transactions (% GDP)",
+    "bank_treasury_agency_securities_qoq_pct_gdp": "Bank Treasury and agency securities (% GDP)",
     "bank_consumer_loans_qoq_pct_gdp": "Consumer loans (% GDP)",
     "bank_real_estate_loans_qoq_pct_gdp": "Real-estate loans (% GDP)",
     "row_loans_assets_qoq_pct_gdp": "ROW loans/assets (% GDP)",
@@ -100,8 +115,17 @@ LABEL_OVERRIDES = {
     "accounting_identity_total_qoq_pct_gdp": "Accounting identity total (% GDP)",
     "accounting_identity_gap_qoq_pct_gdp": "Accounting identity gap (% GDP)",
     "tdc_bank_only_qoq": "Baseline TDC estimate",
+    "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq": "Long-history Tier 2 TDC",
     "qra_ati_baseline_bn": "QRA baseline tilt",
     "direct_at_h": "Direct response at horizon h",
+    "tier2_regression_bank_row_tier_pre_component_h15_scaled": "Tier 2 method-tier control",
+    "tdcpass_strict_loan_core_min_qoq__lag_2": "Strict loan-core lag 2",
+    "tdcpass_strict_loan_core_min_qoq__lag_4": "Strict loan-core lag 4",
+    "tdcpass_strict_loan_consumer_credit_qoq__lag_4": "Consumer-credit lag 4",
+    "bank_credit_qoq__lag_4": "Bank-credit lag 4",
+    "dgs2__lag_4": "2Y Treasury-yield lag 4",
+    "dgs10__lag_1": "10Y Treasury-yield lag 1",
+    "dgs10__lag_2": "10Y Treasury-yield lag 2",
     "newey_west": "Newey-West HAC",
     "ols_newey_west_scaffold": "OLS with Newey-West HAC",
     "ols_hc1_scaffold": "OLS with HC1 robust errors",
@@ -142,6 +166,7 @@ ESTIMATOR_LABELS = {
 
 JOB_TITLE_OVERRIDES = {
     "baseline_tdc_lp_deposits": "Deposit responses to the baseline TDC estimate",
+    "paper_tier2_selected_credit_rate_lags": "Long-history Tier 2 selected-lag pass-through",
     "baseline_tdc_lp_funding": "Funding and rate responses to the baseline TDC estimate",
     "baseline_tdc_lp_credit_spreads": "Credit-spread responses to the baseline TDC estimate",
     "tdc_state_dep_low_reserves": "State dependence under low-reserve conditions",
@@ -150,6 +175,45 @@ JOB_TITLE_OVERRIDES = {
     "tdc_state_dep_slr_bank_leverage_pressure": "State dependence under SLR leverage pressure",
     "tdc_state_dep_bank_foreign_private_corr": "State dependence with high bank-foreign-private correlation",
 }
+
+PAPER_TIER2_JOB_ID = "paper_tier2_selected_credit_rate_lags"
+PAPER_TIER2_SOURCE_ESTIMATES = "tier2_credit_causality_state_estimates.csv"
+PAPER_TIER2_ESTIMATES = f"{PAPER_TIER2_JOB_ID}_estimates.csv"
+PAPER_TIER2_TREATMENT_LABEL = "regression_mmf_rrp_bank_long_selected_credit_rate_lags"
+PAPER_TIER2_SAMPLE_LABEL = "full_available"
+PAPER_TIER2_SURFACE = "pooled_baseline"
+PAPER_TIER2_TREATMENT_ID = "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq"
+PAPER_TIER2_CONTROLS = [
+    "GDP",
+    "gdp_deflator",
+    "FEDFUNDS",
+    "TOTRESNS",
+    "tier2_regression_bank_row_tier_pre_component_h15_scaled",
+    "tdcpass_strict_loan_core_min_qoq__lag_2",
+    "tdcpass_strict_loan_core_min_qoq__lag_4",
+    "tdcpass_strict_loan_consumer_credit_qoq__lag_4",
+    "bank_credit_qoq__lag_4",
+    "dgs2__lag_4",
+    "dgs10__lag_1",
+    "dgs10__lag_2",
+    "dflmx_k100_f1",
+    "dflmx_k100_f2",
+    "dflmx_k100_f3",
+    "dflmx_k100_f4",
+]
+PAPER_TIER2_MAIN_FIGURE_OUTCOMES = [
+    "matched_total_deposits",
+    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+]
+PAPER_TIER2_MAIN_TABLE_OUTCOMES = [
+    "matched_total_deposits",
+    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+    "tdcpass_strict_loan_core_min_qoq",
+    "tdcpass_strict_loan_mortgages_qoq",
+    "tdcpass_strict_loan_consumer_credit_qoq",
+    "bank_credit_qoq",
+]
+PAPER_TIER2_HORIZONS = ["0", "1", "2", "4", "8"]
 
 
 @dataclass(frozen=True)
@@ -273,6 +337,171 @@ def _robustness_selected_estimates_path(paths: ProjectPaths, job_id: str) -> Pat
     return None
 
 
+def _paper_tier2_source_path(paths: ProjectPaths) -> Path:
+    return paths.output / "models" / PAPER_TIER2_SOURCE_ESTIMATES
+
+
+def _scale_row_to_effect_per_100b(row: dict[str, str]) -> dict[str, str]:
+    beta = _coerce_float(str(row.get("beta", "")))
+    effect = _coerce_float(str(row.get("effect_per_100b_tdc", "")))
+    scale = effect / beta if beta not in {None, 0.0} and effect is not None else None
+    converted = row.copy()
+    if effect is not None:
+        converted["beta"] = str(effect)
+    if scale is not None:
+        for column in ("se", "lower95", "upper95"):
+            value = _coerce_float(str(row.get(column, "")))
+            if value is not None:
+                converted[column] = str(value * scale)
+    converted["response_scale"] = "usd_billions_per_100b_tdc"
+    converted["source_beta"] = str(row.get("beta", ""))
+    converted["source_normalized_beta"] = str(row.get("normalized_beta", ""))
+    converted["source_effect_per_100b_tdc"] = str(row.get("effect_per_100b_tdc", ""))
+    converted["job_id"] = PAPER_TIER2_JOB_ID
+    return converted
+
+
+def _build_paper_tier2_estimates(paths: ProjectPaths) -> Path | None:
+    source_path = _paper_tier2_source_path(paths)
+    if not source_path.exists():
+        return None
+    source_rows = _read_csv(source_path)
+    wanted_outcomes = set(PAPER_TIER2_MAIN_TABLE_OUTCOMES)
+    selected_rows = [
+        _scale_row_to_effect_per_100b(row)
+        for row in source_rows
+        if str(row.get("surface", "")).strip() == PAPER_TIER2_SURFACE
+        and str(row.get("treatment_label", "")).strip() == PAPER_TIER2_TREATMENT_LABEL
+        and str(row.get("sample_label", "")).strip() == PAPER_TIER2_SAMPLE_LABEL
+        and str(row.get("outcome", "")).strip() in wanted_outcomes
+        and str(row.get("horizon", "")).strip() in set(PAPER_TIER2_HORIZONS)
+    ]
+    if not selected_rows:
+        return None
+    outcome_rank = {outcome: index for index, outcome in enumerate(PAPER_TIER2_MAIN_TABLE_OUTCOMES)}
+    selected_rows.sort(key=lambda row: (outcome_rank.get(str(row.get("outcome", "")), 999), int(str(row.get("horizon", "0")))))
+    estimates_path = paths.output / "models" / PAPER_TIER2_ESTIMATES
+    fieldnames = list(source_rows[0].keys())
+    for extra in ("response_scale", "source_beta", "source_normalized_beta", "source_effect_per_100b_tdc"):
+        if extra not in fieldnames:
+            fieldnames.append(extra)
+    estimates_path.parent.mkdir(parents=True, exist_ok=True)
+    with estimates_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(selected_rows)
+    return estimates_path
+
+
+def _paper_tier2_is_available(paths: ProjectPaths) -> bool:
+    estimates_path = _build_paper_tier2_estimates(paths)
+    if estimates_path is None:
+        return False
+    rows = _read_csv(estimates_path)
+    outcomes = {str(row.get("outcome", "")).strip() for row in rows}
+    horizons = {str(row.get("horizon", "")).strip() for row in rows}
+    return set(PAPER_TIER2_MAIN_TABLE_OUTCOMES).issubset(outcomes) and "0" in horizons
+
+
+def _paper_tier2_context() -> tuple[dict[str, Any], dict[str, Any]]:
+    return (
+        {
+            "job_id": PAPER_TIER2_JOB_ID,
+            "treatment_id": PAPER_TIER2_TREATMENT_ID,
+            "outcome_ids": PAPER_TIER2_MAIN_TABLE_OUTCOMES,
+            "horizon_grid": [int(item) for item in PAPER_TIER2_HORIZONS],
+            "sample_start": "2002Q1",
+            "sample_end": "2025Q4",
+            "response_type": "direct_at_h",
+        },
+        {
+            "job_id": PAPER_TIER2_JOB_ID,
+            "estimates_path": str(Path("output") / "models" / PAPER_TIER2_ESTIMATES),
+            "response_type": "direct_at_h",
+            "control_ids": PAPER_TIER2_CONTROLS,
+            "covariance_estimators_used": ["newey_west"],
+            "min_observations": 88,
+            "max_observations": 96,
+            "warning_rows": 0,
+        },
+    )
+
+
+def _paper_tier2_contract_rows(contract_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    appendix_rows = [row for row in contract_rows if str(row.get("release_channel", "")).strip() == "appendix"]
+    output_rows: list[dict[str, Any]] = [
+        {
+            "artifact_id": "main_figure_1",
+            "artifact_kind": "figure",
+            "release_channel": "main_text",
+            "job_id": PAPER_TIER2_JOB_ID,
+            "estimator": "lp",
+            "output_family": "headline_identified",
+            "display_spec": "impulse_response_grid",
+            "outcome_ids": ",".join(PAPER_TIER2_MAIN_FIGURE_OUTCOMES),
+            "horizons": ",".join(PAPER_TIER2_HORIZONS),
+            "contract_source": "paper_tier2_selected_lag_override",
+            "status": "ready",
+            "title_override": "Long-history Tier 2 selected-lag pass-through",
+            "extra_notes": (
+                "Run/specification: regression_mmf_rrp_bank_long_selected_credit_rate_lags. "
+                "This paper-facing branch adds selected lagged credit and Treasury-rate controls before the K=100 factor tail.|"
+                "Claim boundary: deposit pass-through is the headline; broad mortgage/core-loan crowding-out is weak after selected lags."
+            ),
+        },
+        {
+            "artifact_id": "main_table_1",
+            "artifact_kind": "table",
+            "release_channel": "main_text",
+            "job_id": PAPER_TIER2_JOB_ID,
+            "estimator": "lp",
+            "output_family": "headline_identified",
+            "display_spec": "coefficient_table",
+            "outcome_ids": ",".join(PAPER_TIER2_MAIN_TABLE_OUTCOMES),
+            "horizons": "0",
+            "contract_source": "paper_tier2_selected_lag_override",
+            "status": "ready",
+            "title_override": "Long-history Tier 2 selected-lag h=0 coefficient table",
+            "extra_notes": (
+                "Run/specification: regression_mmf_rrp_bank_long_selected_credit_rate_lags. "
+                "Rows report h=0 effects in $B per +$100B TDC.|"
+                "Claim boundary: consumer credit is a guarded candidate margin, not a broad crowding-out headline."
+            ),
+        },
+    ]
+    old_main_rows = [
+        row
+        for row in contract_rows
+        if str(row.get("release_channel", "")).strip() == "main_text"
+        and str(row.get("job_id", "")).strip() == "baseline_tdc_lp_deposits"
+    ]
+    legacy_index = 1
+    legacy_table_index = 1
+    for row in old_main_rows:
+        legacy_row = row.copy()
+        if str(row.get("artifact_kind", "")).strip() == "figure":
+            legacy_row["artifact_id"] = f"appendix_figure_{legacy_index}"
+            legacy_index += 1
+        else:
+            legacy_row["artifact_id"] = f"appendix_table_{legacy_table_index}"
+            legacy_table_index += 1
+        legacy_row["release_channel"] = "appendix"
+        legacy_row["contract_source"] = "legacy_baseline_k200_sensitivity"
+        legacy_row["title_override"] = "Older baseline K=200 sensitivity"
+        legacy_row["extra_notes"] = (
+            "Relabeled legacy surface: baseline_tdc_lp_deposits with the K=200 screened branch. "
+            "This is preserved as appendix/sensitivity output and is no longer the paper-facing main surface."
+        )
+        output_rows.append(legacy_row)
+    for row in appendix_rows:
+        appendix_row = row.copy()
+        if str(appendix_row.get("artifact_kind", "")).strip() == "table":
+            appendix_row["artifact_id"] = f"appendix_table_{legacy_table_index}"
+            legacy_table_index += 1
+        output_rows.append(appendix_row)
+    return output_rows
+
+
 def _dedupe_text(items: list[str]) -> list[str]:
     seen: set[str] = set()
     ordered: list[str] = []
@@ -351,6 +580,9 @@ def _artifact_notes(
         estimation_summary=estimation_summary,
         source_estimates_path=source_estimates_path,
     )
+    scale_note = "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow."
+    if job_id == PAPER_TIER2_JOB_ID:
+        scale_note = "Scale: coefficients are $B responses per +$100B TDC."
     notes = [
         f"Treatment: {_humanize(str(design_manifest.get('treatment_id', '')).strip())}",
         f"Response: {_humanize(str(estimation_summary.get('response_type', '')).strip() or str(design_manifest.get('response_type', '')).strip())}",
@@ -358,7 +590,7 @@ def _artifact_notes(
         f"Covariance: {', '.join(_humanize(str(item)) for item in estimation_summary.get('covariance_estimators_used', []) if str(item).strip()) or 'unknown'}",
         f"Sample span: {sample_start} to {sample_end}",
         f"Observations: {estimation_summary.get('min_observations', 0)} to {estimation_summary.get('max_observations', 0)}",
-        "Scale: coefficients are responses of quarterly outcomes to the GDP-scaled TDC flow.",
+        scale_note,
     ]
     warning_rows = int(estimation_summary.get("warning_rows", 0) or 0)
     if warning_rows > 0:
@@ -369,6 +601,7 @@ def _artifact_notes(
         notes.append(f"Displayed branch: K={selected_k} screened branch")
     elif "__robustness_baseline" in estimates_name:
         notes.append("Displayed branch: baseline macro block")
+    notes.extend([item.strip() for item in str(artifact_row.get("extra_notes", "")).split("|") if item.strip()])
     if sample_end and sample_end == _current_quarter_label():
         notes.append(
             f"Sample endpoint note: {sample_end} is the latest labeled quarter as of {date.today().isoformat()} and may reflect an in-progress quarter endpoint."
@@ -378,6 +611,9 @@ def _artifact_notes(
 
 
 def _artifact_title(artifact_row: dict[str, str]) -> str:
+    explicit_title = str(artifact_row.get("title_override", "")).strip()
+    if explicit_title:
+        return explicit_title
     job_title = _job_display_name(str(artifact_row.get("job_id", "")).strip())
     artifact_kind = str(artifact_row.get("artifact_kind", "")).strip()
     release_channel = str(artifact_row.get("release_channel", "")).strip()
@@ -449,6 +685,11 @@ def _artifact_caption(
         return (
             f"Impulse responses for {', '.join(outcomes)} to {treatment}. "
             f"Points are local-projection estimates and whiskers show 95% confidence intervals over horizons {horizon_text}."
+        )
+    if str(artifact_row.get("job_id", "")).strip() == PAPER_TIER2_JOB_ID:
+        return (
+            f"H=0 coefficient table for {', '.join(outcomes)} in response to {treatment}. "
+            "Entries are $B per +$100B TDC, with p-values and observations."
         )
     return (
         f"Coefficient table for {', '.join(outcomes)} in response to {treatment}. "
@@ -591,6 +832,10 @@ def _render_svg_figure(
 
 def _select_table_columns(rows: list[dict[str, str]], display_spec: str) -> list[str]:
     preferred = ["outcome", "horizon", "beta", "se", "lower95", "upper95", "p_value_normal", "n"]
+    if rows and all(str(row.get("job_id", "")).strip() == PAPER_TIER2_JOB_ID for row in rows):
+        preferred = ["outcome", "horizon", "beta", "p_value_normal", "n", "significance"]
+        available = set(rows[0].keys())
+        return [column for column in preferred if column in available or column == "significance"]
     if display_spec == "supporting_table":
         preferred.append("rsquared")
     else:
@@ -733,6 +978,11 @@ def _write_csv(path: Path, rows: list[dict[str, str]], columns: list[str]) -> No
 
 
 def _estimates_path_for_job(paths: ProjectPaths, job_id: str) -> Path:
+    if job_id == PAPER_TIER2_JOB_ID:
+        estimates_path = _build_paper_tier2_estimates(paths)
+        if estimates_path is None:
+            raise FileNotFoundError(f"Could not build {PAPER_TIER2_JOB_ID} from {_paper_tier2_source_path(paths)}")
+        return estimates_path
     selected = _robustness_selected_estimates_path(paths, job_id)
     if selected is not None:
         return selected
@@ -742,6 +992,8 @@ def _estimates_path_for_job(paths: ProjectPaths, job_id: str) -> Path:
 
 
 def _artifact_context(paths: ProjectPaths, job_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    if job_id == PAPER_TIER2_JOB_ID:
+        return _paper_tier2_context()
     design_manifest = _read_json(paths.manifests / f"{job_id}__design_manifest.json")
     estimation_summary = _read_json(paths.manifests / f"{job_id}__estimation_summary.json")
     return design_manifest, estimation_summary
@@ -750,6 +1002,8 @@ def _artifact_context(paths: ProjectPaths, job_id: str) -> tuple[dict[str, Any],
 def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
     artifact_contract = build_release_artifact_contract(paths)
     contract_rows = _read_json(artifact_contract.summary_path).get("rows", [])
+    if _paper_tier2_is_available(paths):
+        contract_rows = _paper_tier2_contract_rows(contract_rows)
     artifacts_root = paths.output / "artifacts"
     if artifacts_root.exists():
         shutil.rmtree(artifacts_root)
@@ -971,6 +1225,7 @@ def build_release_artifacts(paths: ProjectPaths) -> ReleaseArtifactBuildResult:
             )
         return cards
 
+    gallery_path.parent.mkdir(parents=True, exist_ok=True)
     gallery_path.write_text(
         "\n".join(
             [

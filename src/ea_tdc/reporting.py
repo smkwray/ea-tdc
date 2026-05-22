@@ -152,6 +152,16 @@ def _safe_float(value: Any) -> float | None:
         return None
 
 
+def _release_scope_for_job(job: dict[str, Any]) -> str:
+    explicit = str(job.get("release1_scope", "")).strip()
+    if explicit:
+        return explicit
+    research_status = str(job.get("research_status", "")).strip()
+    if research_status in {"diagnostic_only", "exploratory_sidecar", "sensitivity_only"}:
+        return "deferred"
+    return "committed"
+
+
 def _normal_p_value(beta: float | None, se: float | None) -> float | None:
     if beta is None or se is None or se == 0:
         return None
@@ -262,7 +272,7 @@ def _build_robustness_job_row(
         "job_id": str(job.get("job_id", "")).strip(),
         "estimator": str(job.get("estimator", "")).strip(),
         "output_family": str(job.get("output_family", "")).strip(),
-        "release1_scope": str(job.get("release1_scope", "")).strip() or "committed",
+        "release1_scope": _release_scope_for_job(job),
         "recommended_k": recommended_k,
         "recommended_k_reason": recommended_k_reason,
         "recommended_factor_count": len(recommended_factor_ids),
@@ -346,6 +356,7 @@ def _build_robustness_job_row(
             "factor_meta_path": _repo_relative_str(summary.get("factor_meta_path", ""), repo_root),
             "factor_loadings_path": _repo_relative_str(summary.get("factor_loadings_path", ""), repo_root),
             "control_screen_path": _repo_relative_str(summary.get("control_screen_path", ""), repo_root),
+            "control_policy_path": _repo_relative_str(summary.get("control_policy_path", ""), repo_root),
             "dml_summary_path": _repo_relative_str((dml_summary or {}).get("summary_path", ""), repo_root),
             "dml_estimates_path": _repo_relative_str((dml_summary or {}).get("estimates_path", ""), repo_root),
             "tmle_summary_path": _repo_relative_str((tmle_summary or {}).get("summary_path", ""), repo_root),
