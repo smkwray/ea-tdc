@@ -16,10 +16,13 @@ from pathlib import Path
 from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
 SCRIPTS = ROOT / "scripts"
-if str(SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS))
+for path in (SRC, SCRIPTS):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
+from ea_tdc.estimation import _build_quarterly_target, _coerce_float  # noqa: E402
 from run_submission_appendix_diagnostics import (  # noqa: E402
     PRIMARY_RESIDUAL_ID,
     PRIMARY_TREATMENT_ID,
@@ -61,6 +64,7 @@ SUBMISSION_HAC = ROOT / "output/reports/submission_hac_bandwidth_sensitivity.csv
 
 MIN_SCENARIO_N = 24
 MIN_RUNTIME_VALIDATION_N = 40
+TOTRESNS_MATERIALITY_THRESHOLD = 0.15
 HORIZONS = [0, 1]
 
 
@@ -122,6 +126,36 @@ def _finite_values(rows: list[dict[str, str]], column: str) -> list[float]:
 def _sample_window(rows: list[dict[str, str]]) -> tuple[str, str]:
     quarters = sorted([str(row.get("quarter", "")) for row in rows if row.get("quarter")], key=_quarter_key)
     return (quarters[0], quarters[-1]) if quarters else ("", "")
+
+
+def _lp_complete_case_quarters(
+    rows: list[dict[str, str]],
+    *,
+    treatment_id: str,
+    outcome_id: str,
+    horizon: int,
+    control_ids: list[str],
+) -> list[str]:
+    quarters: list[str] = []
+    for idx, row in enumerate(rows):
+        if _coerce_float(row.get(treatment_id, "")) is None:
+            continue
+        controls_ok = all(_coerce_float(row.get(control_id, "")) is not None for control_id in control_ids)
+        if not controls_ok:
+            continue
+        target = _build_quarterly_target(
+            rows,
+            start_idx=idx,
+            outcome_id=outcome_id,
+            horizon=horizon,
+            response_type="direct_at_h",
+        )
+        if target is None:
+            continue
+        quarter = str(row.get("quarter", ""))
+        if quarter:
+            quarters.append(quarter)
+    return quarters
 
 
 def _candidate_specs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
@@ -261,9 +295,11 @@ def _candidate_specs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
         source_path = ROOT / str(row["predictor_source"])
         row.update(
             {
+                "data_coverage_start": start,
+                "data_coverage_end": end,
                 "sample_window": f"{start}_to_{end}",
                 "source_artifact_sha256": _artifact_hash(source_path) or source_hash,
-                "provenance_note": "thresholds computed from current EA-TDC quarterly design bundle",
+                "provenance_note": "thresholds computed from current EA-TDC quarterly design bundle; estimation rows report complete-case samples separately",
             }
         )
     return specs
@@ -307,7 +343,7 @@ def _estimate_subset(
     excluded_blocks: str,
     source_artifact_path: Path,
 ) -> dict[str, Any]:
-    start, end = _sample_window(rows)
+    data_start, data_end = _sample_window(rows)
     base = {
         "job_id": JOB_ID,
         "regime_id": regime_id,
@@ -315,9 +351,14 @@ def _estimate_subset(
         "horizon": horizon,
         "dependent_variable": "matched_total_deposits",
         "tdc_regressor_definition": PRIMARY_TREATMENT_ID,
-        "sample_start": start,
-        "sample_end": end,
-        "sample_window": f"{start}_to_{end}" if start and end else "",
+        "data_coverage_start": data_start,
+        "data_coverage_end": data_end,
+        "estimation_sample_start": "",
+        "estimation_sample_end": "",
+        "n_complete_cases": "",
+        "sample_start": "",
+        "sample_end": "",
+        "sample_window": "",
         "excluded_blocks": excluded_blocks,
         "controls": ",".join(controls),
         "source_artifact_path": _relative(source_artifact_path),
@@ -338,6 +379,15 @@ def _estimate_subset(
     except ValueError as exc:
         base.update({"status": "not_estimable", "n": len(rows), "exact_blocker": str(exc)})
         return base
+    complete_case_quarters = _lp_complete_case_quarters(
+        rows,
+        treatment_id=PRIMARY_TREATMENT_ID,
+        outcome_id="matched_total_deposits",
+        horizon=horizon,
+        control_ids=used,
+    )
+    estimation_start = complete_case_quarters[0] if complete_case_quarters else ""
+    estimation_end = complete_case_quarters[-1] if complete_case_quarters else ""
     beta = fit.beta[1]
     se = fit.ses[1]
     z_score = beta / se if se > 0 else None
@@ -353,13 +403,19 @@ def _estimate_subset(
             "upper95": point + 1.96 * se_norm,
             "p_value_normal": "" if z_score is None else _normal_p_two_sided(z_score),
             "n": n,
+            "n_complete_cases": len(complete_case_quarters),
+            "estimation_sample_start": estimation_start,
+            "estimation_sample_end": estimation_end,
+            "sample_start": estimation_start,
+            "sample_end": estimation_end,
+            "sample_window": f"{estimation_start}_to_{estimation_end}" if estimation_start and estimation_end else "",
             "controls_used": ",".join(used),
             "controls_rejected": ",".join(rejected),
             "covariance_estimator": "newey_west",
             "covariance_lags": 1,
             "rsquared": fit.rsquared,
             "normalized_unit": "dollars_per_dollar_tdc",
-            "source_row_key": f"{regime_id}::{estimator_id}::h{horizon}::{start}_to_{end}",
+            "source_row_key": f"{regime_id}::{estimator_id}::h{horizon}::{estimation_start}_to_{estimation_end}",
         }
     )
     return base
@@ -409,6 +465,79 @@ def _build_estimates(rows: list[dict[str, str]], controls: list[str], candidate_
     return estimates
 
 
+def _totresns_robustness_rows(rows: list[dict[str, str]], controls: list[str]) -> list[dict[str, Any]]:
+    rows_by_regime = {
+        "pooled_full_sample": (rows, "none"),
+        "normal_forward": (_subset_rows(rows, lambda quarter: not _between(quarter, "2020Q1", "2021Q4")), "2020Q1-2021Q4"),
+    }
+    variants = [
+        ("with_contemporaneous_totresns", controls),
+        ("no_contemporaneous_totresns", [control for control in controls if control != "TOTRESNS"]),
+    ]
+    output: list[dict[str, Any]] = []
+    for regime_id, (regime_rows, excluded_blocks) in rows_by_regime.items():
+        for variant_id, variant_controls in variants:
+            estimate = _estimate_subset(
+                regime_rows,
+                controls=variant_controls,
+                regime_id=regime_id,
+                estimator_id=f"totresns_robustness_{variant_id}",
+                horizon=0,
+                excluded_blocks=excluded_blocks,
+                source_artifact_path=DESIGN_BUNDLE,
+            )
+            estimate.update(
+                {
+                    "robustness_check": "no_contemporaneous_totresns",
+                    "controls_variant": variant_id,
+                    "decision_rule_materiality_threshold": TOTRESNS_MATERIALITY_THRESHOLD,
+                }
+            )
+            output.append(estimate)
+    return output
+
+
+def _totresns_decision(estimates: list[dict[str, Any]]) -> dict[str, Any]:
+    rows = {
+        (str(row.get("regime_id", "")), str(row.get("controls_variant", ""))): row
+        for row in estimates
+        if row.get("robustness_check") == "no_contemporaneous_totresns"
+        and str(row.get("horizon", "")) in {"0", "0.0"}
+    }
+    normal_with = _safe_float(rows.get(("normal_forward", "with_contemporaneous_totresns"), {}).get("point_estimate"))
+    normal_without = _safe_float(rows.get(("normal_forward", "no_contemporaneous_totresns"), {}).get("point_estimate"))
+    pooled_without = _safe_float(rows.get(("pooled_full_sample", "no_contemporaneous_totresns"), {}).get("point_estimate"))
+    if normal_with is None or normal_without is None:
+        return {
+            "status": "missing",
+            "delta": "",
+            "message": "No-TOTRESNS robustness decision unavailable because the normal-forward comparison is missing.",
+        }
+    delta = normal_without - normal_with
+    ordering_intact = pooled_without is None or pooled_without >= normal_without
+    if abs(delta) <= TOTRESNS_MATERIALITY_THRESHOLD and ordering_intact:
+        status = "freeze_ok"
+        message = (
+            f"No-TOTRESNS robustness leaves the normal-forward coefficient at {_fmt(normal_without)} versus "
+            f"{_fmt(normal_with)} with contemporaneous TOTRESNS (delta {_fmt(delta)}), within the "
+            f"{TOTRESNS_MATERIALITY_THRESHOLD:.2f} materiality rule; regime ordering remains intact, so publish-and-freeze is supported."
+        )
+    elif delta > TOTRESNS_MATERIALITY_THRESHOLD:
+        status = "materially_higher"
+        message = (
+            f"No-TOTRESNS robustness raises the normal-forward coefficient to {_fmt(normal_without)} versus "
+            f"{_fmt(normal_with)} with contemporaneous TOTRESNS (delta {_fmt(delta)}), exceeding the "
+            f"{TOTRESNS_MATERIALITY_THRESHOLD:.2f} rule; with-reserves rows should be labeled lower/direct-effect estimates and the RateWall envelope widened."
+        )
+    else:
+        status = "collapse_or_ordering_break"
+        message = (
+            f"No-TOTRESNS robustness changes the normal-forward coefficient to {_fmt(normal_without)} versus "
+            f"{_fmt(normal_with)} with contemporaneous TOTRESNS (delta {_fmt(delta)}), failing the materiality/order rule; run H.4.1 reserve-accounting decomposition before freeze."
+        )
+    return {"status": status, "delta": delta, "message": message}
+
+
 def _estimates_from_existing_artifacts() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     rolling = _read_csv(ROLLING_ESTIMATES)
@@ -432,6 +561,11 @@ def _estimates_from_existing_artifacts() -> list[dict[str, Any]]:
                 "lower95": latest.get("normalized_lower95", ""),
                 "upper95": latest.get("normalized_upper95", ""),
                 "n": latest.get("n", ""),
+                "data_coverage_start": latest.get("window_start_quarter", ""),
+                "data_coverage_end": latest.get("window_end_quarter", ""),
+                "estimation_sample_start": latest.get("window_start_quarter", ""),
+                "estimation_sample_end": latest.get("window_end_quarter", ""),
+                "n_complete_cases": latest.get("n", ""),
                 "sample_start": latest.get("window_start_quarter", ""),
                 "sample_end": latest.get("window_end_quarter", ""),
                 "sample_window": latest.get("sample_label", ""),
@@ -474,6 +608,11 @@ def _estimates_from_existing_artifacts() -> list[dict[str, Any]]:
                 "lower95": "" if point is None or se is None else point - 1.96 * se,
                 "upper95": "" if point is None or se is None else point + 1.96 * se,
                 "n": row.get("n", ""),
+                "data_coverage_start": row.get("window_start_quarter", ""),
+                "data_coverage_end": row.get("window_end_quarter", ""),
+                "estimation_sample_start": row.get("window_start_quarter", ""),
+                "estimation_sample_end": row.get("window_end_quarter", ""),
+                "n_complete_cases": row.get("n", ""),
                 "sample_start": row.get("window_start_quarter", ""),
                 "sample_end": row.get("window_end_quarter", ""),
                 "sample_window": f"{row.get('window_start_quarter', '')}_to_{row.get('window_end_quarter', '')}",
@@ -681,8 +820,14 @@ def _contract_rows(estimates: list[dict[str, Any]], validations: list[dict[str, 
                 "source_artifact_path": estimate.get("source_artifact_path", ""),
                 "source_artifact_sha256": estimate.get("source_artifact_sha256", ""),
                 "source_row_key": estimate.get("source_row_key", ""),
+                "data_coverage_start": estimate.get("data_coverage_start", ""),
+                "data_coverage_end": estimate.get("data_coverage_end", ""),
+                "estimation_sample_start": estimate.get("estimation_sample_start", estimate.get("sample_start", "")),
+                "estimation_sample_end": estimate.get("estimation_sample_end", estimate.get("sample_end", "")),
+                "n_complete_cases": estimate.get("n_complete_cases", estimate.get("n", "")),
                 "sample_start": estimate.get("sample_start", ""),
                 "sample_end": estimate.get("sample_end", ""),
+                "sample_window": estimate.get("sample_window", ""),
                 "trigger_rule_id": _trigger_for_regime(regime_id),
                 "trigger_rule_text": _trigger_text(regime_id),
                 "trigger_validation_status": trigger_status,
@@ -850,6 +995,11 @@ def _write_memo(
         f"- Assumption Mode scenario rows allowed: {len(contract_allowed)}.",
         f"- Runtime selector rows allowed: {len(runtime_allowed)}.",
         "- Current recommendation: import source-backed scenario rows for Assumption Mode review, keep runtime_selector_allowed=false.",
+        "- Sample windows in estimates and the RateWall contract are complete cases after transformations, lags, controls, and factor availability; raw data coverage is reported separately.",
+        "",
+        "## No-TOTRESNS Robustness",
+        "",
+        f"- {_totresns_decision(estimates)['message']}",
         "",
         "## Runtime Selector Status",
         "",
@@ -873,6 +1023,7 @@ def build_outputs() -> dict[str, list[dict[str, Any]]]:
     )
     classifier = _candidate_specs(rows)
     estimates = _build_estimates(rows, controls, classifier)
+    estimates.extend(_totresns_robustness_rows(rows, controls))
     validation = _validation_rows(estimates, classifier, rows)
     contract = _contract_rows(estimates, validation)
     return {
