@@ -4,7 +4,7 @@ Local projection | Committed headline design | 2002Q1 to 2025Q4 | 6 outcomes | 9
 
 H=0 coefficient table for Matched total deposits, Other component, same Tier 2 treatment, Strict loan core, Mortgages, Consumer credit, Bank credit in response to Long-history Tier 2 TDC. Entries are $B per +$100B TDC, with p-values and observations.
 
-Generated at: 2026-06-10T22:24:28+00:00
+Generated at: 2026-06-10T22:41:36+00:00
 
 ## Notes
 - Treatment: Long-history Tier 2 TDC
