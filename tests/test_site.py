@@ -53,6 +53,10 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     _write_text(paths.raw_fred / "FEDFUNDS.csv", "date,value\n2024-01-01,1\n2024-04-01,1\n2024-07-01,1\n2024-10-01,1\n")
     _write_text(paths.raw_fred / "TOTRESNS.csv", "date,value\n2024-03-31,1\n2024-06-30,1\n2024-09-30,1\n2024-12-31,1\n")
     _write_text(paths.reports / "macro_prices_secret_screening.md", "internal only")
+    _write_text(paths.root / "outputs" / "tables" / "ea_tdc_pass_through_regime_estimates.csv", "regime_id,point_estimate,lower95,upper95\nnormal_forward,0.342,0.116,0.569\n")
+    _write_text(paths.root / "outputs" / "tables" / "ea_tdc_pass_through_regime_validation.csv", "regime_id,validation_status\nnormal_forward,review_only\n")
+    _write_text(paths.root / "outputs" / "tables" / "ea_tdc_pass_through_ratewall_import_contract.csv", "regime_id,allowed_use,sample_window\nnormal_forward,tdc_deposit_pass_through_assumption_mode,2002Q1_to_2025Q4\n")
+    _write_text(paths.root / "outputs" / "reports" / "ea_tdc_pass_through_regime_validation_memo.md", "# Regime memo\n")
 
     result = build_site(paths)
 
@@ -66,6 +70,7 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
     assert summary["copied_artifacts"] > 0
     assert summary["copied_reports"] > 0
+    assert summary["copied_regime_reports"] == 4
     assert summary["copied_models"] > 0
     assert summary["sidecar_index_path"] == "docs/sidecar-results/index.html"
     assert summary["site_data_path"] == "docs/assets/data/site_data.json"
@@ -88,6 +93,10 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
     assert "Fed-net reserve responses." not in index_text
     assert "Raw reserves are not treated as a headline result here" not in index_text
     assert "What the release claims." in index_text
+    assert "Which pass-through coefficient should travel downstream?" in index_text
+    assert "default Assumption Mode coefficient 0.342 [0.116, 0.569]" in index_text
+    assert "pooled pandemic-inclusive historical reference only 0.616 [0.220, 1.013]" in index_text
+    assert 'href="site_assets/reports/ea_tdc_pass_through_ratewall_import_contract.csv"' in index_text
     assert "Deposits are the clearest headline response." in index_text
     assert "Strict independent non-TDC evidence is narrower and source-side." in index_text
     assert "EA-TDC does not use residual/accounting closure as an independent non-TDC measure." in index_text
@@ -148,6 +157,8 @@ def test_build_site_exports_docs_bundle(tmp_path: Path) -> None:
         assert str(copied_preview.relative_to(paths.root)).startswith("docs/site_assets/artifacts/")
     assert (paths.root / "docs" / "site_assets" / "reports" / "component_sidecar_screening.md").exists()
     assert (paths.root / "docs" / "site_assets" / "reports" / "final_interpretation_closeout.md").exists()
+    assert (paths.root / "docs" / "site_assets" / "reports" / "ea_tdc_pass_through_ratewall_import_contract.csv").exists()
+    assert (paths.root / "docs" / "site_assets" / "reports" / "ea_tdc_pass_through_regime_estimates.csv").exists()
     assert not (paths.root / "docs" / "site_assets" / "reports" / "macro_prices_secret_screening.md").exists()
     assert not (paths.root / "docs" / "site_assets" / "reports" / "release_snapshot.json").exists()
     assert not (paths.root / "docs" / "site_assets" / "reports" / "site_build.json").exists()

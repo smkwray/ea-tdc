@@ -2327,6 +2327,26 @@ def _prune_public_reports(target: Path) -> None:
             path.unlink()
 
 
+REGIME_PACKAGE_FILES = [
+    Path("outputs/tables/ea_tdc_pass_through_regime_estimates.csv"),
+    Path("outputs/tables/ea_tdc_pass_through_regime_validation.csv"),
+    Path("outputs/tables/ea_tdc_pass_through_ratewall_import_contract.csv"),
+    Path("outputs/reports/ea_tdc_pass_through_regime_validation_memo.md"),
+]
+
+
+def _copy_regime_package(paths: ProjectPaths, target: Path) -> int:
+    copied = 0
+    target.mkdir(parents=True, exist_ok=True)
+    for relative in REGIME_PACKAGE_FILES:
+        source = paths.root / relative
+        if not source.exists():
+            continue
+        shutil.copy2(source, target / source.name)
+        copied += 1
+    return copied
+
+
 def _sanitize_public_tree(target: Path, repo_root: Path) -> None:
     root_text = str(repo_root.resolve())
     root_prefix = f"{root_text}/"
@@ -2335,11 +2355,13 @@ def _sanitize_public_tree(target: Path, repo_root: Path) -> None:
         if not path.is_file() or path.suffix.lower() not in text_suffixes:
             continue
         try:
-            content = path.read_text(encoding="utf-8")
+            raw = path.read_bytes()
+            content = raw.decode("utf-8")
         except UnicodeDecodeError:
             continue
-        sanitized = content.replace(root_prefix, "")
-        if sanitized != content:
+        normalized = content.replace("\r\n", "\n").replace("\r", "\n")
+        sanitized = normalized.replace(root_prefix, "")
+        if sanitized.encode("utf-8") != raw:
             path.write_text(sanitized, encoding="utf-8")
 
 
@@ -3394,6 +3416,16 @@ def _home_html(generated_at: str) -> str:
             "</div>",
             '<div class="insight-grid"><article class="insight-card reveal"><div class="eyebrow">Headline</div><h3>Tier 2 deposit response.</h3><p>The selected-lag long-history surface delivers the main public result.</p></article><article class="insight-card reveal"><div class="eyebrow">Boundary</div><h3>Residual is not a channel.</h3><p>The same-treatment non-TDC deposit component is treated as perimeter and plumbing-sensitive.</p></article><article class="insight-card reveal"><div class="eyebrow">Credit</div><h3>Broad crowding-out weakens.</h3><p>Mortgage and strict core-loan rows are weak after selected lags; consumer credit is guarded.</p></article><article class="insight-card reveal"><div class="eyebrow">Sensitivity</div><h3>Older baseline preserved.</h3><p>The K=200 baseline branch is retained as an appendix sensitivity, not the main surface.</p></article></div>',
             "</section>",
+            '<section class="section container" id="regime-package">',
+            '<div class="section-header reveal">',
+            '<div><div class="eyebrow">Regime package</div><h2>Which pass-through coefficient should travel downstream?</h2></div>',
+            '<p>Use the regime-qualified hierarchy: default Assumption Mode coefficient 0.342 [0.116, 0.569] for the normal-forward ex-2020Q1-2021Q4 case; latest rolling reference 0.531 [0.146, 0.915]; pooled pandemic-inclusive historical reference only 0.616 [0.220, 1.013]; baseline public LP 0.392 [0.153, 0.630]. DML 0.695 is sensitivity-only. Pre-COVID rolling windows are near zero, so no single number is the stable pass-through truth.</p>',
+            "</div>",
+            '<div class="section-block reveal">',
+            '<div class="button-row"><a class="button primary" href="site_assets/reports/ea_tdc_pass_through_ratewall_import_contract.csv" download>RateWall contract CSV</a><a class="button" href="site_assets/reports/ea_tdc_pass_through_regime_estimates.csv" download>Regime estimates CSV</a><a class="button" href="site_assets/reports/ea_tdc_pass_through_regime_validation.csv" download>Validation CSV</a><a class="button" href="site_assets/reports/ea_tdc_pass_through_regime_validation_memo.md">Regime memo</a></div>',
+            '<p class="section-note">Contract sample windows are complete cases after transformations, lags, controls, and factor availability; raw data coverage is reported separately in the CSVs. Runtime regime selection remains blocked.</p>',
+            "</div>",
+            "</section>",
             '<section class="section container" id="questions">',
             '<div class="section-header reveal">',
             '<div><div class="eyebrow">Questions</div><h2>Research questions.</h2></div>',
@@ -3618,6 +3650,7 @@ def build_site(paths: ProjectPaths) -> SiteBuildResult:
     _copy_tree(paths.reports, site_reports)
     copied_models = _copy_selected_files(model_paths, site_models)
     _prune_public_reports(site_reports)
+    copied_regime_reports = _copy_regime_package(paths, site_reports)
     _sanitize_public_tree(site_artifacts, paths.root)
     _sanitize_public_tree(site_reports, paths.root)
     _sanitize_public_tree(site_models, paths.root)
@@ -3649,6 +3682,7 @@ def build_site(paths: ProjectPaths) -> SiteBuildResult:
         "js_path": (assets_root / "js" / "main.js").relative_to(paths.root).as_posix(),
         "copied_artifacts": copied_artifacts,
         "copied_reports": copied_reports,
+        "copied_regime_reports": copied_regime_reports,
         "copied_models": copied_models,
     }
     summary_path = paths.reports / "site_build.json"

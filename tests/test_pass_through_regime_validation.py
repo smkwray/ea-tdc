@@ -51,6 +51,30 @@ def test_candidate_abs_thresholds_use_absolute_quantiles() -> None:
     assert specs["on_rrp_flow_abs_q75"]["threshold"] == 62.5
 
 
+def test_lp_complete_case_quarters_exclude_missing_controls_and_horizon() -> None:
+    runner = _load_runner()
+    rows = [
+        {"quarter": "2000Q1", "treatment": "1", "outcome": "10", "control": "5"},
+        {"quarter": "2000Q2", "treatment": "2", "outcome": "11", "control": ""},
+        {"quarter": "2000Q3", "treatment": "3", "outcome": "12", "control": "7"},
+    ]
+
+    assert runner._lp_complete_case_quarters(
+        rows,
+        treatment_id="treatment",
+        outcome_id="outcome",
+        horizon=0,
+        control_ids=["control"],
+    ) == ["2000Q1", "2000Q3"]
+    assert runner._lp_complete_case_quarters(
+        rows,
+        treatment_id="treatment",
+        outcome_id="outcome",
+        horizon=1,
+        control_ids=["control"],
+    ) == ["2000Q1"]
+
+
 def test_contract_blocks_runtime_selection_even_when_scenario_allowed() -> None:
     runner = _load_runner()
     estimates = [
@@ -63,6 +87,14 @@ def test_contract_blocks_runtime_selection_even_when_scenario_allowed() -> None:
             "lower95": 0.1,
             "upper95": 0.5,
             "estimator_id": "test_estimator",
+            "data_coverage_start": "1945Q4",
+            "data_coverage_end": "2026Q2",
+            "estimation_sample_start": "2002Q1",
+            "estimation_sample_end": "2025Q4",
+            "n_complete_cases": 40,
+            "sample_start": "2002Q1",
+            "sample_end": "2025Q4",
+            "sample_window": "2002Q1_to_2025Q4",
         },
         {
             "regime_id": "pooled_full_sample",
@@ -88,4 +120,40 @@ def test_contract_blocks_runtime_selection_even_when_scenario_allowed() -> None:
     assert rows["normal_forward"]["recommended_ratewall_use"] == "assumption_mode_scenario_allowed"
     assert rows["normal_forward"]["scenario_default_allowed"] == "true"
     assert rows["normal_forward"]["runtime_selector_allowed"] == "false"
+    assert rows["normal_forward"]["data_coverage_start"] == "1945Q4"
+    assert rows["normal_forward"]["estimation_sample_start"] == "2002Q1"
+    assert rows["normal_forward"]["sample_window"] == "2002Q1_to_2025Q4"
     assert rows["pooled_full_sample"]["recommended_ratewall_use"] == "review_only"
+
+
+def test_totresns_decision_uses_materiality_threshold() -> None:
+    runner = _load_runner()
+    estimates = [
+        {
+            "regime_id": "normal_forward",
+            "horizon": 0,
+            "robustness_check": "no_contemporaneous_totresns",
+            "controls_variant": "with_contemporaneous_totresns",
+            "point_estimate": 0.342,
+        },
+        {
+            "regime_id": "normal_forward",
+            "horizon": 0,
+            "robustness_check": "no_contemporaneous_totresns",
+            "controls_variant": "no_contemporaneous_totresns",
+            "point_estimate": 0.40,
+        },
+        {
+            "regime_id": "pooled_full_sample",
+            "horizon": 0,
+            "robustness_check": "no_contemporaneous_totresns",
+            "controls_variant": "no_contemporaneous_totresns",
+            "point_estimate": 0.55,
+        },
+    ]
+
+    decision = runner._totresns_decision(estimates)
+
+    assert decision["status"] == "freeze_ok"
+    assert round(decision["delta"], 3) == 0.058
+    assert "within the 0.15 materiality rule" in decision["message"]
