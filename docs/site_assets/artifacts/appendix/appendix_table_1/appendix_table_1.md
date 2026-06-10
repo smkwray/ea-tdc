@@ -4,7 +4,7 @@ Local projection | Committed headline design | 1945Q4 to 2026Q2 | 2 outcomes | 8
 
 Coefficient table for Matched total deposits, Other component (q/q) in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.
 
-Generated at: 2026-06-10T22:41:36+00:00
+Generated at: 2026-06-10T22:58:24+00:00
 
 ## Notes
 - Treatment: Baseline TDC estimate

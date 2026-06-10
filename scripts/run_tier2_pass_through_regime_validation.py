@@ -511,12 +511,20 @@ def _totresns_decision(estimates: list[dict[str, Any]]) -> dict[str, Any]:
     }
     normal_with = _safe_float(rows.get(("normal_forward", "with_contemporaneous_totresns"), {}).get("point_estimate"))
     normal_without = _safe_float(rows.get(("normal_forward", "no_contemporaneous_totresns"), {}).get("point_estimate"))
+    pooled_with = _safe_float(rows.get(("pooled_full_sample", "with_contemporaneous_totresns"), {}).get("point_estimate"))
     pooled_without = _safe_float(rows.get(("pooled_full_sample", "no_contemporaneous_totresns"), {}).get("point_estimate"))
+    pooled_message = ""
+    if pooled_with is not None and pooled_without is not None:
+        pooled_message = (
+            f"The pooled historical reference also remains stable: {_fmt(pooled_without)} without contemporaneous "
+            f"TOTRESNS versus {_fmt(pooled_with)} with it (delta {_fmt(pooled_without - pooled_with)}), also immaterial."
+        )
     if normal_with is None or normal_without is None:
         return {
             "status": "missing",
             "delta": "",
             "message": "No-TOTRESNS robustness decision unavailable because the normal-forward comparison is missing.",
+            "pooled_message": pooled_message,
         }
     delta = normal_without - normal_with
     ordering_intact = pooled_without is None or pooled_without >= normal_without
@@ -540,7 +548,7 @@ def _totresns_decision(estimates: list[dict[str, Any]]) -> dict[str, Any]:
             f"No-TOTRESNS robustness changes the normal-forward coefficient to {_fmt(normal_without)} versus "
             f"{_fmt(normal_with)} with contemporaneous TOTRESNS (delta {_fmt(delta)}), failing the materiality/order rule; run H.4.1 reserve-accounting decomposition before freeze."
         )
-    return {"status": status, "delta": delta, "message": message}
+    return {"status": status, "delta": delta, "message": message, "pooled_message": pooled_message}
 
 
 def _estimates_from_existing_artifacts() -> list[dict[str, Any]]:
@@ -1039,7 +1047,7 @@ def _robustness_appendix_lines(
     else:
         lines.append("- Control selection is rank-aware; no controls were rejected at h0.")
     lines.append(
-        "- Factor controls are the pinned K=100 surface: K is the screened raw-feature width before compression to four factors, pinned across specifications rather than re-screened per regime cell."
+        "- Factor controls are the pinned K=100 surface: K is the screened raw-feature width before compression to four factors, pinned across specifications rather than re-screened per regime cell. The screening score includes outcome correlations, so the screen is not outcome-blind; the surface is pinned ex ante, but outcome-leakage has not been independently audited in this release bundle."
     )
     dml_row = next(
         (row for row in dml_rows if row.get("outcome") == "matched_total_deposits" and str(row.get("horizon")) == "0"),
@@ -1094,9 +1102,12 @@ def _write_memo(
         "",
         "## No-TOTRESNS Robustness",
         "",
-        f"- {_totresns_decision(estimates)['message']}",
-        "",
     ]
+    totresns = _totresns_decision(estimates)
+    lines.append(f"- {totresns['message']}")
+    if totresns.get("pooled_message"):
+        lines.append(f"- {totresns['pooled_message']}")
+    lines.append("")
     offset_rows = _read_csv(OFFSET_EPISODES) if OFFSET_EPISODES.exists() else []
     hac_rows = _read_csv(SUBMISSION_HAC) if SUBMISSION_HAC.exists() else []
     dml_rows = _read_csv(DML_ESTIMATES) if DML_ESTIMATES.exists() else []

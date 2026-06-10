@@ -3,7 +3,7 @@
   "artifact_kind": "table",
   "caption": "Coefficient table for BAA-AAA spread, Investment-grade OAS, High-yield OAS in response to Baseline TDC estimate. Reported horizons are 0, 1, 2, 4, 8 with the corresponding standard errors and confidence intervals.",
   "display_spec": "supporting_table",
-  "generated_at": "2026-06-10T22:41:36+00:00",
+  "generated_at": "2026-06-10T22:58:24+00:00",
   "horizons": [
     "0",
     "1",
