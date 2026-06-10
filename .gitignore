@@ -22,6 +22,7 @@ data/raw/
 data/seed/
 data/bundles/
 output/
+outputs/
 
 # Python artifacts
 __pycache__/

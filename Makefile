@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: install smoke test fetch-fred fetch-treasury seed-source adapt-tdcest adapt-qrawatch build-quarterly-design tier2-component-credit tier2-component-outcomes tier2-credit-causality tier2-credit-lead-diagnostics tier2-missing40-attribution tier2-rolling-pass-through submission-appendix
+.PHONY: install smoke test fetch-fred fetch-treasury seed-source adapt-tdcest adapt-qrawatch build-quarterly-design tier2-component-credit tier2-component-outcomes tier2-credit-causality tier2-credit-lead-diagnostics tier2-missing40-attribution tier2-rolling-pass-through tier2-pass-through-offsets tier2-pass-through-regime-persistence tier2-pass-through-regime-validation submission-appendix
 
 install:
 	set -a; source .env; set +a; uv pip install --python "$$UV_PROJECT_ENVIRONMENT/bin/python" -e '.[dev]'
@@ -46,6 +46,16 @@ tier2-missing40-attribution:
 
 tier2-rolling-pass-through:
 	set -a; source .env; set +a; "$$UV_PROJECT_ENVIRONMENT/bin/python" -B scripts/run_tier2_rolling_pass_through.py
+
+tier2-pass-through-offsets:
+	set -a; source .env; set +a; "$$UV_PROJECT_ENVIRONMENT/bin/python" -B scripts/run_tier2_pass_through_offset_diagnostics.py
+
+tier2-pass-through-regime-persistence:
+	set -a; source .env; set +a; "$$UV_PROJECT_ENVIRONMENT/bin/python" -B scripts/run_tier2_pass_through_regime_persistence.py
+
+tier2-pass-through-regime-validation:
+	set -a; source .env; set +a; "$$UV_PROJECT_ENVIRONMENT/bin/python" -B scripts/run_tier2_pass_through_regime_persistence.py
+	set -a; source .env; set +a; "$$UV_PROJECT_ENVIRONMENT/bin/python" -B scripts/run_tier2_pass_through_regime_validation.py
 
 submission-appendix:
 	set -a; source .env; set +a; "$$UV_PROJECT_ENVIRONMENT/bin/python" -B scripts/run_submission_appendix_diagnostics.py
