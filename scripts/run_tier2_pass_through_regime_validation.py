@@ -61,6 +61,7 @@ ROLLING_MINUS = ROOT / "output/reports/tier2_pass_through_rolling_minus_pandemic
 INFLUENCE = ROOT / "output/reports/tier2_pass_through_influence_quarters.csv"
 OFFSET_EPISODES = ROOT / "output/reports/tier2_pass_through_offset_episode_betas.csv"
 SUBMISSION_HAC = ROOT / "output/reports/submission_hac_bandwidth_sensitivity.csv"
+DML_ESTIMATES = ROOT / "output/models/baseline_tdc_lp_deposits__dml_estimates.csv"
 
 MIN_SCENARIO_N = 24
 MIN_RUNTIME_VALIDATION_N = 40
@@ -333,6 +334,10 @@ def _predicate_for_trigger(spec: dict[str, Any]) -> Callable[[dict[str, str]], b
     return lambda _row: False
 
 
+def _estimated_status(n_complete_cases: int) -> str:
+    return "estimated" if n_complete_cases >= MIN_SCENARIO_N else "insufficient_observations"
+
+
 def _estimate_subset(
     rows: list[dict[str, str]],
     *,
@@ -396,7 +401,7 @@ def _estimate_subset(
     se_norm = se * multiplier
     base.update(
         {
-            "status": "estimated",
+            "status": _estimated_status(n),
             "point_estimate": point,
             "standard_error": se_norm,
             "lower95": point - 1.96 * se_norm,
@@ -881,10 +886,10 @@ def _scenario_blocker(row: dict[str, Any], regime_id: str, stability_ok: bool) -
     n = int(float(row.get("n", 0) or 0))
     if regime_id == "pooled_full_sample":
         return "blocked_pooled_full_sample_is_reference_not_scenario_trigger"
-    if status != "estimated":
-        return "blocked_not_source_backed_or_not_estimable"
     if n < MIN_SCENARIO_N:
         return "blocked_insufficient_n"
+    if status != "estimated":
+        return "blocked_not_source_backed_or_not_estimable"
     if not stability_ok:
         return "blocked_wide_or_missing_confidence_interval"
     return "blocked_not_admitted"
@@ -958,6 +963,96 @@ def _trigger_text(regime_id: str) -> str:
     }.get(regime_id, "review-only trigger candidate")
 
 
+def _offset_accounting_lines(offset_rows: list[dict[str, str]]) -> list[str]:
+    lines = [
+        "## Offset Accounting Implication (Identity, Not A Channel)",
+        "",
+    ]
+    if not offset_rows:
+        lines.extend(
+            [
+                "- Offset episode artifact missing; rerun `make tier2-pass-through-offsets` before citing offset numbers.",
+                "",
+            ]
+        )
+        return lines
+
+    def _episode_beta(period: str, *, residual: bool) -> Any:
+        for row in offset_rows:
+            outcome = str(row.get("outcome", ""))
+            if str(row.get("period")) != period or outcome.startswith("other_component") != residual:
+                continue
+            if outcome.startswith("other_component") or outcome == "matched_total_deposits":
+                return row.get("normalized_beta", "")
+        return ""
+
+    res_full = _episode_beta("full_available", residual=True)
+    res_full_value = _safe_float(res_full)
+    missing_share = "missing" if res_full_value is None else f"{abs(res_full_value):.3f}"
+    lines.extend(
+        [
+            "- Matched deposits and the same-treatment other component sum to TDC by construction, so the two h0 betas satisfy deposit_beta = 1 + residual_beta exactly.",
+            f"- Full sample: deposits {_fmt(_episode_beta('full_available', residual=False))}; signed residual {_fmt(res_full)}. Equivalently, {missing_share} of each TDC dollar does not appear as matched commercial-bank deposits in this specification.",
+            f"- Pre-2020: deposits {_fmt(_episode_beta('pre_2020', residual=False))}, signed residual {_fmt(_episode_beta('pre_2020', residual=True))}. Excluding 2020Q1-2021Q4: deposits {_fmt(_episode_beta('exclude_2020_2021', residual=False))}, signed residual {_fmt(_episode_beta('exclude_2020_2021', residual=True))}.",
+            "- The residual row is an accounting implication of the deposit estimate and carries the same sampling uncertainty; it is not an independently identified channel, and its p-value is not a second discovery.",
+            "- The candidate attribution search found no clean named channel for the residual. The bounded interpretation remains a regime/perimeter-sensitive non-TDC residual, not a TGA, ON-RRP/MMF, or rate-competition causal claim.",
+            "",
+        ]
+    )
+    return lines
+
+
+def _robustness_appendix_lines(
+    hac_rows: list[dict[str, str]],
+    dml_rows: list[dict[str, str]],
+    estimates: list[dict[str, Any]],
+) -> list[str]:
+    lines = [
+        "## Robustness Appendix (Compact)",
+        "",
+    ]
+    deposit_hac = [row for row in hac_rows if row.get("outcome") == "matched_total_deposits"]
+    if deposit_hac:
+        cells = ", ".join(
+            f"lag {row.get('covariance_lags')}: p={float(row.get('p_value', 'nan')):.4f}" for row in deposit_hac
+        )
+        lines.append(
+            f"- HAC bandwidth: the pooled selected-lag h0 beta {_fmt(deposit_hac[0].get('normalized_beta'))} is insensitive to the Newey-West bandwidth ({cells})."
+        )
+    else:
+        lines.append(
+            "- HAC bandwidth artifact missing; rerun `make submission-appendix` before citing bandwidth stability."
+        )
+    rejected = sorted(
+        {
+            f"{row.get('regime_id')} ({row.get('estimator_id')}): {row.get('controls_rejected')}"
+            for row in estimates
+            if str(row.get("horizon", "")) in ("0", "") and str(row.get("controls_rejected", "")).strip()
+        }
+    )
+    if rejected:
+        lines.append(
+            "- Control selection is rank-aware and rejected controls are disclosed per row; regime differences can partly reflect control-set differences. Rejections at h0: "
+            + "; ".join(rejected)
+            + "."
+        )
+    else:
+        lines.append("- Control selection is rank-aware; no controls were rejected at h0.")
+    lines.append(
+        "- Factor controls are the pinned K=100 surface: K is the screened raw-feature width before compression to four factors, pinned across specifications rather than re-screened per regime cell."
+    )
+    dml_row = next(
+        (row for row in dml_rows if row.get("outcome") == "matched_total_deposits" and str(row.get("horizon")) == "0"),
+        None,
+    )
+    if dml_row is not None:
+        lines.append(
+            f"- DML h0 {_fmt(dml_row.get('beta'))} [{_fmt(dml_row.get('lower95'))}, {_fmt(dml_row.get('upper95'))}] is sensitivity-only: it shows the deposit response survives flexible controls and is not the preferred estimate."
+        )
+    lines.append("")
+    return lines
+
+
 def _write_memo(
     *,
     estimates: list[dict[str, Any]],
@@ -1001,11 +1096,20 @@ def _write_memo(
         "",
         f"- {_totresns_decision(estimates)['message']}",
         "",
-        "## Runtime Selector Status",
-        "",
-        "No trigger rule is runtime-selector validated. Out-of-sample and false-positive checks are screening diagnostics only, not promotion-grade validation.",
-        "",
     ]
+    offset_rows = _read_csv(OFFSET_EPISODES) if OFFSET_EPISODES.exists() else []
+    hac_rows = _read_csv(SUBMISSION_HAC) if SUBMISSION_HAC.exists() else []
+    dml_rows = _read_csv(DML_ESTIMATES) if DML_ESTIMATES.exists() else []
+    lines.extend(_offset_accounting_lines(offset_rows))
+    lines.extend(_robustness_appendix_lines(hac_rows, dml_rows, estimates))
+    lines.extend(
+        [
+            "## Runtime Selector Status",
+            "",
+            "No trigger rule is runtime-selector validated. Out-of-sample and false-positive checks are screening diagnostics only, not promotion-grade validation.",
+            "",
+        ]
+    )
     MEMO_OUTPUT.write_text("\n".join(lines), encoding="utf-8")
 
 

@@ -3,7 +3,7 @@
   "artifact_kind": "figure",
   "caption": "Impulse responses for Matched total deposits, Other component, same Tier 2 treatment to Long-history Tier 2 TDC. Points are local-projection estimates and whiskers show 95% confidence intervals over horizons 0, 1, 2, 4, 8.",
   "display_spec": "impulse_response_grid",
-  "generated_at": "2026-06-10T22:24:28+00:00",
+  "generated_at": "2026-06-10T22:41:35+00:00",
   "horizons": [
     "0",
     "1",
