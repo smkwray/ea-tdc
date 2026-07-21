@@ -4,13 +4,29 @@ import csv
 import json
 from pathlib import Path
 
-from ea_tdc.designs.quarterly import _overlay_missing_quarters, _set_row_linear_combo, build_quarterly_design
+from ea_tdc.designs.quarterly import (
+    BASELINE_REQUIRED_OUTPUTS,
+    _load_jobs,
+    _overlay_missing_quarters,
+    _set_row_linear_combo,
+    build_quarterly_design,
+)
 from ea_tdc.paths import ensure_repo_dirs, project_paths
 
 
 def _write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def test_quarterly_blueprint_removes_retired_du_selected_jobs_and_contracts() -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    jobs = _load_jobs(project_root / "config" / "dass_job_blueprint.yaml")
+
+    assert "tdc_du_selected_lp_domestic_nonbank_deposits" not in jobs
+    assert "tdc_mmf_rrp_plumbing_adjusted_du_selected_full_panel" not in jobs
+    assert "tdc_du_selected_lp_domestic_nonbank_deposits" not in BASELINE_REQUIRED_OUTPUTS
+    assert "tdc_mmf_rrp_plumbing_adjusted_du_selected_full_panel" not in BASELINE_REQUIRED_OUTPUTS
 
 
 def test_quarterly_design_builder_writes_manifests(tmp_path: Path) -> None:

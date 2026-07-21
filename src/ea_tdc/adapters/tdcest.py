@@ -28,6 +28,27 @@ SUPPORTED_BUNDLE_FORMATS = {
     "tdc_site_bundle_v4",
 }
 
+RETIRED_ESTIMATE_SERIES = {
+    "_".join(("tdc", "du", "selected", "domestic", "nonfinancial", "proxy")),
+}
+
+# These are the only processed-estimate aliases whose EA-TDC output id differs
+# from the upstream column name. All other live ``tdc_`` columns pass through.
+LEGACY_PROCESSED_ESTIMATE_ALIASES = {
+    "tdc_tier2_treasury_interest_robust_bank_only_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow"
+    ),
+    "tdc_tier2_treasury_interest_robust_depository_institution_np_cu_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_depository_institution_np_cu_ru_flow"
+    ),
+    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow"
+    ),
+    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_depository_institution_np_cu_ru_flow": (
+        "tdc_tier2_h15_treasury_interest_robust_mmf_rrp_prop_depository_institution_np_cu_ru_flow"
+    ),
+}
+
 
 @dataclass(frozen=True)
 class AdapterResult:
@@ -100,6 +121,8 @@ def normalize_schema(payload: dict[str, Any]) -> list[dict[str, str]]:
         table = payload[source_table]
         columns = [col for col in table.get("columns", []) if col in table]
         for series_id in columns:
+            if series_id in RETIRED_ESTIMATE_SERIES:
+                continue
             values = table.get(series_id, [])
             role, family, component_group = _role_for_series(source_table, series_id)
             for date_value, value in zip(dates, values):
@@ -148,18 +171,6 @@ def _discover_processed_estimates_path(bundle_path: Path) -> Path | None:
 def _append_regression_series_rows(rows: list[dict[str, str]], regression_series_path: Path | None) -> None:
     if regression_series_path is None or not regression_series_path.exists():
         return
-    numeric_series = {
-        "tdc_tier2_regression_domestic_bank_only_ru_flow",
-        "tdc_tier2_regression_bank_only_ru_flow",
-        "tdc_tier2_regression_broad_depository_np_cu_ru_flow",
-        "tdc_tier2_regression_depository_institution_np_cu_ru_flow",
-        "tdc_tier2_regression_mmf_rrp_lb_bank_only_ru_flow",
-        "tdc_tier2_regression_mmf_rrp_prop_bank_only_ru_flow",
-        "tdc_tier2_regression_mmf_rrp_ub_bank_only_ru_flow",
-        "tdc_tier2_regression_mmf_rrp_lb_depository_institution_np_cu_ru_flow",
-        "tdc_tier2_regression_mmf_rrp_prop_depository_institution_np_cu_ru_flow",
-        "tdc_tier2_regression_mmf_rrp_ub_depository_institution_np_cu_ru_flow",
-    }
     tier_series = {
         "bank_method_tier",
         "row_method_tier",
@@ -209,6 +220,11 @@ def _append_regression_series_rows(rows: list[dict[str, str]], regression_series
 
     with regression_series_path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
+        numeric_series = {
+            field
+            for field in (reader.fieldnames or [])
+            if field.startswith("tdc_") and field not in RETIRED_ESTIMATE_SERIES
+        }
         for source_row in reader:
             period_end = str(source_row.get("date", "")).strip()
             if not period_end:
@@ -258,55 +274,33 @@ def _append_regression_series_rows(rows: list[dict[str, str]], regression_series
                     )
 
 
-PROCESSED_ESTIMATE_SERIES_MAP = {
-    "tdc_tier2_h15_intensity_corrected_bank_only_ru_flow": (
-        "tdc_tier2_h15_intensity_corrected_bank_only_ru_flow"
-    ),
-    "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow": (
-        "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow"
-    ),
-    "tdc_tier2_mmf_rrp_prop_bank_only_ru_flow": "tdc_tier2_mmf_rrp_prop_bank_only_ru_flow",
-    "tdc_tier2_mmf_rrp_lb_bank_only_ru_flow": "tdc_tier2_mmf_rrp_lb_bank_only_ru_flow",
-    "tdc_tier2_mmf_rrp_ub_bank_only_ru_flow": "tdc_tier2_mmf_rrp_ub_bank_only_ru_flow",
-    "tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow": (
-        "tdc_tier2_mmf_rrp_prop_depository_institution_np_cu_ru_flow"
-    ),
-    "tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow": (
-        "tdc_tier2_canonical_depository_institution_mmf_rrp_prop_ru_flow"
-    ),
-    "tdc_tier2_treasury_interest_robust_bank_only_ru_flow": (
-        "tdc_tier2_h15_treasury_interest_robust_bank_only_ru_flow"
-    ),
-    "tdc_tier2_treasury_interest_robust_depository_institution_np_cu_ru_flow": (
-        "tdc_tier2_h15_treasury_interest_robust_depository_institution_np_cu_ru_flow"
-    ),
-    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow": (
-        "tdc_tier2_h15_treasury_interest_robust_mmf_rrp_prop_bank_only_ru_flow"
-    ),
-    "tdc_tier2_treasury_interest_robust_mmf_rrp_prop_depository_institution_np_cu_ru_flow": (
-        "tdc_tier2_h15_treasury_interest_robust_mmf_rrp_prop_depository_institution_np_cu_ru_flow"
-    ),
-}
-
-
 def _append_processed_estimate_rows(rows: list[dict[str, str]], estimates_path: Path | None) -> None:
     if estimates_path is None or not estimates_path.exists():
         return
 
-    output_series = set(PROCESSED_ESTIMATE_SERIES_MAP)
-    rows[:] = [row for row in rows if row.get("series_id") not in output_series]
-
     with estimates_path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
+        direct_series = {
+            field
+            for field in (reader.fieldnames or [])
+            if field.startswith("tdc_") and field not in RETIRED_ESTIMATE_SERIES
+        }
+        output_sources = {
+            **{series_id: series_id for series_id in direct_series},
+            **LEGACY_PROCESSED_ESTIMATE_ALIASES,
+        }
+        rows[:] = [row for row in rows if row.get("series_id") not in output_sources]
+
         for source_row in reader:
             period_end = str(source_row.get("date", "")).strip()
             if not period_end:
                 continue
             available_at = _conservative_quarterly_available_at(period_end)
-            for series_id, source_column in PROCESSED_ESTIMATE_SERIES_MAP.items():
+            for series_id, source_column in output_sources.items():
                 value = str(source_row.get(source_column, "")).strip()
                 if not value:
                     continue
+                role, family, component_group = _role_for_series("estimates", series_id)
                 rows.append(
                     {
                         "series_id": series_id,
@@ -324,11 +318,12 @@ def _append_processed_estimate_rows(rows: list[dict[str, str]], estimates_path: 
                         "transform_default": "none",
                         "seasonal_adjustment_flag": "unknown",
                         "interpolated_flag": "false",
-                        "component_group": "estimate_variant",
-                        "role": "treatment",
+                        "component_group": component_group,
+                        "role": role,
                         "notes": (
                             "processed_tdc_estimates_source"
                             f"|source_column={source_column}"
+                            f"|{family}"
                             "|availability_proxy=period_end_plus_90d"
                         ),
                     }
@@ -385,6 +380,7 @@ def write_source_manifest(
     standardized_path: Path,
     rows_written: int,
     bundle_hash: str,
+    input_hashes: dict[str, str],
 ) -> Path:
     manifest = {
         "kind": "source_manifest",
@@ -395,6 +391,10 @@ def write_source_manifest(
         "standardized_path": str(standardized_path),
         "rows_written": rows_written,
         "bundle_hash": bundle_hash,
+        "input_hashes": input_hashes,
+        "combined_input_hash": hashlib.sha256(
+            json.dumps(input_hashes, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest(),
     }
     target = paths.manifests / "tdcest_source_manifest.json"
     write_json(target, manifest)
@@ -404,18 +404,26 @@ def write_source_manifest(
 def adapt_tdcest(paths: ProjectPaths, *, bundle_path: str | None = None) -> AdapterResult:
     source_path = resolve_seed_bundle(paths, bundle_path)
     payload = read_raw(source_path)
+    regression_series_path = _discover_regression_series_path(source_path)
+    processed_estimates_path = _discover_processed_estimates_path(source_path)
     rows = normalize_schema(payload)
-    _append_regression_series_rows(rows, _discover_regression_series_path(source_path))
-    _append_processed_estimate_rows(rows, _discover_processed_estimates_path(source_path))
+    _append_regression_series_rows(rows, regression_series_path)
+    _append_processed_estimate_rows(rows, processed_estimates_path)
     validate_contract(rows)
     standardized_path = write_standard_bundle(paths, rows)
     bundle_hash = _sha256_file(source_path)
+    input_hashes = {"seed_bundle": bundle_hash}
+    if processed_estimates_path is not None:
+        input_hashes["processed_estimates"] = _sha256_file(processed_estimates_path)
+    if regression_series_path is not None:
+        input_hashes["regression_series"] = _sha256_file(regression_series_path)
     manifest_path = write_source_manifest(
         paths,
         source_path=source_path,
         standardized_path=standardized_path,
         rows_written=len(rows),
         bundle_hash=bundle_hash,
+        input_hashes=input_hashes,
     )
     return AdapterResult(
         standardized_path=standardized_path,

@@ -125,7 +125,6 @@ BASELINE_SERIES_MAP = {
     "mmf_rrp_adjustment_prop_qoq": ("tdcest", "mmf_rrp_adjustment_prop"),
     "tdc_du_fiscal_flow_first_pass_narrow": ("tdcest", "tdc_du_fiscal_flow_first_pass_narrow"),
     "tdc_du_fiscal_flow_first_pass_broad": ("tdcest", "tdc_du_fiscal_flow_first_pass_broad"),
-    "tdc_du_selected_domestic_nonfinancial_proxy": ("tdcest", "tdc_du_selected_domestic_nonfinancial_proxy"),
     "tdc_du_residual_proxy_full_cu_ru": ("tdcest", "tdc_du_residual_proxy_full_cu_ru"),
     "du_noninterest_outlay_proxy": ("tdcest", "du_noninterest_outlay_proxy"),
     "du_receipt_proxy": ("tdcest", "du_receipt_proxy"),
@@ -231,7 +230,6 @@ ALTERNATIVE_OTHER_COMPONENT_SERIES = {
         "tdc_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq"
     ),
     "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq": "tdc_tier2_mmf_rrp_plumbing_adjusted_qoq",
-    "other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq": "tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq",
     "other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq": "tdc_du_residual_mmf_rrp_plumbing_adjusted_qoq",
     "other_component_tier3_bank_only_qoq": "tdc_tier3_fiscal_corrected_bank_only_ru_flow",
     "other_component_tier2_broad_depository_qoq": "tdc_tier2_interest_corrected_broad_depository_np_cu_ru_flow",
@@ -329,10 +327,6 @@ BASELINE_REQUIRED_OUTPUTS = {
         "mortgage_30y",
         "mortgage_30y_dgs10_spread",
         "m2",
-    ],
-    "tdc_du_selected_lp_domestic_nonbank_deposits": [
-        "domestic_nonbank_deposits_qoq",
-        "domestic_nonbank_other_component_du_selected_qoq",
     ],
     "tdc_du_residual_lp_domestic_nonbank_deposits": [
         "domestic_nonbank_deposits_qoq",
@@ -608,9 +602,6 @@ OUTCOME_ALIASES = {
     "domestic_nonbank_other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq": [
         "domestic_nonbank_other_component_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq"
     ],
-    "domestic_nonbank_other_component_du_selected_qoq": [
-        "domestic_nonbank_other_component_du_selected_qoq"
-    ],
     "domestic_nonbank_other_component_du_residual_qoq": [
         "domestic_nonbank_other_component_du_residual_qoq"
     ],
@@ -631,9 +622,6 @@ OUTCOME_ALIASES = {
     ],
     "domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq": [
         "domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq"
-    ],
-    "domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq": [
-        "domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq"
     ],
     "domestic_nonbank_other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq": [
         "domestic_nonbank_other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq"
@@ -756,9 +744,6 @@ OUTCOME_ALIASES = {
     ],
     "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq": [
         "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq"
-    ],
-    "other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq": [
-        "other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq"
     ],
     "other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq": [
         "other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq"
@@ -1529,7 +1514,6 @@ def _set_mmf_rrp_plumbing_adjustments(row: dict[str, str]) -> None:
     for output_name, base_tdc_name in (
         ("tdc_tier1_mmf_rrp_plumbing_adjusted_qoq", "tdc_bank_only_qoq"),
         ("tdc_tier2_mmf_rrp_plumbing_adjusted_qoq", "tdc_tier2_interest_corrected_bank_only_ru_flow"),
-        ("tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq", "tdc_du_selected_domestic_nonfinancial_proxy"),
         ("tdc_du_residual_mmf_rrp_plumbing_adjusted_qoq", "tdc_du_residual_proxy_full_cu_ru"),
         ("tdc_no_row_mmf_rrp_plumbing_adjusted_qoq", "tdc_domestic_bank_only_qoq"),
         ("tdc_no_toc_mmf_rrp_plumbing_adjusted_qoq", "tdc_no_toc_bank_only_qoq"),
@@ -1596,10 +1580,6 @@ def _set_domestic_nonbank_adjusted_residuals(row: dict[str, str]) -> None:
             "tdc_tier2_canonical_no_toc_di_mmf_rrp_prop_qoq",
         ),
         (
-            "domestic_nonbank_other_component_du_selected_qoq",
-            "tdc_du_selected_domestic_nonfinancial_proxy",
-        ),
-        (
             "domestic_nonbank_other_component_du_residual_qoq",
             "tdc_du_residual_proxy_full_cu_ru",
         ),
@@ -1622,10 +1602,6 @@ def _set_domestic_nonbank_adjusted_residuals(row: dict[str, str]) -> None:
         (
             "domestic_nonbank_other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
             "tdc_tier2_mmf_rrp_plumbing_adjusted_qoq",
-        ),
-        (
-            "domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq",
-            "tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq",
         ),
         (
             "domestic_nonbank_other_component_du_residual_mmf_rrp_plumbing_adjusted_qoq",
