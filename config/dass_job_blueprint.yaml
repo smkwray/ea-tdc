@@ -62,21 +62,6 @@ jobs:
     track_in_release_snapshot: false
     track_in_estimation_snapshot: false
 
-  - job_id: tdc_du_selected_lp_domestic_nonbank_deposits
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_du_selected_domestic_nonfinancial_proxy
-    research_status: diagnostic_only
-    outcomes:
-      - domestic_nonbank_deposits_qoq
-      - domestic_nonbank_other_component_du_selected_qoq
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: supporting_descriptive
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
   - job_id: tdc_du_residual_lp_domestic_nonbank_deposits
     estimator: lp
     freq: quarterly
@@ -587,51 +572,6 @@ jobs:
       - row_corp_bonds_flow
       - row_private_flow_block
       - current_account_balance
-    horizons: [0, 1, 2, 4, 8]
-    controls_block: headline_core
-    cutoff_rule: quarter_start_default
-    output_family: exploratory_sidecar
-    track_in_release_snapshot: false
-    track_in_estimation_snapshot: false
-
-  - job_id: tdc_mmf_rrp_plumbing_adjusted_du_selected_full_panel
-    estimator: lp
-    freq: quarterly
-    treatment_id: tdc_du_selected_mmf_rrp_plumbing_adjusted_qoq
-    research_status: exploratory_sidecar
-    outcomes:
-      - matched_total_deposits
-      - other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq
-      - domestic_nonbank_deposits_qoq
-      - domestic_nonbank_other_component_du_selected_mmf_rrp_plumbing_adjusted_qoq
-      - m2
-      - tdcpass_strict_loan_mortgages_qoq
-      - tdcpass_strict_loan_consumer_credit_qoq
-      - tdcpass_strict_loan_core_min_qoq
-      - reserve_balances_qoq
-      - reserve_balances_net_fed_treasury_qoq
-      - reserve_balances_net_fed_assets_qoq
-      - repo_spread
-      - fed_funds
-      - sofr
-      - baa_aaa
-      - investment_grade_oas
-      - high_yield_oas
-      - headline_cpi_inflation_qoq_ann
-      - core_cpi_inflation_qoq_ann
-      - core_pce_inflation_qoq_ann
-      - broad_dollar_change
-      - bank_credit_qoq
-      - bank_business_loans_qoq
-      - bank_non_treasury_securities_qoq
-      - bank_consumer_loans_qoq
-      - bank_real_estate_loans_qoq
-      - row_loans_assets_qoq
-      - row_corp_bonds_flow
-      - row_private_flow_block
-      - current_account_balance
-      - tga_balance_qoq
-      - on_rrp_balance_qoq
     horizons: [0, 1, 2, 4, 8]
     controls_block: headline_core
     cutoff_rule: quarter_start_default
