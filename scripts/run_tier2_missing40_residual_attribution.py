@@ -15,6 +15,7 @@ for path in (SRC, SCRIPTS):
 
 from ea_tdc.designs.quarterly import build_quarterly_design
 from ea_tdc.estimation import _coerce_float
+from ea_tdc.open_contract import CANONICAL_RESIDUAL_ID, CANONICAL_TREATMENT_ID
 from ea_tdc.paths import project_paths
 from ea_tdc.residualized_shock import _load_factor_branch
 from ea_tdc.utils import utc_now_iso, write_json
@@ -46,8 +47,8 @@ from run_tier2_state_dependent_credit_causality import (
 
 
 HORIZONS = [0, 1, 2, 4]
-RESIDUAL_OUTCOME = "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq"
-TREATMENT_ID = "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq"
+RESIDUAL_OUTCOME = CANONICAL_RESIDUAL_ID
+TREATMENT_ID = CANONICAL_TREATMENT_ID
 TREATMENT_LABEL = SELECTED_LAG_SENSITIVITY_LABEL
 LEADS = [1, 2, 4]
 

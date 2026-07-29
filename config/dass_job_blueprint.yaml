@@ -96,7 +96,7 @@ jobs:
   - job_id: tdc_tier2_mmf_rrp_canonical_full_panel
     estimator: lp
     freq: quarterly
-    treatment_id: tdc_tier2_canonical_di_mmf_rrp_prop_qoq
+    treatment_id: tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq
     research_status: sensitivity_only
     outcomes:
       - matched_total_deposits
@@ -204,7 +204,7 @@ jobs:
   - job_id: tdc_tier2_regression_deposit_anatomy
     estimator: lp
     freq: quarterly
-    treatment_id: tdc_tier2_regression_bank_only_qoq
+    treatment_id: tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq
     research_status: diagnostic_only
     outcomes:
       - matched_total_deposits
@@ -229,7 +229,7 @@ jobs:
   - job_id: tdc_tier2_regression_credit_anatomy
     estimator: lp
     freq: quarterly
-    treatment_id: tdc_tier2_regression_bank_only_qoq
+    treatment_id: tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq
     research_status: diagnostic_only
     outcomes:
       - tdcpass_strict_loan_core_min_qoq
@@ -258,7 +258,7 @@ jobs:
   - job_id: tdc_tier2_regression_plumbing_rates
     estimator: lp
     freq: quarterly
-    treatment_id: tdc_tier2_regression_bank_only_qoq
+    treatment_id: tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq
     research_status: diagnostic_only
     outcomes:
       - reserve_balances_qoq

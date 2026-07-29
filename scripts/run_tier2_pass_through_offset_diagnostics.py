@@ -15,13 +15,17 @@ from pathlib import Path
 from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
 SCRIPTS = ROOT / "scripts"
-if str(SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS))
+for path in (SRC, SCRIPTS):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
+from ea_tdc.open_contract import (  # noqa: E402
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+)
 from run_submission_appendix_diagnostics import (  # noqa: E402
-    PRIMARY_RESIDUAL_ID,
-    PRIMARY_TREATMENT_ID,
     _build_inputs,
     _effect_per_100b,
     _fit_lp,
@@ -30,6 +34,8 @@ from run_submission_appendix_diagnostics import (  # noqa: E402
     _scenario_controls,
 )
 
+PRIMARY_TREATMENT_ID = CANONICAL_TREATMENT_ID
+PRIMARY_RESIDUAL_ID = CANONICAL_RESIDUAL_ID
 JOB_ID = "tier2_pass_through_offset_diagnostics"
 MIN_BETA_OBSERVATIONS = 24
 CANONICAL_SPLICE_CONTROL = "tier2_regression_bank_row_tier_pre_component_h15_scaled"

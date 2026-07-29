@@ -16,6 +16,7 @@ for path in (SRC, SCRIPTS):
 
 from ea_tdc.designs.quarterly import build_quarterly_design
 from ea_tdc.estimation import _build_quarterly_target, _coerce_float, _estimate_row_payload, _ols
+from ea_tdc.open_contract import CANONICAL_TREATMENT_LABEL
 from ea_tdc.paths import project_paths
 from ea_tdc.residualized_shock import _load_factor_branch
 from ea_tdc.utils import utc_now_iso, write_json
@@ -38,7 +39,7 @@ from run_tier2_state_dependent_credit_causality import (
 )
 
 
-PRIMARY_TREATMENT_LABEL = "regression_mmf_rrp_bank_long"
+PRIMARY_TREATMENT_LABEL = CANONICAL_TREATMENT_LABEL
 TREATMENT_LABELS = [
     PRIMARY_TREATMENT_LABEL,
 ]

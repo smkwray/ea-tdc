@@ -39,6 +39,13 @@ for path in (SRC, SCRIPTS):
 
 from ea_tdc.designs.quarterly import build_quarterly_design
 from ea_tdc.estimation import _build_quarterly_target, _coerce_float, _ols
+from ea_tdc.open_contract import (
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+    CANONICAL_TREATMENT_LABEL,
+    CREDIT_SCREEN_OUTCOME_IDS,
+)
 from ea_tdc.paths import project_paths
 from ea_tdc.residualized_shock import _load_factor_branch
 from ea_tdc.utils import utc_now_iso, write_json
@@ -73,31 +80,25 @@ from run_tier2_state_dependent_credit_causality import (
 )
 
 
-PRIMARY_TREATMENT_LABEL = "regression_mmf_rrp_bank_long"
-PRIMARY_TREATMENT_ID = "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq"
-PRIMARY_RESIDUAL_ID = "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq"
+PRIMARY_TREATMENT_LABEL = CANONICAL_TREATMENT_LABEL
+PRIMARY_TREATMENT_ID = CANONICAL_TREATMENT_ID
+PRIMARY_RESIDUAL_ID = CANONICAL_RESIDUAL_ID
 
 LEAD_HORIZONS = [1, 2, 3, 4]
 
 LEAD_OUTCOMES = [
-    "matched_total_deposits",
-    "tdcpass_strict_loan_core_min_qoq",
-    "tdcpass_strict_loan_mortgages_qoq",
-    "tdcpass_strict_loan_consumer_credit_qoq",
-    "bank_credit_qoq",
+    CANONICAL_OUTCOME_ID,
+    *CREDIT_SCREEN_OUTCOME_IDS,
 ]
 
 FACTOR_TAIL_OUTCOMES = [
-    "matched_total_deposits",
+    CANONICAL_OUTCOME_ID,
     PRIMARY_RESIDUAL_ID,
-    "tdcpass_strict_loan_core_min_qoq",
-    "tdcpass_strict_loan_mortgages_qoq",
-    "tdcpass_strict_loan_consumer_credit_qoq",
-    "bank_credit_qoq",
+    *CREDIT_SCREEN_OUTCOME_IDS,
 ]
 
 HAC_BANDWIDTHS = [1, 4, 6, 8]
-HAC_OUTCOME = "matched_total_deposits"
+HAC_OUTCOME = CANONICAL_OUTCOME_ID
 
 
 def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -657,7 +658,7 @@ def _build_splice_audit() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         method_rows = _read_csv(method_decision_path)
         for row in method_rows:
             label = row.get("treatment_label", "")
-            if label not in {"modern_canonical_di_mmf_rrp_short", "regression_mmf_rrp_bank_long"}:
+            if label not in {"modern_canonical_di_mmf_rrp_short", PRIMARY_TREATMENT_LABEL}:
                 continue
             modern_long_summary.append({
                 "treatment_label": label,
@@ -809,7 +810,7 @@ def _write_lead_placebo_markdown(path: Path, rows: list[dict[str, Any]]) -> None
         f"Generated: {utc_now_iso()}",
         "",
         "Per-outcome, per-lead h=0 coefficients with Newey-West (lag 1) standard errors and two-sided normal p-values "
-        "for the primary long-history TDC treatment `regression_mmf_rrp_bank_long` "
+        f"for the primary long-history TDC treatment `{PRIMARY_TREATMENT_LABEL}` "
         f"(`{PRIMARY_TREATMENT_ID}`). Effects are reported in $ billions per +$100B TDC, consistent with the manuscript.",
         "",
         "Two scenarios are reported:",
@@ -921,7 +922,7 @@ def _write_splice_markdown(path: Path, rows: list[dict[str, Any]], metadata: dic
         f"Generated: {utc_now_iso()}",
         "",
         "Construction audit for the long-history bank Treasury-interest series that underlies the preferred long-history "
-        "TDC treatment `regression_mmf_rrp_bank_long`. Bank sector only.",
+        f"TDC treatment `{PRIMARY_TREATMENT_LABEL}`. Bank sector only.",
         "",
     ]
     lambda_value = metadata.get("lambda_h15_bank_sector")

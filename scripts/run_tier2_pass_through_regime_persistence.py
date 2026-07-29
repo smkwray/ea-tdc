@@ -27,9 +27,13 @@ for path in (SRC, SCRIPTS):
         sys.path.insert(0, str(path))
 
 from ea_tdc.estimation import _invert, _matmul, _matvec, _ols, _transpose  # noqa: E402
+from ea_tdc.open_contract import (  # noqa: E402
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+    ROLLING_WINDOW_QUARTERS,
+)
 from run_submission_appendix_diagnostics import (  # noqa: E402
-    PRIMARY_RESIDUAL_ID,
-    PRIMARY_TREATMENT_ID,
     _build_inputs,
     _effect_per_100b,
     _fit_lp,
@@ -45,10 +49,12 @@ from run_tier2_pass_through_offset_diagnostics import (  # noqa: E402
 )
 
 
+PRIMARY_TREATMENT_ID = CANONICAL_TREATMENT_ID
+PRIMARY_RESIDUAL_ID = CANONICAL_RESIDUAL_ID
 JOB_ID = "tier2_pass_through_regime_persistence"
-WINDOW_QUARTERS = 48
+WINDOW_QUARTERS = ROLLING_WINDOW_QUARTERS
 MIN_OBSERVATIONS = 24
-OUTCOMES = ["matched_total_deposits", PRIMARY_RESIDUAL_ID]
+OUTCOMES = [CANONICAL_OUTCOME_ID, PRIMARY_RESIDUAL_ID]
 
 ROLLING_MINUS_OUTPUT = ROOT / "output/reports/tier2_pass_through_rolling_minus_pandemic_betas.csv"
 INFLUENCE_OUTPUT = ROOT / "output/reports/tier2_pass_through_influence_quarters.csv"

@@ -1,4 +1,7 @@
-version: 0.1
+version: 0.2
+registry_role: published_export
+runtime_authority: src/ea_tdc/open_contract.py
+open_contract: OPEN-01
 
 treatments:
   - treatment_id: tdc_bank_only_qoq
@@ -13,7 +16,7 @@ treatments:
     cutoff_rule: quarter_start_default
     instrument_ok: false
     direct_effect_risk: medium
-    notes: Canonical reduced-form TDC flow used in the public quarterly work.
+    notes: Legacy reduced-form TDC flow retained for historical public outputs; it is not the frozen OPEN-01 treatment.
 
   - treatment_id: tdc_bank_only_shock
     family: primary_treatment
@@ -223,7 +226,7 @@ treatments:
     cutoff_rule: quarter_start_default
     instrument_ok: false
     direct_effect_risk: medium
-    notes: Canonical Tier 2 policy target with depository-institution scope, Fed/bank/ROW/CU coupon corrections, bank/ROW/CU bill-discount corrections, and the proportional MMF/RRP source-of-funds adjustment.
+    notes: Modern 16-quarter depository-institution policy target with Fed/bank/ROW/CU coupon corrections, bank/ROW/CU bill-discount corrections, and the proportional MMF/RRP source-of-funds adjustment; it is not the long-history OPEN-01 treatment.
 
   - treatment_id: tdc_tier2_regression_bank_only_qoq
     family: measurement_variant
@@ -238,6 +241,20 @@ treatments:
     instrument_ok: false
     direct_effect_risk: medium
     notes: Regression-source Tier 2 bank-only row from tdcest. It uses constrained component support from 2022 onward, component-pool/WAMEST-bucket backcast for 2010-2021, and scaled H15 backcast before 2010.
+
+  - treatment_id: tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq
+    family: canonical_open01_treatment
+    source_repo: tdcest
+    upstream_object: tdc_tier2_regression_mmf_rrp_prop_bank_only_ru_flow
+    freq: quarterly
+    units: usd_millions_per_quarter
+    scaling: none_in_open01_conditional_projection
+    sign_convention: positive_means_deposit_positive_tdc
+    shock_model: none
+    cutoff_rule: same_quarter_conditional_projection
+    instrument_ok: false
+    direct_effect_risk: medium
+    notes: Published export of the frozen OPEN-01 long-history bank-deposit-scope treatment. It keeps lower, proportional, and upper MMF/RRP constructions separate and uses 33 pre-component H15, 47 component-pool/WAMEST, and 16 constrained-component quarters. Runtime authority remains src/ea_tdc/open_contract.py.
 
   - treatment_id: tdc_tier2_regression_di_np_cu_qoq
     family: measurement_variant

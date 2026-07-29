@@ -10,6 +10,14 @@ from pathlib import Path
 from textwrap import wrap
 from typing import Any
 
+from ea_tdc.open_contract import (
+    CANONICAL_CONTROL_IDS,
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+    CANONICAL_TREATMENT_LABEL,
+    CREDIT_SCREEN_OUTCOME_IDS,
+)
 from ea_tdc.paths import ProjectPaths
 from ea_tdc.reporting import build_release_artifact_contract
 from ea_tdc.utils import utc_now_iso, write_json
@@ -20,7 +28,7 @@ LABEL_OVERRIDES = {
     "domestic_nonbank_other_component_qoq": "Domestic nonbank residual",
     "domestic_nonbank_other_component_core_deposit_proximate_qoq": "Domestic nonbank residual, TOC/ROW-excluded core",
     "other_component_qoq": "Other component (q/q)",
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq": "Other component, same Tier 2 treatment",
+    CANONICAL_RESIDUAL_ID: "Other component, same Tier 2 treatment",
     "m2": "M2",
     "GDP": "Real GDP",
     "gdp_deflator": "GDP deflator",
@@ -115,7 +123,7 @@ LABEL_OVERRIDES = {
     "accounting_identity_total_qoq_pct_gdp": "Accounting identity total (% GDP)",
     "accounting_identity_gap_qoq_pct_gdp": "Accounting identity gap (% GDP)",
     "tdc_bank_only_qoq": "Baseline TDC estimate",
-    "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq": "Long-history Tier 2 TDC",
+    CANONICAL_TREATMENT_ID: "Long-history Tier 2 TDC",
     "qra_ati_baseline_bn": "QRA baseline tilt",
     "direct_at_h": "Direct response at horizon h",
     "tier2_regression_bank_row_tier_pre_component_h15_scaled": "Tier 2 method-tier control",
@@ -179,39 +187,19 @@ JOB_TITLE_OVERRIDES = {
 PAPER_TIER2_JOB_ID = "paper_tier2_selected_credit_rate_lags"
 PAPER_TIER2_SOURCE_ESTIMATES = "tier2_credit_causality_state_estimates.csv"
 PAPER_TIER2_ESTIMATES = f"{PAPER_TIER2_JOB_ID}_estimates.csv"
-PAPER_TIER2_TREATMENT_LABEL = "regression_mmf_rrp_bank_long_selected_credit_rate_lags"
+PAPER_TIER2_TREATMENT_LABEL = f"{CANONICAL_TREATMENT_LABEL}_selected_credit_rate_lags"
 PAPER_TIER2_SAMPLE_LABEL = "full_available"
 PAPER_TIER2_SURFACE = "pooled_baseline"
-PAPER_TIER2_TREATMENT_ID = "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq"
-PAPER_TIER2_CONTROLS = [
-    "GDP",
-    "gdp_deflator",
-    "FEDFUNDS",
-    "TOTRESNS",
-    "tier2_regression_bank_row_tier_pre_component_h15_scaled",
-    "tdcpass_strict_loan_core_min_qoq__lag_2",
-    "tdcpass_strict_loan_core_min_qoq__lag_4",
-    "tdcpass_strict_loan_consumer_credit_qoq__lag_4",
-    "bank_credit_qoq__lag_4",
-    "dgs2__lag_4",
-    "dgs10__lag_1",
-    "dgs10__lag_2",
-    "dflmx_k100_f1",
-    "dflmx_k100_f2",
-    "dflmx_k100_f3",
-    "dflmx_k100_f4",
-]
+PAPER_TIER2_TREATMENT_ID = CANONICAL_TREATMENT_ID
+PAPER_TIER2_CONTROLS = list(CANONICAL_CONTROL_IDS)
 PAPER_TIER2_MAIN_FIGURE_OUTCOMES = [
-    "matched_total_deposits",
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_RESIDUAL_ID,
 ]
 PAPER_TIER2_MAIN_TABLE_OUTCOMES = [
-    "matched_total_deposits",
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
-    "tdcpass_strict_loan_core_min_qoq",
-    "tdcpass_strict_loan_mortgages_qoq",
-    "tdcpass_strict_loan_consumer_credit_qoq",
-    "bank_credit_qoq",
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_RESIDUAL_ID,
+    *CREDIT_SCREEN_OUTCOME_IDS,
 ]
 PAPER_TIER2_HORIZONS = ["0", "1", "2", "4", "8"]
 
@@ -444,7 +432,7 @@ def _paper_tier2_contract_rows(contract_rows: list[dict[str, Any]]) -> list[dict
             "status": "ready",
             "title_override": "Long-history Tier 2 selected-lag pass-through",
             "extra_notes": (
-                "Run/specification: regression_mmf_rrp_bank_long_selected_credit_rate_lags. "
+                f"Run/specification: {PAPER_TIER2_TREATMENT_LABEL}. "
                 "This paper-facing branch adds selected lagged credit and Treasury-rate controls before the K=100 factor tail.|"
                 "Claim boundary: deposit pass-through is the headline; broad mortgage/core-loan crowding-out is weak after selected lags."
             ),
@@ -463,7 +451,7 @@ def _paper_tier2_contract_rows(contract_rows: list[dict[str, Any]]) -> list[dict
             "status": "ready",
             "title_override": "Long-history Tier 2 selected-lag h=0 coefficient table",
             "extra_notes": (
-                "Run/specification: regression_mmf_rrp_bank_long_selected_credit_rate_lags. "
+                f"Run/specification: {PAPER_TIER2_TREATMENT_LABEL}. "
                 "Rows report h=0 effects in $B per +$100B TDC.|"
                 "Claim boundary: consumer credit is a guarded candidate margin, not a broad crowding-out headline."
             ),

@@ -14,6 +14,10 @@ for path in (SRC, SCRIPTS):
         sys.path.insert(0, str(path))
 
 from ea_tdc.estimation import _estimate_rows, _write_estimates_csv
+from ea_tdc.open_contract import (
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_LABEL,
+)
 from ea_tdc.paths import project_paths
 from ea_tdc.utils import utc_now_iso, write_json
 from run_pinned_factor_residual_bridge import (
@@ -37,7 +41,7 @@ OUTCOMES = [
     "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
     "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
     "other_component_tier2_regression_bank_only_qoq",
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+    CANONICAL_RESIDUAL_ID,
     "other_component_tier2_regression_mmf_rrp_prop_di_np_cu_qoq",
     "other_component_tier2_legacy_h15_bank_only_qoq",
     "domestic_nonbank_other_component_qoq",
@@ -90,7 +94,7 @@ METHOD_DECISIONS = {
         "coverage": "2022Q1-2025Q4",
         "recommendation": "Use for current-period accounting and charts; too short for standalone long-history inference.",
     },
-    "regression_mmf_rrp_bank_long": {
+    CANONICAL_TREATMENT_LABEL: {
         "role": "preferred long-history regression candidate",
         "coverage": "2002Q1-2025Q4",
         "recommendation": "Use for long-history regressions with method-tier controls and sample-split disclosure.",

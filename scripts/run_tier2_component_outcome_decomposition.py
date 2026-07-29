@@ -16,6 +16,7 @@ for path in (SRC, SCRIPTS):
 
 from ea_tdc.designs.quarterly import build_quarterly_design
 from ea_tdc.estimation import _estimate_rows, _write_estimates_csv
+from ea_tdc.open_contract import CANONICAL_RESIDUAL_ID
 from ea_tdc.paths import project_paths
 from ea_tdc.residualized_shock import _load_factor_branch
 from ea_tdc.utils import utc_now_iso, write_json
@@ -43,7 +44,7 @@ OUTCOME_SPECS = {
         "label": "Domestic nonbank deposits",
         "unit_type": "dollar_per_dollar",
     },
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq": {
+    CANONICAL_RESIDUAL_ID: {
         "family": "deposit_residual",
         "label": "Other deposit component, long-history canon",
         "unit_type": "dollar_per_dollar",

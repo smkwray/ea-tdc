@@ -13,22 +13,23 @@ if str(SRC) not in sys.path:
 
 from ea_tdc.designs.quarterly import build_quarterly_design
 from ea_tdc.estimation import _estimate_rows, _write_estimates_csv
+from ea_tdc.open_contract import (
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+    CANONICAL_TREATMENT_LABEL,
+    OPEN01_DESIGN_JOB_IDS,
+)
 from ea_tdc.paths import project_paths
 from ea_tdc.residualized_shock import _load_factor_branch
 from ea_tdc.utils import utc_now_iso, write_json
 
 
-ANCHOR_JOB_ID = "tdc_tier2_mmf_rrp_canonical_full_panel"
+ANCHOR_JOB_ID = OPEN01_DESIGN_JOB_IDS[0]
 K_SCREENED = 100
 FACTOR_COUNT = 4
 CONTROL_POLICY_MODE = "balanced"
 
-MERGE_JOBS = [
-    ANCHOR_JOB_ID,
-    "tdc_tier2_regression_deposit_anatomy",
-    "tdc_tier2_regression_credit_anatomy",
-    "tdc_tier2_regression_plumbing_rates",
-]
+MERGE_JOBS = list(OPEN01_DESIGN_JOB_IDS)
 
 TREATMENTS = {
     "modern_canonical_di_mmf_rrp_short": {
@@ -36,9 +37,9 @@ TREATMENTS = {
         "residual_id": "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
         "use_method_tier_controls": False,
     },
-    "regression_mmf_rrp_bank_long": {
-        "treatment_id": "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq",
-        "residual_id": "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+    CANONICAL_TREATMENT_LABEL: {
+        "treatment_id": CANONICAL_TREATMENT_ID,
+        "residual_id": CANONICAL_RESIDUAL_ID,
         "use_method_tier_controls": True,
     },
     "regression_mmf_rrp_di_long": {
@@ -76,7 +77,7 @@ OUTCOMES = [
     "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
     "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
     "other_component_tier2_regression_bank_only_qoq",
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+    CANONICAL_RESIDUAL_ID,
     "other_component_tier2_regression_mmf_rrp_prop_di_np_cu_qoq",
     "domestic_nonbank_other_component_qoq",
     "domestic_nonbank_other_component_no_row_qoq",
