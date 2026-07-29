@@ -38,6 +38,7 @@ from ea_tdc.open_contract import (  # noqa: E402
 )
 from ea_tdc.open01 import (  # noqa: E402
     CREDIT_ADJUSTMENTS,
+    CREDIT_CALIBRATION_METHODS,
     CREDIT_WINDOW_QUARTERS,
 )
 
@@ -678,6 +679,16 @@ def _integer(value: Any, *, label: str) -> int:
     return parsed
 
 
+def _finite_number(value: Any, *, label: str) -> float:
+    try:
+        parsed = float(str(value).strip())
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} is not numeric: {value!r}") from exc
+    if not math.isfinite(parsed):
+        raise ValueError(f"{label} is not finite: {value!r}")
+    return parsed
+
+
 def _identifier_tuple(value: Any, *, label: str) -> tuple[str, ...]:
     if isinstance(value, (list, tuple)):
         identifiers = tuple(str(item).strip() for item in value)
@@ -966,6 +977,9 @@ def _cross_surface_contract_gate(
     }
     credit_windows_by_outcome: dict[str, set[int]] = {}
     adjustments: set[str] = set()
+    calibration_statuses: set[str] = set()
+    admission_statuses: set[str] = set()
+    credit_hac_by_window: dict[int, dict[str, Any]] = {}
     observed_credit_cells: list[tuple[str, int, str]] = []
     formal_48q_control_patterns: set[
         tuple[tuple[str, ...], tuple[str, ...]]
@@ -992,10 +1006,94 @@ def _cross_surface_contract_gate(
         if window not in expected_windows:
             raise ValueError(f"{prefix} has an undeclared window sensitivity")
         if _integer(
-            row.get("rolling_effective_n"),
-            label=f"{prefix} rolling_effective_n",
+            row.get("rolling_window_observations"),
+            label=f"{prefix} rolling_window_observations",
         ) != window:
-            raise ValueError(f"{prefix} effective n does not match its window")
+            raise ValueError(
+                f"{prefix} rolling-window observations do not match its window"
+            )
+        association_observations = _integer(
+            row.get("association_observations"),
+            label=f"{prefix} association_observations",
+        )
+        if association_observations < 10:
+            raise ValueError(
+                f"{prefix} has fewer than 10 association observations"
+            )
+        if association_observations != _integer(
+            row.get("n_windows"),
+            label=f"{prefix} n_windows",
+        ):
+            raise ValueError(
+                f"{prefix} association observations disagree with n_windows"
+            )
+        expected_hac_lags = min(window - 1, association_observations - 2)
+        association_hac_lags = _integer(
+            row.get("association_hac_lags"),
+            label=f"{prefix} association_hac_lags",
+        )
+        if (
+            association_hac_lags != expected_hac_lags
+            or _integer(
+                row.get("covariance_lags"),
+                label=f"{prefix} covariance_lags",
+            )
+            != expected_hac_lags
+        ):
+            raise ValueError(f"{prefix} has untruthful overlap-HAC lag metadata")
+        bandwidth_ratio = _finite_number(
+            row.get("association_hac_bandwidth_ratio"),
+            label=f"{prefix} association_hac_bandwidth_ratio",
+        )
+        if not math.isclose(
+            bandwidth_ratio,
+            expected_hac_lags / association_observations,
+            rel_tol=1e-12,
+            abs_tol=1e-12,
+        ):
+            raise ValueError(f"{prefix} has untruthful HAC bandwidth ratio")
+        calibration_status = str(
+            row.get("inference_calibration_status", "")
+        ).strip()
+        calibration_method = str(row.get("calibration_method", "")).strip()
+        if calibration_status == "calibrated":
+            if calibration_method not in CREDIT_CALIBRATION_METHODS:
+                raise ValueError(f"{prefix} has an unrecognized calibration method")
+        elif calibration_status == (
+            "uncalibrated_fixed_bandwidth_normal_reference"
+        ):
+            if (
+                calibration_method
+                or str(row.get("calibrated_p_value", "")).strip()
+                or str(row.get("calibrated_lower95", "")).strip()
+                or str(row.get("calibrated_upper95", "")).strip()
+                or str(row.get("outcome_iut_p_value_raw", "")).strip()
+                or str(row.get("outcome_iut_p_value_holm", "")).strip()
+                or str(row.get("outcome_iut_family_complete", "")).strip().lower()
+                not in {"false", "0"}
+                or row.get("admission_status") != "appendix_only"
+                or row.get("admission_reason")
+                != "uncalibrated_component_inference"
+            ):
+                raise ValueError(
+                    f"{prefix} lets uncalibrated normal-HAC inference escape "
+                    "the appendix-only gate"
+                )
+        else:
+            raise ValueError(f"{prefix} has an unknown calibration status")
+        calibration_statuses.add(calibration_status)
+        admission_statuses.add(str(row.get("admission_status", "")).strip())
+        hac_record = {
+            "association_observations": association_observations,
+            "association_hac_lags": association_hac_lags,
+            "association_hac_bandwidth_ratio": bandwidth_ratio,
+        }
+        prior_hac_record = credit_hac_by_window.get(window)
+        if prior_hac_record is not None and prior_hac_record != hac_record:
+            raise ValueError(
+                f"{prefix} disagrees with its window's HAC metadata"
+            )
+        credit_hac_by_window[window] = hac_record
         last_end = _quarter_ordinal(
             row.get("last_window_end"),
             label=f"{prefix} last_window_end",
@@ -1097,6 +1195,14 @@ def _cross_surface_contract_gate(
             "canonical_credit_window_quarters": ROLLING_WINDOW_QUARTERS,
             "sign_sensitivity_window_quarters": sorted(sensitivity_windows),
             "adjustments": sorted(adjustments),
+            "credit_hac_by_window": {
+                str(window): record
+                for window, record in sorted(credit_hac_by_window.items())
+            },
+            "inference_calibration_statuses": sorted(
+                calibration_statuses
+            ),
+            "admission_statuses": sorted(admission_statuses),
         },
     }
 

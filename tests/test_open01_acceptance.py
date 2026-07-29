@@ -11,10 +11,13 @@ import pytest
 from ea_tdc.open01 import (
     BREAK_QUARTER,
     CREDIT_ADJUSTMENTS,
+    CREDIT_CALIBRATION_METHODS,
     CREDIT_WINDOW_QUARTERS,
+    _apply_credit_admission,
     _fit_break,
     _fit_projection,
     _fit_tier_interaction,
+    _unknown_break_extrema,
     build_open01_acceptance,
     build_treatment_outcome_contract,
     write_open01_outputs,
@@ -217,6 +220,72 @@ def test_headline_identity_and_stability_suite_are_fixed_and_complete(
     ]
     assert inferential
     assert all(row.get("p_value_holm") not in (None, "") for row in inferential)
+    unknown_break_candidates = [
+        row
+        for row in accepted_result.stability_rows
+        if row.get("test_type") == "unknown_break_candidate"
+    ]
+    minimum_raw_p = min(
+        unknown_break_candidates,
+        key=lambda row: (
+            float(row["p_value_raw"]),
+            str(row["break_quarter"]),
+        ),
+    )
+    maximum_abs_beta_change = min(
+        unknown_break_candidates,
+        key=lambda row: (
+            -abs(float(row["beta_change"])),
+            str(row["break_quarter"]),
+        ),
+    )
+    summary = next(
+        row
+        for row in accepted_result.stability_rows
+        if row.get("test_type") == "unknown_break_scan_summary"
+    )
+    overall = next(
+        row
+        for row in accepted_result.stability_rows
+        if row.get("test_type") == "overall_gate"
+    )
+    assert summary["test_id"] == "unknown_break_scan_extrema"
+    assert summary["minimum_raw_p_break_quarter"] == minimum_raw_p[
+        "break_quarter"
+    ]
+    assert summary["maximum_abs_beta_change_break_quarter"] == (
+        maximum_abs_beta_change["break_quarter"]
+    )
+    assert math.isclose(
+        float(summary["maximum_abs_beta_change"]),
+        abs(float(maximum_abs_beta_change["beta_change"])),
+    )
+    assert summary["materiality_band"] == maximum_abs_beta_change[
+        "materiality_band"
+    ]
+    assert summary["scientific_status"] == maximum_abs_beta_change[
+        "materiality_band"
+    ]
+    assert [
+        row["break_quarter"]
+        for row in unknown_break_candidates
+        if row["is_minimum_raw_p_candidate"]
+    ] == [minimum_raw_p["break_quarter"]]
+    assert [
+        row["break_quarter"]
+        for row in unknown_break_candidates
+        if row["is_maximum_abs_beta_change_candidate"]
+    ] == [maximum_abs_beta_change["break_quarter"]]
+    assert all(
+        "is_scan_extremum" not in row for row in unknown_break_candidates
+    )
+    assert "selected_break_quarter" not in summary
+    assert overall["unknown_break_materiality_break_quarter"] == (
+        maximum_abs_beta_change["break_quarter"]
+    )
+    assert overall["unknown_break_materiality_band"] == (
+        maximum_abs_beta_change["materiality_band"]
+    )
 
 
 def test_credit_screen_is_exact_overlap_aware_and_window_stable(
@@ -256,7 +325,23 @@ def test_credit_screen_is_exact_overlap_aware_and_window_stable(
     assert set(observed_cells) == expected_cells
     assert len(observed_cells) == len(set(observed_cells))
     assert all(row["covariance_estimator"] == "newey_west" for row in rows)
-    assert all(int(row["covariance_lags"]) > 0 for row in rows)
+    expected_hac = {
+        40: (57, 39),
+        48: (49, 47),
+        60: (37, 35),
+    }
+    for row in rows:
+        window = int(row["window_quarters"])
+        observations, lags = expected_hac[window]
+        assert int(row["rolling_window_observations"]) == window
+        assert int(row["association_observations"]) == observations
+        assert int(row["n_windows"]) == observations
+        assert int(row["association_hac_lags"]) == lags
+        assert int(row["covariance_lags"]) == lags
+        assert math.isclose(
+            float(row["association_hac_bandwidth_ratio"]),
+            lags / observations,
+        )
     assert all(row.get("p_value_holm") not in (None, "") for row in rows)
     assert all(row["rolling_control_patterns_json"] for row in rows)
     assert all(
@@ -268,8 +353,120 @@ def test_credit_screen_is_exact_overlap_aware_and_window_stable(
         for row in rows
     )
     assert {
-        row["admission_status"] for row in rows
-    }.issubset({"main_text_eligible", "appendix_only"})
+        row["inference_calibration_status"] for row in rows
+    } == {"uncalibrated_fixed_bandwidth_normal_reference"}
+    assert {row["admission_status"] for row in rows} == {"appendix_only"}
+    assert {
+        row["admission_reason"] for row in rows
+    } == {"uncalibrated_component_inference"}
+    assert all(row["outcome_iut_p_value_raw"] == "" for row in rows)
+    assert all(row["outcome_iut_p_value_holm"] == "" for row in rows)
+    assert all(row["outcome_iut_family_complete"] is False for row in rows)
+
+
+def _calibrated_credit_rows(accepted_result) -> list[dict[str, object]]:
+    rows = [dict(row) for row in accepted_result.credit_screen_rows]
+    for row in rows:
+        row["correlation"] = 0.20
+        row["inference_calibration_status"] = "calibrated"
+        row["calibration_method"] = CREDIT_CALIBRATION_METHODS[0]
+        row["calibrated_p_value"] = 0.001
+        row["calibrated_lower95"] = 0.05
+        row["calibrated_upper95"] = 0.35
+    return rows
+
+
+def test_credit_admission_uses_outcome_iut_then_five_outcome_holm(
+    accepted_result,
+) -> None:
+    rows = _calibrated_credit_rows(accepted_result)
+
+    _apply_credit_admission(rows)
+
+    assert {row["admission_status"] for row in rows} == {
+        "main_text_eligible"
+    }
+    assert {float(row["outcome_iut_p_value_raw"]) for row in rows} == {
+        0.001
+    }
+    assert {float(row["outcome_iut_p_value_holm"]) for row in rows} == {
+        0.005
+    }
+    assert all(row["outcome_iut_family_size"] == 5 for row in rows)
+    assert all(row["outcome_iut_family_complete"] is True for row in rows)
+
+
+def test_credit_admission_accepts_calibrated_common_negative_sign(
+    accepted_result,
+) -> None:
+    rows = _calibrated_credit_rows(accepted_result)
+    for row in rows:
+        row["correlation"] = -0.20
+        row["calibrated_lower95"] = -0.35
+        row["calibrated_upper95"] = -0.05
+
+    _apply_credit_admission(rows)
+
+    assert {row["admission_status"] for row in rows} == {
+        "main_text_eligible"
+    }
+    assert all(row["all_adjustment_window_signs_stable"] for row in rows)
+    assert all(row["all_calibrated_intervals_exclude_zero"] for row in rows)
+
+
+def test_credit_admission_rejects_outcome_whose_worst_component_fails(
+    accepted_result,
+) -> None:
+    rows = _calibrated_credit_rows(accepted_result)
+    rejected_outcome = CREDIT_SCREEN_OUTCOME_IDS[-1]
+    rejected_row = next(
+        row
+        for row in rows
+        if row["credit_outcome_id"] == rejected_outcome
+    )
+    rejected_row["calibrated_p_value"] = 0.20
+
+    _apply_credit_admission(rows)
+
+    rejected = [
+        row for row in rows if row["credit_outcome_id"] == rejected_outcome
+    ]
+    admitted = [
+        row for row in rows if row["credit_outcome_id"] != rejected_outcome
+    ]
+    assert {float(row["outcome_iut_p_value_raw"]) for row in rejected} == {
+        0.20
+    }
+    assert {float(row["outcome_iut_p_value_holm"]) for row in rejected} == {
+        0.20
+    }
+    assert {row["admission_status"] for row in rejected} == {
+        "appendix_only"
+    }
+    assert {row["admission_reason"] for row in rejected} == {
+        "outcome_iut_holm_gt_0_05"
+    }
+    assert {row["admission_status"] for row in admitted} == {
+        "main_text_eligible"
+    }
+
+
+def test_credit_admission_never_promotes_uncalibrated_normal_hac(
+    accepted_result,
+) -> None:
+    rows = [dict(row) for row in accepted_result.credit_screen_rows]
+    for row in rows:
+        row["p_value_holm"] = 0.0
+        row["lower95_unbounded"] = 0.1
+        row["upper95_unbounded"] = 0.3
+        row["correlation"] = 0.2
+
+    _apply_credit_admission(rows)
+
+    assert {row["admission_status"] for row in rows} == {"appendix_only"}
+    assert {
+        row["admission_reason"] for row in rows
+    } == {"uncalibrated_component_inference"}
 
 
 def test_pre_component_tier_interaction_reuses_existing_indicator_control() -> None:
@@ -304,6 +501,60 @@ def test_unknown_break_at_tier_boundary_reuses_complementary_control() -> None:
 
     assert estimate["pre_n"] == EXPECTED_METHOD_TIER_COUNTS[pre_tier_id]
     assert math.isfinite(float(estimate["beta_change"]))
+
+
+def test_unknown_break_extrema_separate_inference_from_materiality() -> None:
+    rows = [
+        {
+            "break_quarter": "2010Q1",
+            "beta_change": 0.10,
+            "p_value_raw": 0.001,
+            "p_value_holm": 0.003,
+            "materiality_band": "stable",
+        },
+        {
+            "break_quarter": "2011Q1",
+            "beta_change": 0.20,
+            "p_value_raw": 0.010,
+            "p_value_holm": 0.020,
+            "materiality_band": "review",
+        },
+        {
+            "break_quarter": "2012Q1",
+            "beta_change": -0.40,
+            "p_value_raw": 0.020,
+            "p_value_holm": 0.020,
+            "materiality_band": "unstable",
+        },
+    ]
+
+    minimum_raw_p, maximum_abs_beta_change = _unknown_break_extrema(rows)
+
+    assert minimum_raw_p["break_quarter"] == "2010Q1"
+    assert maximum_abs_beta_change["break_quarter"] == "2012Q1"
+    assert float(maximum_abs_beta_change["beta_change"]) == -0.40
+
+
+def test_unknown_break_extrema_allow_one_candidate_to_hold_both_roles() -> None:
+    rows = [
+        {
+            "break_quarter": "2010Q1",
+            "beta_change": -0.40,
+            "p_value_raw": 0.001,
+            "p_value_holm": 0.002,
+        },
+        {
+            "break_quarter": "2011Q1",
+            "beta_change": 0.20,
+            "p_value_raw": 0.020,
+            "p_value_holm": 0.020,
+        },
+    ]
+
+    minimum_raw_p, maximum_abs_beta_change = _unknown_break_extrema(rows)
+
+    assert minimum_raw_p is rows[0]
+    assert maximum_abs_beta_change is rows[0]
 
 
 def test_rolling_projection_records_structurally_inactive_tier_control() -> None:
@@ -416,6 +667,55 @@ def test_writer_rejects_non_cartesian_credit_screen(
     else:
         assert completeness["details"]["duplicate_cells"] == []
         assert len(completeness["details"]["unexpected_cells"]) == 1
+
+
+def test_writer_rejects_uncalibrated_main_text_admission(
+    tmp_path: Path,
+    accepted_result,
+) -> None:
+    credit_rows = [dict(row) for row in accepted_result.credit_screen_rows]
+    credit_rows[0]["admission_status"] = "main_text_eligible"
+    corrupted = replace(
+        accepted_result,
+        credit_screen_rows=credit_rows,
+    )
+
+    paths = write_open01_outputs(corrupted, root=tmp_path)
+
+    manifest = json.loads(paths["manifest"].read_text(encoding="utf-8"))
+    gate = manifest["acceptance_checks"][
+        "credit_calibrated_admission_and_iut"
+    ]
+    assert manifest["status"] == "failed"
+    assert gate["passed"] is False
+
+
+def test_writer_rejects_untruthful_unknown_break_extrema(
+    tmp_path: Path,
+    accepted_result,
+) -> None:
+    stability_rows = [dict(row) for row in accepted_result.stability_rows]
+    summary = next(
+        row
+        for row in stability_rows
+        if row.get("test_type") == "unknown_break_scan_summary"
+    )
+    summary["maximum_abs_beta_change"] = (
+        float(summary["maximum_abs_beta_change"]) + 1.0
+    )
+    corrupted = replace(
+        accepted_result,
+        stability_rows=stability_rows,
+    )
+
+    paths = write_open01_outputs(corrupted, root=tmp_path)
+
+    manifest = json.loads(paths["manifest"].read_text(encoding="utf-8"))
+    gate = manifest["acceptance_checks"][
+        "unknown_break_extrema_truthful"
+    ]
+    assert manifest["status"] == "failed"
+    assert gate["passed"] is False
 
 
 def test_missing_credit_series_fails_closed_with_counts() -> None:

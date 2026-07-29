@@ -377,6 +377,11 @@ def _fixture_materializer(runner, root: Path, bundle_path: Path):
         for outcome in runner.CREDIT_SCREEN_OUTCOME_IDS:
             for window in (40, runner.ROLLING_WINDOW_QUARTERS, 60):
                 for adjustment in runner.CREDIT_ADJUSTMENTS:
+                    association_observations = 96 - window + 1
+                    association_hac_lags = min(
+                        window - 1,
+                        association_observations - 2,
+                    )
                     credit_rows.append(
                         {
                             "status": "computed",
@@ -385,7 +390,31 @@ def _fixture_materializer(runner, root: Path, bundle_path: Path):
                             "rolling_outcome_id": runner.CANONICAL_OUTCOME_ID,
                             "control_ids": ",".join(controls),
                             "window_quarters": window,
-                            "rolling_effective_n": window,
+                            "rolling_window_observations": window,
+                            "n_windows": association_observations,
+                            "association_observations": (
+                                association_observations
+                            ),
+                            "association_hac_lags": association_hac_lags,
+                            "covariance_lags": association_hac_lags,
+                            "association_hac_bandwidth_ratio": (
+                                association_hac_lags
+                                / association_observations
+                            ),
+                            "inference_calibration_status": (
+                                "uncalibrated_fixed_bandwidth_normal_reference"
+                            ),
+                            "calibration_method": "",
+                            "calibrated_p_value": "",
+                            "calibrated_lower95": "",
+                            "calibrated_upper95": "",
+                            "outcome_iut_p_value_raw": "",
+                            "outcome_iut_p_value_holm": "",
+                            "outcome_iut_family_complete": False,
+                            "admission_status": "appendix_only",
+                            "admission_reason": (
+                                "uncalibrated_component_inference"
+                            ),
                             "last_window_end": "2021Q4",
                             "last_observed_treatment_outcome_quarter": "2021Q4",
                             "sign_40": "positive",
@@ -631,6 +660,47 @@ def test_cross_surface_gate_rejects_non_cartesian_credit_screen(
     )
 
     with pytest.raises(ValueError, match="Cartesian product"):
+        runner._cross_surface_contract_gate(
+            root=tmp_path,
+            acceptance_outputs={
+                "credit_screen": {
+                    "path": runner.FORMAL_CREDIT_SCREEN_LOCATOR,
+                }
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ("hac_lag", "overlap-HAC lag metadata"),
+        ("uncalibrated_main_text", "appendix-only gate"),
+    ],
+)
+def test_cross_surface_gate_rejects_untruthful_credit_inference(
+    tmp_path: Path,
+    mutation: str,
+    message: str,
+) -> None:
+    runner = _load_runner()
+    bundle_path = _prepare_preflight(runner, tmp_path)
+    materialize = _fixture_materializer(runner, tmp_path, bundle_path)
+    materialize("rolling")
+    materialize("acceptance")
+    credit_path = tmp_path / runner.FORMAL_CREDIT_SCREEN_LOCATOR
+    with credit_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if mutation == "hac_lag":
+        rows[0]["association_hac_lags"] = "1"
+    else:
+        rows[0]["admission_status"] = "main_text_eligible"
+    _write_csv(
+        tmp_path,
+        runner.FORMAL_CREDIT_SCREEN_LOCATOR,
+        rows,
+    )
+
+    with pytest.raises(ValueError, match=message):
         runner._cross_surface_contract_gate(
             root=tmp_path,
             acceptance_outputs={
