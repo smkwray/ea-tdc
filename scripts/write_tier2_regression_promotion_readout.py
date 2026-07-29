@@ -2,11 +2,22 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from ea_tdc.open_contract import (  # noqa: E402
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_LABEL,
+)
+
+
 ESTIMATES_PATH = ROOT / "output" / "models" / "tier2_pinned_factor_bridge_estimates.csv"
 READOUT_CSV = ROOT / "output" / "reports" / "tier2_regression_promotion_readout.csv"
 READOUT_MD = ROOT / "output" / "reports" / "tier2_regression_promotion_readout.md"
@@ -19,11 +30,11 @@ TREATMENTS: dict[str, dict[str, str]] = {
         "recommendation": "Use for current-period accounting and charts; too short for standalone long-history inference.",
         "residual_id": "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
     },
-    "regression_mmf_rrp_bank_long": {
+    CANONICAL_TREATMENT_LABEL: {
         "role": "preferred long-history regression default",
         "coverage": "2002Q1-2025Q4",
         "recommendation": "Promote for long-history regressions with method-tier controls and sample-split disclosure.",
-        "residual_id": "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+        "residual_id": CANONICAL_RESIDUAL_ID,
     },
     "regression_mmf_rrp_di_long": {
         "role": "matched-perimeter long-history companion",
@@ -209,7 +220,7 @@ def write_markdown(readout: list[dict[str, Any]]) -> None:
             + " |"
         )
 
-    preferred = "regression_mmf_rrp_bank_long"
+    preferred = CANONICAL_TREATMENT_LABEL
     lines.extend(
         [
             "",

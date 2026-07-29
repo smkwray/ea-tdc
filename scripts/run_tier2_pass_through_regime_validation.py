@@ -23,9 +23,11 @@ for path in (SRC, SCRIPTS):
         sys.path.insert(0, str(path))
 
 from ea_tdc.estimation import _build_quarterly_target, _coerce_float  # noqa: E402
+from ea_tdc.open_contract import (  # noqa: E402
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+)
 from run_submission_appendix_diagnostics import (  # noqa: E402
-    PRIMARY_RESIDUAL_ID,
-    PRIMARY_TREATMENT_ID,
     _build_inputs,
     _effect_per_100b,
     _fit_lp,
@@ -43,6 +45,8 @@ from run_tier2_pass_through_offset_diagnostics import (  # noqa: E402
 )
 
 
+PRIMARY_TREATMENT_ID = CANONICAL_TREATMENT_ID
+PRIMARY_RESIDUAL_ID = CANONICAL_RESIDUAL_ID
 JOB_ID = "ea_tdc_pass_through_regime_validation"
 TABLE_DIR = ROOT / "outputs/tables"
 REPORT_DIR = ROOT / "outputs/reports"

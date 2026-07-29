@@ -11,6 +11,12 @@ from typing import Any
 
 import yaml
 
+from ea_tdc.open_contract import (
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+    CANONICAL_TREATMENT_SOURCE_SERIES,
+    METHOD_TIER_SERIES_ID,
+)
 from ea_tdc.paths import ProjectPaths
 from ea_tdc.utils import utc_now_iso, write_json
 
@@ -37,9 +43,9 @@ BASELINE_SERIES_MAP = {
         "tdcest",
         "tdc_tier2_regression_mmf_rrp_lb_bank_only_ru_flow",
     ),
-    "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq": (
+    CANONICAL_TREATMENT_ID: (
         "tdcest",
-        "tdc_tier2_regression_mmf_rrp_prop_bank_only_ru_flow",
+        CANONICAL_TREATMENT_SOURCE_SERIES,
     ),
     "tdc_tier2_regression_mmf_rrp_ub_bank_only_qoq": (
         "tdcest",
@@ -60,6 +66,10 @@ BASELINE_SERIES_MAP = {
     "tdc_tier2_regression_mmf_rrp_ub_di_np_cu_qoq": (
         "tdcest",
         "tdc_tier2_regression_mmf_rrp_ub_depository_institution_np_cu_ru_flow",
+    ),
+    METHOD_TIER_SERIES_ID: (
+        "tdcest",
+        METHOD_TIER_SERIES_ID,
     ),
     "tier2_regression_bank_row_tier_pre_component_h15_scaled": (
         "tdcest",
@@ -212,9 +222,7 @@ ALTERNATIVE_OTHER_COMPONENT_SERIES = {
     "other_component_tier2_legacy_h15_bank_only_qoq": "tdc_tier2_legacy_h15_bank_only_qoq",
     "other_component_tier2_regression_bank_only_qoq": "tdc_tier2_regression_bank_only_qoq",
     "other_component_tier2_regression_di_np_cu_qoq": "tdc_tier2_regression_di_np_cu_qoq",
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq": (
-        "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq"
-    ),
+    CANONICAL_RESIDUAL_ID: CANONICAL_TREATMENT_ID,
     "other_component_tier2_regression_mmf_rrp_prop_di_np_cu_qoq": (
         "tdc_tier2_regression_mmf_rrp_prop_di_np_cu_qoq"
     ),

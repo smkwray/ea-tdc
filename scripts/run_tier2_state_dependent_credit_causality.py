@@ -16,6 +16,14 @@ for path in (SRC, SCRIPTS):
 
 from ea_tdc.designs.quarterly import build_quarterly_design
 from ea_tdc.estimation import _estimate_rows
+from ea_tdc.open_contract import (
+    CANONICAL_CONTROL_IDS,
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_LABEL,
+    CREDIT_SCREEN_OUTCOME_IDS,
+    OUTCOME_UNIT_MULTIPLIERS,
+)
 from ea_tdc.paths import project_paths
 from ea_tdc.residualized_shock import _load_factor_branch
 from ea_tdc.utils import utc_now_iso, write_json
@@ -43,21 +51,21 @@ FOCUS_HORIZONS = {0, 4}
 LEADS = [1, 2, 4]
 
 TREATMENT_LABELS = [
-    "regression_mmf_rrp_bank_long",
+    CANONICAL_TREATMENT_LABEL,
     "regression_mmf_rrp_di_long",
     "modern_canonical_di_mmf_rrp_short",
     "available_plumbing_bridge",
 ]
 
-PRIMARY_TREATMENT_LABEL = "regression_mmf_rrp_bank_long"
-SELECTED_LAG_SENSITIVITY_LABEL = "regression_mmf_rrp_bank_long_selected_credit_rate_lags"
+PRIMARY_TREATMENT_LABEL = CANONICAL_TREATMENT_LABEL
+SELECTED_LAG_SENSITIVITY_LABEL = f"{CANONICAL_TREATMENT_LABEL}_selected_credit_rate_lags"
 
 INNOVATION_TREATMENT_LABELS = [
     "canon_long_innovation_factor_xfit",
     "canon_long_innovation_cycle_risk_xfit",
 ]
 
-INNOVATION_SOURCE_TREATMENT_LABEL = "regression_mmf_rrp_bank_long"
+INNOVATION_SOURCE_TREATMENT_LABEL = CANONICAL_TREATMENT_LABEL
 INNOVATION_SHOCK_PREFIX = "tdc_tier2_main_long_history_innovation"
 
 SELECTED_LAG_PERIODS = [1, 2, 4]
@@ -70,28 +78,18 @@ SELECTED_LAG_SOURCES = [
     "dgs10",
 ]
 SELECTED_LAG_CONTROLS = [
-    "tdcpass_strict_loan_core_min_qoq__lag_2",
-    "tdcpass_strict_loan_core_min_qoq__lag_4",
-    "tdcpass_strict_loan_consumer_credit_qoq__lag_4",
-    "bank_credit_qoq__lag_4",
-    "dgs2__lag_4",
-    "dgs10__lag_1",
-    "dgs10__lag_2",
+    control_id for control_id in CANONICAL_CONTROL_IDS if "__lag_" in control_id
 ]
 
 OUTCOMES = [
-    "matched_total_deposits",
+    CANONICAL_OUTCOME_ID,
     "domestic_nonbank_deposits_qoq",
     "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
-    "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+    CANONICAL_RESIDUAL_ID,
     "other_component_tier2_regression_mmf_rrp_prop_di_np_cu_qoq",
     "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
-    "tdcpass_strict_loan_core_min_qoq",
-    "tdcpass_strict_loan_mortgages_qoq",
-    "tdcpass_strict_loan_consumer_credit_qoq",
-    "bank_credit_qoq",
+    *CREDIT_SCREEN_OUTCOME_IDS,
     "bank_consumer_loans_qoq",
-    "bank_business_loans_qoq",
     "bank_real_estate_loans_qoq",
     "bank_non_treasury_securities_qoq",
     "bank_treasury_agency_securities_qoq",
@@ -362,11 +360,12 @@ def _augment_states(rows: list[dict[str, str]]) -> tuple[list[dict[str, str]], l
 
 
 def _normalization(outcome_id: str) -> tuple[str, float]:
+    canonical_multiplier = OUTCOME_UNIT_MULTIPLIERS.get(outcome_id)
+    if canonical_multiplier is not None:
+        return "dollars_per_dollar_tdc", canonical_multiplier
     dollar_per_dollar_outcomes = {
-        "matched_total_deposits",
         "domestic_nonbank_deposits_qoq",
         "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
-        "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
         "other_component_tier2_regression_mmf_rrp_prop_di_np_cu_qoq",
         "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
         "reserve_balances_qoq",
@@ -378,12 +377,7 @@ def _normalization(outcome_id: str) -> tuple[str, float]:
         "bank_treasury_securities_transactions_qoq",
     }
     quantity_outcomes = {
-        "tdcpass_strict_loan_core_min_qoq",
-        "tdcpass_strict_loan_mortgages_qoq",
-        "tdcpass_strict_loan_consumer_credit_qoq",
-        "bank_credit_qoq",
         "bank_consumer_loans_qoq",
-        "bank_business_loans_qoq",
         "bank_real_estate_loans_qoq",
         "bank_non_treasury_securities_qoq",
         "bank_treasury_agency_securities_qoq",
@@ -396,11 +390,12 @@ def _normalization(outcome_id: str) -> tuple[str, float]:
 
 
 def _effect_per_100b(outcome_id: str, beta: float) -> tuple[str, float]:
+    canonical_multiplier = OUTCOME_UNIT_MULTIPLIERS.get(outcome_id)
+    if canonical_multiplier is not None:
+        return "usd_billions_per_100b_tdc", beta * canonical_multiplier * 100.0
     dollar_per_dollar_outcomes = {
-        "matched_total_deposits",
         "domestic_nonbank_deposits_qoq",
         "other_component_tier2_canonical_di_mmf_rrp_prop_qoq",
-        "other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq",
         "other_component_tier2_regression_mmf_rrp_prop_di_np_cu_qoq",
         "other_component_tier2_mmf_rrp_plumbing_adjusted_qoq",
         "reserve_balances_qoq",
@@ -412,12 +407,7 @@ def _effect_per_100b(outcome_id: str, beta: float) -> tuple[str, float]:
         "bank_treasury_securities_transactions_qoq",
     }
     quantity_outcomes = {
-        "tdcpass_strict_loan_core_min_qoq",
-        "tdcpass_strict_loan_mortgages_qoq",
-        "tdcpass_strict_loan_consumer_credit_qoq",
-        "bank_credit_qoq",
         "bank_consumer_loans_qoq",
-        "bank_business_loans_qoq",
         "bank_real_estate_loans_qoq",
         "bank_non_treasury_securities_qoq",
         "bank_treasury_agency_securities_qoq",
@@ -771,7 +761,7 @@ def _key_rows(rows: list[dict[str, Any]], *, treatment_label: str, sample_label:
 
 
 def _readout_rows(sample_rows: list[dict[str, Any]], state_rows: list[dict[str, Any]], lead_rows: list[dict[str, Any]]) -> dict[str, Any]:
-    primary = "regression_mmf_rrp_bank_long"
+    primary = PRIMARY_TREATMENT_LABEL
     full_h0 = _key_rows(sample_rows, treatment_label=primary, sample_label="full_available", horizon=0)
     normal_h0 = _key_rows(sample_rows, treatment_label=primary, sample_label="exclude_gfc_covid_transition", horizon=0)
     core = "tdcpass_strict_loan_core_min_qoq"
@@ -876,7 +866,7 @@ def _write_markdown(
         "| --- | --- | --- | ---: | ---: | ---: |",
     ]
     for row in sample_rows:
-        if row["treatment_label"] != "regression_mmf_rrp_bank_long":
+        if row["treatment_label"] != PRIMARY_TREATMENT_LABEL:
             continue
         if row["outcome"] not in {"matched_total_deposits", "tdcpass_strict_loan_consumer_credit_qoq", "tdcpass_strict_loan_mortgages_qoq", "tdcpass_strict_loan_core_min_qoq"}:
             continue
@@ -986,7 +976,7 @@ def _write_markdown(
     lines.extend(["", "## State Interactions", "", "| state | profile | outcome | h | profile beta | interaction p | n |", "| --- | --- | --- | --- | ---: | ---: | ---: |"])
     shown = 0
     for row in state_rows:
-        if row["treatment_label"] != "regression_mmf_rrp_bank_long":
+        if row["treatment_label"] != PRIMARY_TREATMENT_LABEL:
             continue
         if row["outcome"] not in {"tdcpass_strict_loan_consumer_credit_qoq", "tdcpass_strict_loan_mortgages_qoq", "tdcpass_strict_loan_core_min_qoq", "matched_total_deposits"}:
             continue
@@ -1001,7 +991,7 @@ def _write_markdown(
 
     lines.extend(["", "## Lead Placebos", "", "| lead quarters | outcome | normalized beta | p | n |", "| ---: | --- | ---: | ---: | ---: |"])
     for row in lead_rows:
-        if row["treatment_label"] != "regression_mmf_rrp_bank_long":
+        if row["treatment_label"] != PRIMARY_TREATMENT_LABEL:
             continue
         if row["outcome"] not in {"tdcpass_strict_loan_consumer_credit_qoq", "tdcpass_strict_loan_mortgages_qoq", "tdcpass_strict_loan_core_min_qoq"}:
             continue

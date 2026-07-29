@@ -17,25 +17,34 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
 SCRIPTS = ROOT / "scripts"
-if str(SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS))
+for path in (SRC, SCRIPTS):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+
+from ea_tdc.open_contract import (  # noqa: E402
+    CANONICAL_CONTROL_IDS,
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_RESIDUAL_ID,
+    CANONICAL_TREATMENT_ID,
+    ROLLING_WINDOW_QUARTERS,
+)
 
 from run_submission_appendix_diagnostics import (  # noqa: E402
-    PRIMARY_RESIDUAL_ID,
-    PRIMARY_TREATMENT_ID,
     _build_inputs,
     _effect_per_100b,
     _fit_lp,
     _normal_p_two_sided,
     _normalization,
-    _scenario_controls,
 )
 
 
 JOB_ID = "tier2_rolling_selected_credit_rate_pass_through"
-OUTCOMES = ["matched_total_deposits", PRIMARY_RESIDUAL_ID]
-WINDOW_QUARTERS = 48
+PRIMARY_TREATMENT_ID = CANONICAL_TREATMENT_ID
+PRIMARY_RESIDUAL_ID = CANONICAL_RESIDUAL_ID
+OUTCOMES = [CANONICAL_OUTCOME_ID, PRIMARY_RESIDUAL_ID]
+WINDOW_QUARTERS = ROLLING_WINDOW_QUARTERS
 MIN_OBSERVATIONS = 40
 REGRESSION_OUTPUT = ROOT / "output/models/tier2_rolling_selected_credit_rate_pass_through_estimates.csv"
 CORRELATION_OUTPUT = ROOT / "output/reports/tier2_rolling_selected_credit_rate_pass_through_correlations.csv"
@@ -62,15 +71,70 @@ def _numeric_count(
     treatment_id: str,
     outcome_id: str,
 ) -> int:
-    count = 0
+    return len(
+        _effective_sample_quarters(
+            rows,
+            treatment_id=treatment_id,
+            outcome_id=outcome_id,
+        )
+    )
+
+
+def _finite_float(value: Any) -> float | None:
+    try:
+        numeric = float(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return numeric if math.isfinite(numeric) else None
+
+
+def _effective_sample_quarters(
+    rows: list[dict[str, str]],
+    *,
+    treatment_id: str,
+    outcome_id: str,
+    control_ids: list[str] | tuple[str, ...] = (),
+) -> list[str]:
+    quarters: list[str] = []
     for row in rows:
-        try:
-            float(row.get(treatment_id, ""))
-            float(row.get(outcome_id, ""))
-        except (TypeError, ValueError):
+        quarter = str(row.get("quarter", "")).strip()
+        if not quarter:
             continue
-        count += 1
-    return count
+        required_ids = (treatment_id, outcome_id, *control_ids)
+        if all(_finite_float(row.get(series_id, "")) is not None for series_id in required_ids):
+            quarters.append(quarter)
+    return sorted(quarters)
+
+
+def _last_joint_observed_quarter(
+    rows: list[dict[str, str]],
+    *,
+    treatment_id: str,
+    outcome_id: str,
+) -> str | None:
+    quarters = _effective_sample_quarters(
+        rows,
+        treatment_id=treatment_id,
+        outcome_id=outcome_id,
+    )
+    return quarters[-1] if quarters else None
+
+
+def _endpoint_is_jointly_observed(
+    rows: list[dict[str, str]],
+    *,
+    treatment_id: str,
+    outcome_id: str,
+    window_end: str,
+) -> bool:
+    for row in rows:
+        if str(row.get("quarter", "")).strip() != window_end:
+            continue
+        return (
+            _finite_float(row.get(treatment_id, "")) is not None
+            and _finite_float(row.get(outcome_id, "")) is not None
+        )
+    return False
 
 
 def _pearson(left: list[float], right: list[float]) -> float | None:
@@ -97,12 +161,9 @@ def _paired_values(
     treatment_values: list[float] = []
     outcome_values: list[float] = []
     for row in rows:
-        try:
-            treatment = float(str(row.get(treatment_id, "")).strip())
-            outcome = float(str(row.get(outcome_id, "")).strip())
-        except (TypeError, ValueError):
-            continue
-        if not math.isfinite(treatment) or not math.isfinite(outcome):
+        treatment = _finite_float(row.get(treatment_id, ""))
+        outcome = _finite_float(row.get(outcome_id, ""))
+        if treatment is None or outcome is None:
             continue
         treatment_values.append(treatment)
         outcome_values.append(outcome)
@@ -116,6 +177,22 @@ def _correlation_row(
     window_start: str,
     window_end: str,
 ) -> dict[str, Any] | None:
+    last_joint_observed = _last_joint_observed_quarter(
+        rows,
+        treatment_id=PRIMARY_TREATMENT_ID,
+        outcome_id=outcome_id,
+    )
+    if (
+        last_joint_observed is None
+        or window_end > last_joint_observed
+        or not _endpoint_is_jointly_observed(
+            rows,
+            treatment_id=PRIMARY_TREATMENT_ID,
+            outcome_id=outcome_id,
+            window_end=window_end,
+        )
+    ):
+        return None
     treatment_values, outcome_values = _paired_values(
         rows,
         treatment_id=PRIMARY_TREATMENT_ID,
@@ -126,10 +203,17 @@ def _correlation_row(
     correlation = _pearson(treatment_values, outcome_values)
     if correlation is None:
         return None
+    effective_quarters = _effective_sample_quarters(
+        rows,
+        treatment_id=PRIMARY_TREATMENT_ID,
+        outcome_id=outcome_id,
+    )
     return {
         "job_id": JOB_ID,
         "window_start_quarter": window_start,
         "window_end_quarter": window_end,
+        "effective_sample_start": effective_quarters[0],
+        "effective_sample_end": effective_quarters[-1],
         "window_quarters": WINDOW_QUARTERS,
         "outcome": outcome_id,
         "treatment_id": PRIMARY_TREATMENT_ID,
@@ -158,6 +242,22 @@ def _estimate_window(
     window_start: str,
     window_end: str,
 ) -> dict[str, Any] | None:
+    last_joint_observed = _last_joint_observed_quarter(
+        rows,
+        treatment_id=PRIMARY_TREATMENT_ID,
+        outcome_id=outcome_id,
+    )
+    if (
+        last_joint_observed is None
+        or window_end > last_joint_observed
+        or not _endpoint_is_jointly_observed(
+            rows,
+            treatment_id=PRIMARY_TREATMENT_ID,
+            outcome_id=outcome_id,
+            window_end=window_end,
+        )
+    ):
+        return None
     if _numeric_count(rows, treatment_id=PRIMARY_TREATMENT_ID, outcome_id=outcome_id) < MIN_OBSERVATIONS:
         return None
     try:
@@ -173,6 +273,17 @@ def _estimate_window(
         return None
     if n < MIN_OBSERVATIONS:
         return None
+    effective_quarters = _effective_sample_quarters(
+        rows,
+        treatment_id=PRIMARY_TREATMENT_ID,
+        outcome_id=outcome_id,
+        control_ids=used,
+    )
+    if len(effective_quarters) != n:
+        raise ValueError(
+            "Rolling effective-sample reconstruction disagrees with the fitted sample: "
+            f"outcome={outcome_id!r}, reconstructed={len(effective_quarters)}, fitted={n}"
+        )
     beta = fit.beta[1]
     se = fit.ses[1]
     z = beta / se if se > 0 else None
@@ -185,6 +296,8 @@ def _estimate_window(
         "job_id": JOB_ID,
         "window_start_quarter": window_start,
         "window_end_quarter": window_end,
+        "effective_sample_start": effective_quarters[0],
+        "effective_sample_end": effective_quarters[-1],
         "window_quarters": WINDOW_QUARTERS,
         "outcome": outcome_id,
         "horizon": 0,
@@ -204,6 +317,7 @@ def _estimate_window(
         "covariance_lags": 1,
         "rsquared": fit.rsquared,
         "sample_label": f"{window_start}_to_{window_end}",
+        "effective_sample_label": f"{effective_quarters[0]}_to_{effective_quarters[-1]}",
         "normalized_unit": "dollars_per_dollar_tdc",
         "normalized_beta": normalized_beta,
         "normalized_se": normalized_se,
@@ -219,19 +333,27 @@ def _estimate_window(
     }
 
 
-def build_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    _paths, rows, control_ids, _factor_count, _screened_count, selected_credit_lags, selected_rate_lags = _build_inputs()
-    controls = _scenario_controls(
-        control_ids,
-        selected_credit_lags,
-        selected_rate_lags,
-    )["selected_credit_rate_risk_lags"]
+def build_rows() -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    dict[str, Any],
+]:
+    _paths, rows, _control_ids, _factor_count, _screened_count, _selected_credit_lags, _selected_rate_lags = _build_inputs()
+    controls = list(CANONICAL_CONTROL_IDS)
     rows_by_quarter = {
         str(row.get("quarter", "")): row
         for row in rows
         if str(row.get("quarter", ""))
     }
     quarters = sorted(rows_by_quarter)
+    last_joint_observed_quarter = {
+        outcome_id: _last_joint_observed_quarter(
+            rows,
+            treatment_id=PRIMARY_TREATMENT_ID,
+            outcome_id=outcome_id,
+        )
+        for outcome_id in OUTCOMES
+    }
     estimates: list[dict[str, Any]] = []
     correlations: list[dict[str, Any]] = []
     for end_index in range(WINDOW_QUARTERS - 1, len(quarters)):
@@ -240,6 +362,9 @@ def build_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         window_start = window_quarters[0]
         window_end = window_quarters[-1]
         for outcome_id in OUTCOMES:
+            last_joint = last_joint_observed_quarter[outcome_id]
+            if last_joint is None or window_end > last_joint:
+                continue
             estimate = _estimate_window(
                 rows=window_rows,
                 controls=controls,
@@ -257,7 +382,10 @@ def build_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
             )
             if correlation is not None and math.isfinite(float(correlation["correlation"])):
                 correlations.append(correlation)
-    return estimates, correlations
+    return estimates, correlations, {
+        "control_ids": controls,
+        "last_joint_observed_quarter": last_joint_observed_quarter,
+    }
 
 
 def _format_number(value: Any, *, digits: int = 3) -> str:
@@ -345,14 +473,64 @@ def _write_manifest(
     *,
     regression_rows: list[dict[str, Any]],
     correlation_rows: list[dict[str, Any]],
+    control_ids: list[str],
+    last_joint_observed_quarter: dict[str, str | None],
 ) -> None:
     MANIFEST_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    all_rows = [*regression_rows, *correlation_rows]
+    effective_starts = [
+        str(row["effective_sample_start"])
+        for row in all_rows
+        if row.get("effective_sample_start")
+    ]
+    effective_ends = [
+        str(row["effective_sample_end"])
+        for row in all_rows
+        if row.get("effective_sample_end")
+    ]
+    effective_sample_bounds: dict[str, dict[str, dict[str, str | None]]] = {}
+    for outcome_id in OUTCOMES:
+        effective_sample_bounds[outcome_id] = {}
+        for output_name, rows in (
+            ("regression", regression_rows),
+            ("correlation", correlation_rows),
+        ):
+            outcome_rows = [row for row in rows if row.get("outcome") == outcome_id]
+            starts = [
+                str(row["effective_sample_start"])
+                for row in outcome_rows
+                if row.get("effective_sample_start")
+            ]
+            ends = [
+                str(row["effective_sample_end"])
+                for row in outcome_rows
+                if row.get("effective_sample_end")
+            ]
+            effective_sample_bounds[outcome_id][output_name] = {
+                "start": min(starts) if starts else None,
+                "end": max(ends) if ends else None,
+            }
     payload = {
         "job_id": JOB_ID,
+        "treatment_id": PRIMARY_TREATMENT_ID,
+        "outcome_ids": OUTCOMES,
+        "control_ids": control_ids,
         "regression_rows": len(regression_rows),
         "correlation_rows": len(correlation_rows),
         "window_quarters": WINDOW_QUARTERS,
         "min_observations": MIN_OBSERVATIONS,
+        "effective_sample_start": min(effective_starts) if effective_starts else None,
+        "effective_sample_end": max(effective_ends) if effective_ends else None,
+        "effective_sample_bounds": effective_sample_bounds,
+        "last_joint_observed_quarter": last_joint_observed_quarter,
+        "window": {
+            "nominal_quarters": WINDOW_QUARTERS,
+            "minimum_observations": MIN_OBSERVATIONS,
+            "endpoint_rule": (
+                "Emit an outcome window only when canonical treatment and outcome are "
+                "both observed at the nominal window end."
+            ),
+        },
         "outputs": {
             "regression_estimates": str(REGRESSION_OUTPUT.relative_to(ROOT)),
             "correlations": str(CORRELATION_OUTPUT.relative_to(ROOT)),
@@ -367,11 +545,16 @@ def _write_manifest(
 
 
 def main() -> None:
-    regression_rows, correlation_rows = build_rows()
+    regression_rows, correlation_rows, metadata = build_rows()
     _write_csv(REGRESSION_OUTPUT, regression_rows)
     _write_csv(CORRELATION_OUTPUT, correlation_rows)
     _write_report(regression_rows=regression_rows, correlation_rows=correlation_rows)
-    _write_manifest(regression_rows=regression_rows, correlation_rows=correlation_rows)
+    _write_manifest(
+        regression_rows=regression_rows,
+        correlation_rows=correlation_rows,
+        control_ids=metadata["control_ids"],
+        last_joint_observed_quarter=metadata["last_joint_observed_quarter"],
+    )
     print(f"wrote {len(regression_rows)} rows to {REGRESSION_OUTPUT}")
     print(f"wrote {len(correlation_rows)} rows to {CORRELATION_OUTPUT}")
     print(f"wrote report to {REPORT_OUTPUT}")
