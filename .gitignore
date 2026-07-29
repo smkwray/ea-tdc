@@ -52,3 +52,10 @@ docs/site_assets/reports/du_residual_technical_pass/
 .DS_Store
 .vscode/
 .idea/
+
+# Root agent stubs
+CLAUDE.md
+AGENTS.md
+
+# Ephemeral in-project worktrees
+.worktrees/
