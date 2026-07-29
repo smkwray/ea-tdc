@@ -38,6 +38,11 @@ CREDIT_ADJUSTMENTS = (
     "share_2020_2021_adjusted",
     "linear_time_adjusted",
 )
+CREDIT_CALIBRATION_METHODS = (
+    "fixed_b_hac_calibrated",
+    "quarter_level_moving_block_bootstrap_calibrated",
+    "quarter_level_stationary_bootstrap_calibrated",
+)
 MATERIALITY_BANDS: Mapping[str, Any] = {
     "metric": "absolute_beta_change",
     "unit": "dollars_per_dollar_tdc",
@@ -98,6 +103,18 @@ def _as_float(value: Any) -> float | None:
     return number if math.isfinite(number) else None
 
 
+def _optional_number_matches(value: Any, expected: float | None) -> bool:
+    observed = _as_float(value)
+    if expected is None:
+        return observed is None
+    return observed is not None and math.isclose(
+        observed,
+        expected,
+        rel_tol=1e-12,
+        abs_tol=1e-12,
+    )
+
+
 def _quarter_ordinal(quarter: str) -> int:
     match = _QUARTER_PATTERN.fullmatch(str(quarter).strip())
     if match is None:
@@ -152,6 +169,45 @@ def _holm_adjust(rows: list[dict[str, Any]], *, family_key: str) -> None:
             adjusted = min(1.0, max(previous, (count - rank) * p_value))
             rows[index]["p_value_holm"] = adjusted
             previous = adjusted
+
+
+def _unknown_break_extrema(
+    rows: Sequence[Mapping[str, Any]],
+) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+    if not rows:
+        raise ValueError("Unknown-break extrema require at least one candidate")
+    candidates: list[tuple[Mapping[str, Any], float, float, int]] = []
+    for row in rows:
+        break_quarter = str(row.get("break_quarter", "")).strip()
+        quarter_ordinal = _quarter_ordinal(break_quarter)
+        beta_change = _as_float(row.get("beta_change"))
+        p_value_raw = _as_float(row.get("p_value_raw"))
+        p_value_holm = _as_float(row.get("p_value_holm"))
+        if beta_change is None:
+            raise ValueError(
+                f"Unknown-break candidate {break_quarter} lacks beta_change"
+            )
+        if (
+            p_value_raw is None
+            or not 0.0 <= p_value_raw <= 1.0
+            or p_value_holm is None
+            or not 0.0 <= p_value_holm <= 1.0
+        ):
+            raise ValueError(
+                f"Unknown-break candidate {break_quarter} lacks valid p-values"
+            )
+        candidates.append(
+            (row, beta_change, p_value_raw, quarter_ordinal)
+        )
+    minimum_raw_p = min(
+        candidates,
+        key=lambda candidate: (candidate[2], candidate[3]),
+    )[0]
+    maximum_abs_beta_change = min(
+        candidates,
+        key=lambda candidate: (-abs(candidate[1]), candidate[3]),
+    )[0]
+    return minimum_raw_p, maximum_abs_beta_change
 
 
 def _numeric_sample(
@@ -482,6 +538,18 @@ def _overlap_association(
         "p_value_raw": _normal_p(correlation, se),
         "covariance_estimator": "newey_west",
         "covariance_lags": covariance_lags,
+        "association_observations": len(beta_values),
+        "association_hac_lags": covariance_lags,
+        "association_hac_bandwidth_ratio": (
+            covariance_lags / len(beta_values)
+        ),
+        "inference_calibration_status": (
+            "uncalibrated_fixed_bandwidth_normal_reference"
+        ),
+        "calibration_method": "",
+        "calibrated_p_value": "",
+        "calibrated_lower95": "",
+        "calibrated_upper95": "",
     }
 
 
@@ -491,6 +559,226 @@ def _sign(value: float, *, tolerance: float = 1e-12) -> str:
     if value < -tolerance:
         return "negative"
     return "zero"
+
+
+def _calibrated_component(
+    row: Mapping[str, Any],
+) -> tuple[float, float, float, str] | None:
+    method = str(row.get("calibration_method", "")).strip()
+    p_value = _as_float(row.get("calibrated_p_value"))
+    lower = _as_float(row.get("calibrated_lower95"))
+    upper = _as_float(row.get("calibrated_upper95"))
+    if (
+        row.get("inference_calibration_status") != "calibrated"
+        or method not in CREDIT_CALIBRATION_METHODS
+        or p_value is None
+        or not 0.0 <= p_value <= 1.0
+        or lower is None
+        or upper is None
+        or lower > upper
+    ):
+        return None
+    return p_value, lower, upper, method
+
+
+def _credit_admission_claims(
+    rows: Sequence[Mapping[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    expected_specs = {
+        (window, adjustment)
+        for window in CREDIT_WINDOW_QUARTERS
+        for adjustment in CREDIT_ADJUSTMENTS
+    }
+    by_outcome: dict[str, list[Mapping[str, Any]]] = {
+        outcome_id: [] for outcome_id in CREDIT_SCREEN_OUTCOME_IDS
+    }
+    for row in rows:
+        outcome_id = str(row.get("credit_outcome_id", "")).strip()
+        if outcome_id in by_outcome:
+            by_outcome[outcome_id].append(row)
+
+    claims: dict[str, dict[str, Any]] = {}
+    for outcome_id in CREDIT_SCREEN_OUTCOME_IDS:
+        outcome_rows = by_outcome[outcome_id]
+        observed_specs = [
+            (
+                int(row.get("window_quarters", 0)),
+                str(row.get("adjustment", "")).strip(),
+            )
+            for row in outcome_rows
+        ]
+        exact_specs = (
+            len(observed_specs) == len(expected_specs)
+            and len(set(observed_specs)) == len(expected_specs)
+            and set(observed_specs) == expected_specs
+        )
+        signs = [
+            _sign(float(row["correlation"]))
+            for row in outcome_rows
+            if _as_float(row.get("correlation")) is not None
+        ]
+        same_nonzero_sign = (
+            exact_specs
+            and len(signs) == len(expected_specs)
+            and len(set(signs)) == 1
+            and "zero" not in signs
+        )
+        normal_hac_intervals_exclude_zero = exact_specs and all(
+            (
+                float(row["lower95_unbounded"]) > 0
+                or float(row["upper95_unbounded"]) < 0
+            )
+            for row in outcome_rows
+        )
+        diagnostic_component_holm_significant = exact_specs and all(
+            _as_float(row.get("p_value_holm")) is not None
+            and float(row["p_value_holm"]) <= 0.05
+            for row in outcome_rows
+        )
+
+        calibrated = [_calibrated_component(row) for row in outcome_rows]
+        calibration_complete = (
+            exact_specs
+            and len(calibrated) == len(expected_specs)
+            and all(component is not None for component in calibrated)
+        )
+        calibrated_components = [
+            component for component in calibrated if component is not None
+        ]
+        calibrated_intervals_exclude_zero = (
+            calibration_complete
+            and all(
+                (
+                    lower > 0
+                    and _sign(float(row["correlation"])) == "positive"
+                )
+                or (
+                    upper < 0
+                    and _sign(float(row["correlation"])) == "negative"
+                )
+                for row, (_p_value, lower, upper, _method) in zip(
+                    outcome_rows,
+                    calibrated_components,
+                    strict=True,
+                )
+            )
+        )
+        claims[outcome_id] = {
+            "exact_specs": exact_specs,
+            "same_nonzero_sign": same_nonzero_sign,
+            "normal_hac_intervals_exclude_zero": (
+                normal_hac_intervals_exclude_zero
+            ),
+            "diagnostic_component_holm_significant": (
+                diagnostic_component_holm_significant
+            ),
+            "calibration_complete": calibration_complete,
+            "calibrated_component_count": len(calibrated_components),
+            "calibration_methods": sorted(
+                {component[3] for component in calibrated_components}
+            ),
+            "calibrated_intervals_exclude_zero": (
+                calibrated_intervals_exclude_zero
+            ),
+            "outcome_iut_p_value_raw": (
+                max(component[0] for component in calibrated_components)
+                if calibration_complete
+                else None
+            ),
+            "outcome_iut_p_value_holm": None,
+        }
+
+    calibrated_family_complete = (
+        len(claims) == len(CREDIT_SCREEN_OUTCOME_IDS)
+        and all(
+            claim["calibration_complete"]
+            for claim in claims.values()
+        )
+    )
+    if calibrated_family_complete:
+        claim_rows = [
+            {
+                "credit_outcome_id": outcome_id,
+                "multiple_testing_family": "credit_outcome_iut_claims",
+                "p_value_raw": claim["outcome_iut_p_value_raw"],
+            }
+            for outcome_id, claim in claims.items()
+        ]
+        _holm_adjust(claim_rows, family_key="multiple_testing_family")
+        for claim_row in claim_rows:
+            claims[str(claim_row["credit_outcome_id"])][
+                "outcome_iut_p_value_holm"
+            ] = float(claim_row["p_value_holm"])
+
+    for claim in claims.values():
+        p_value_holm = claim["outcome_iut_p_value_holm"]
+        admitted = (
+            calibrated_family_complete
+            and claim["same_nonzero_sign"]
+            and claim["calibrated_intervals_exclude_zero"]
+            and p_value_holm is not None
+            and float(p_value_holm) <= 0.05
+        )
+        if not claim["exact_specs"]:
+            reason = "incomplete_specification_grid"
+        elif not claim["calibration_complete"]:
+            reason = "uncalibrated_component_inference"
+        elif not calibrated_family_complete:
+            reason = "incomplete_five_outcome_calibrated_family"
+        elif not claim["same_nonzero_sign"]:
+            reason = "unstable_or_zero_component_sign"
+        elif not claim["calibrated_intervals_exclude_zero"]:
+            reason = "calibrated_interval_includes_zero_or_sign_mismatch"
+        elif p_value_holm is None or float(p_value_holm) > 0.05:
+            reason = "outcome_iut_holm_gt_0_05"
+        else:
+            reason = "calibrated_claim_passed"
+        claim["calibrated_family_complete"] = calibrated_family_complete
+        claim["admission_status"] = (
+            "main_text_eligible" if admitted else "appendix_only"
+        )
+        claim["admission_reason"] = reason
+    return claims
+
+
+def _apply_credit_admission(rows: list[dict[str, Any]]) -> None:
+    claims = _credit_admission_claims(rows)
+    for row in rows:
+        claim = claims[str(row["credit_outcome_id"])]
+        row["all_adjustment_window_signs_stable"] = claim[
+            "same_nonzero_sign"
+        ]
+        row["normal_hac_diagnostic_all_intervals_exclude_zero"] = claim[
+            "normal_hac_intervals_exclude_zero"
+        ]
+        row["normal_hac_diagnostic_all_component_holm_p_lte_0_05"] = claim[
+            "diagnostic_component_holm_significant"
+        ]
+        row["calibrated_component_count"] = claim[
+            "calibrated_component_count"
+        ]
+        row["calibration_methods_json"] = _json(
+            claim["calibration_methods"]
+        )
+        row["all_calibrated_intervals_exclude_zero"] = claim[
+            "calibrated_intervals_exclude_zero"
+        ]
+        row["outcome_iut_p_value_raw"] = (
+            claim["outcome_iut_p_value_raw"]
+            if claim["outcome_iut_p_value_raw"] is not None
+            else ""
+        )
+        row["outcome_iut_p_value_holm"] = (
+            claim["outcome_iut_p_value_holm"]
+            if claim["outcome_iut_p_value_holm"] is not None
+            else ""
+        )
+        row["outcome_iut_family_size"] = len(CREDIT_SCREEN_OUTCOME_IDS)
+        row["outcome_iut_family_complete"] = claim[
+            "calibrated_family_complete"
+        ]
+        row["admission_status"] = claim["admission_status"]
+        row["admission_reason"] = claim["admission_reason"]
 
 
 def _valid_sha256(value: Any) -> bool:
@@ -729,6 +1017,22 @@ def _credit_screen(
 
     output: list[dict[str, Any]] = []
     for window_quarters, window_rows in rolling.items():
+        realized_rolling_observations = {
+            int(row["deposit_beta_n"]) for row in window_rows
+        }
+        if len(realized_rolling_observations) != 1:
+            issues.append(
+                "credit_rolling_observation_count_drift:"
+                f"{window_quarters}:{sorted(realized_rolling_observations)}"
+            )
+            continue
+        rolling_window_observations = realized_rolling_observations.pop()
+        if rolling_window_observations != window_quarters:
+            issues.append(
+                "credit_rolling_observation_count_mismatch:"
+                f"{window_quarters}:{rolling_window_observations}"
+            )
+            continue
         beta_values = [float(row["deposit_beta"]) for row in window_rows]
         for outcome_id in CREDIT_SCREEN_OUTCOME_IDS:
             feature_values = [float(row[outcome_id]) for row in window_rows]
@@ -776,7 +1080,9 @@ def _credit_screen(
                         "last_observed_treatment_outcome_quarter": numeric[-1][
                             "quarter"
                         ],
-                        "rolling_effective_n": window_quarters,
+                        "rolling_window_observations": (
+                            rolling_window_observations
+                        ),
                         "rolling_control_patterns_json": _json(
                             sorted(
                                 {
@@ -802,13 +1108,11 @@ def _credit_screen(
 
     _holm_adjust(output, family_key="multiple_testing_family")
     by_outcome_adjustment: dict[tuple[str, str], dict[int, dict[str, Any]]] = {}
-    by_outcome: dict[str, list[dict[str, Any]]] = {}
     for row in output:
         outcome_id = str(row["credit_outcome_id"])
         adjustment = str(row["adjustment"])
         window = int(row["window_quarters"])
         by_outcome_adjustment.setdefault((outcome_id, adjustment), {})[window] = row
-        by_outcome.setdefault(outcome_id, []).append(row)
 
     for (outcome_id, adjustment), window_rows in by_outcome_adjustment.items():
         signs = {
@@ -827,27 +1131,7 @@ def _credit_screen(
             row["sign_60"] = signs.get(60, "missing")
             row["sign_stable_40_48_60"] = stable
 
-    for outcome_id, outcome_rows in by_outcome.items():
-        signs = [_sign(float(row["correlation"])) for row in outcome_rows]
-        same_sign = len(signs) == 9 and len(set(signs)) == 1 and "zero" not in signs
-        intervals_exclude_zero = len(outcome_rows) == 9 and all(
-            float(row["lower95_unbounded"]) > 0
-            or float(row["upper95_unbounded"]) < 0
-            for row in outcome_rows
-        )
-        holm_significant = len(outcome_rows) == 9 and all(
-            _as_float(row.get("p_value_holm")) is not None
-            and float(row["p_value_holm"]) <= 0.05
-            for row in outcome_rows
-        )
-        admitted = same_sign and intervals_exclude_zero and holm_significant
-        for row in outcome_rows:
-            row["all_adjustment_window_signs_stable"] = same_sign
-            row["all_overlap_intervals_exclude_zero"] = intervals_exclude_zero
-            row["all_holm_p_lte_0_05"] = holm_significant
-            row["admission_status"] = (
-                "main_text_eligible" if admitted else "appendix_only"
-            )
+    _apply_credit_admission(output)
     return output
 
 
@@ -1128,6 +1412,8 @@ def build_open01_acceptance(
 
     minimum_segment = max(12, len(CANONICAL_CONTROL_IDS) + 4)
     unknown_break_rows: list[dict[str, Any]] = []
+    minimum_raw_p_candidate: Mapping[str, Any] | None = None
+    maximum_abs_beta_change_candidate: Mapping[str, Any] | None = None
     candidate_quarters = [
         str(headline_sample[index]["quarter"])
         for index in range(
@@ -1158,30 +1444,65 @@ def build_open01_acceptance(
         )
     _holm_adjust(unknown_break_rows, family_key="multiple_testing_family")
     if unknown_break_rows:
-        scan_extremum = min(
-            unknown_break_rows,
-            key=lambda row: float(row["p_value_raw"]),
+        (
+            minimum_raw_p_candidate,
+            maximum_abs_beta_change_candidate,
+        ) = _unknown_break_extrema(unknown_break_rows)
+        maximum_abs_beta_change = abs(
+            float(maximum_abs_beta_change_candidate["beta_change"])
         )
         for row in unknown_break_rows:
-            row["is_scan_extremum"] = row is scan_extremum
+            row["is_minimum_raw_p_candidate"] = (
+                row is minimum_raw_p_candidate
+            )
+            row["is_maximum_abs_beta_change_candidate"] = (
+                row is maximum_abs_beta_change_candidate
+            )
         stability_rows.extend(unknown_break_rows)
         stability_rows.append(
             {
                 "open_id": OPEN_ID,
                 "status": "computed",
                 "test_type": "unknown_break_scan_summary",
-                "test_id": "minimum_raw_p_candidate",
-                "selected_break_quarter": scan_extremum["break_quarter"],
-                "beta_change": scan_extremum["beta_change"],
-                "p_value_raw": scan_extremum["p_value_raw"],
-                "p_value_holm": scan_extremum.get("p_value_holm", ""),
+                "test_id": "unknown_break_scan_extrema",
+                "minimum_raw_p_break_quarter": minimum_raw_p_candidate[
+                    "break_quarter"
+                ],
+                "minimum_raw_p_beta_change": minimum_raw_p_candidate[
+                    "beta_change"
+                ],
+                "minimum_raw_p_value": minimum_raw_p_candidate[
+                    "p_value_raw"
+                ],
+                "holm_p_value_at_minimum_raw_p": (
+                    minimum_raw_p_candidate["p_value_holm"]
+                ),
+                "maximum_abs_beta_change_break_quarter": (
+                    maximum_abs_beta_change_candidate["break_quarter"]
+                ),
+                "beta_change_at_maximum_abs_beta_change": (
+                    maximum_abs_beta_change_candidate["beta_change"]
+                ),
+                "maximum_abs_beta_change": maximum_abs_beta_change,
+                "raw_p_value_at_maximum_abs_beta_change": (
+                    maximum_abs_beta_change_candidate["p_value_raw"]
+                ),
+                "holm_p_value_at_maximum_abs_beta_change": (
+                    maximum_abs_beta_change_candidate["p_value_holm"]
+                ),
                 "candidates_tested": len(unknown_break_rows),
                 "inference_method": (
-                    "HAC treatment-by-post interaction scan with "
-                    "Holm adjustment across candidate breaks"
+                    "Predeclared fixed-candidate HAC treatment-by-post grid "
+                    "scan with Holm adjustment; not structural-break date "
+                    "estimation"
                 ),
                 "materiality_bands_json": _json(MATERIALITY_BANDS),
-                "scientific_status": scan_extremum["materiality_band"],
+                "materiality_band": maximum_abs_beta_change_candidate[
+                    "materiality_band"
+                ],
+                "scientific_status": maximum_abs_beta_change_candidate[
+                    "materiality_band"
+                ],
             }
         )
     else:
@@ -1364,14 +1685,9 @@ def build_open01_acceptance(
     ]
     if declared_break is not None:
         relevant_bands.append(str(declared_break["materiality_band"]))
-    if unknown_break_rows:
+    if maximum_abs_beta_change_candidate is not None:
         relevant_bands.append(
-            str(
-                min(
-                    unknown_break_rows,
-                    key=lambda row: float(row["p_value_raw"]),
-                )["materiality_band"]
-            )
+            str(maximum_abs_beta_change_candidate["materiality_band"])
         )
     scientific_status = _worst_materiality(
         band for band in relevant_bands if band != "not_computed"
@@ -1389,6 +1705,16 @@ def build_open01_acceptance(
             "issue_count": len(issues),
             "issues_json": _json(issues),
             "materiality_bands_json": _json(MATERIALITY_BANDS),
+            "unknown_break_materiality_break_quarter": (
+                maximum_abs_beta_change_candidate["break_quarter"]
+                if maximum_abs_beta_change_candidate is not None
+                else ""
+            ),
+            "unknown_break_materiality_band": (
+                maximum_abs_beta_change_candidate["materiality_band"]
+                if maximum_abs_beta_change_candidate is not None
+                else "not_computed"
+            ),
             "claim_boundary": (
                 "Producer pass means every predeclared check was computed. "
                 "Scientific status separately governs promotion strength."
@@ -1485,6 +1811,151 @@ def _acceptance_checks(
     stability_types = {
         str(row.get("test_type", "")) for row in result.stability_rows
     }
+    unknown_break_candidates = [
+        row
+        for row in result.stability_rows
+        if row.get("test_type") == "unknown_break_candidate"
+        and row.get("status") == "computed"
+    ]
+    unknown_break_summaries = [
+        row
+        for row in result.stability_rows
+        if row.get("test_type") == "unknown_break_scan_summary"
+    ]
+    overall_stability_rows = [
+        row
+        for row in result.stability_rows
+        if row.get("test_type") == "overall_gate"
+    ]
+    unknown_break_truthful = False
+    unknown_break_truth_details: dict[str, Any] = {
+        "candidate_rows": len(unknown_break_candidates),
+        "summary_rows": len(unknown_break_summaries),
+        "overall_rows": len(overall_stability_rows),
+    }
+    try:
+        minimum_raw_p, maximum_abs_beta_change = (
+            _unknown_break_extrema(unknown_break_candidates)
+        )
+        summary = (
+            unknown_break_summaries[0]
+            if len(unknown_break_summaries) == 1
+            else {}
+        )
+        overall = (
+            overall_stability_rows[0]
+            if len(overall_stability_rows) == 1
+            else {}
+        )
+        minimum_quarter = str(minimum_raw_p["break_quarter"])
+        maximum_quarter = str(maximum_abs_beta_change["break_quarter"])
+        maximum_signed_change = float(
+            maximum_abs_beta_change["beta_change"]
+        )
+        maximum_band = str(maximum_abs_beta_change["materiality_band"])
+        minimum_flags = [
+            str(row.get("break_quarter", ""))
+            for row in unknown_break_candidates
+            if row.get("is_minimum_raw_p_candidate") is True
+        ]
+        maximum_flags = [
+            str(row.get("break_quarter", ""))
+            for row in unknown_break_candidates
+            if row.get("is_maximum_abs_beta_change_candidate") is True
+        ]
+        materiality_order = {"stable": 0, "review": 1, "unstable": 2}
+        unknown_break_truthful = (
+            len(unknown_break_summaries) == 1
+            and len(overall_stability_rows) == 1
+            and summary.get("status") == "computed"
+            and summary.get("test_id") == "unknown_break_scan_extrema"
+            and int(summary.get("candidates_tested", -1))
+            == len(unknown_break_candidates)
+            and summary.get("minimum_raw_p_break_quarter")
+            == minimum_quarter
+            and _optional_number_matches(
+                summary.get("minimum_raw_p_beta_change"),
+                float(minimum_raw_p["beta_change"]),
+            )
+            and _optional_number_matches(
+                summary.get("minimum_raw_p_value"),
+                float(minimum_raw_p["p_value_raw"]),
+            )
+            and _optional_number_matches(
+                summary.get("holm_p_value_at_minimum_raw_p"),
+                float(minimum_raw_p["p_value_holm"]),
+            )
+            and summary.get("maximum_abs_beta_change_break_quarter")
+            == maximum_quarter
+            and _optional_number_matches(
+                summary.get("beta_change_at_maximum_abs_beta_change"),
+                maximum_signed_change,
+            )
+            and _optional_number_matches(
+                summary.get("maximum_abs_beta_change"),
+                abs(maximum_signed_change),
+            )
+            and _optional_number_matches(
+                summary.get(
+                    "raw_p_value_at_maximum_abs_beta_change"
+                ),
+                float(maximum_abs_beta_change["p_value_raw"]),
+            )
+            and _optional_number_matches(
+                summary.get(
+                    "holm_p_value_at_maximum_abs_beta_change"
+                ),
+                float(maximum_abs_beta_change["p_value_holm"]),
+            )
+            and summary.get("materiality_band") == maximum_band
+            and summary.get("scientific_status") == maximum_band
+            and minimum_flags == [minimum_quarter]
+            and maximum_flags == [maximum_quarter]
+            and all(
+                isinstance(
+                    row.get("is_minimum_raw_p_candidate"),
+                    bool,
+                )
+                and isinstance(
+                    row.get("is_maximum_abs_beta_change_candidate"),
+                    bool,
+                )
+                and "is_scan_extremum" not in row
+                for row in unknown_break_candidates
+            )
+            and all(
+                field not in summary
+                for field in (
+                    "selected_break_quarter",
+                    "beta_change",
+                    "p_value_raw",
+                    "p_value_holm",
+                )
+            )
+            and overall.get(
+                "unknown_break_materiality_break_quarter"
+            )
+            == maximum_quarter
+            and overall.get("unknown_break_materiality_band")
+            == maximum_band
+            and overall.get("scientific_status")
+            == result.scientific_status
+            and materiality_order.get(result.scientific_status, -1)
+            >= materiality_order.get(maximum_band, 99)
+        )
+        unknown_break_truth_details.update(
+            {
+                "minimum_raw_p_break_quarter": minimum_quarter,
+                "maximum_abs_beta_change_break_quarter": maximum_quarter,
+                "maximum_abs_beta_change": abs(maximum_signed_change),
+                "maximum_abs_beta_change_materiality_band": maximum_band,
+                "minimum_raw_p_flagged_quarters": minimum_flags,
+                "maximum_abs_beta_change_flagged_quarters": maximum_flags,
+                "overall_scientific_status": result.scientific_status,
+            }
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        unknown_break_truth_details["error"] = str(exc)
     p_rows = [
         row
         for row in [
@@ -1514,6 +1985,77 @@ def _acceptance_checks(
             str(row["last_observed_treatment_outcome_quarter"])
         )
         for row in credit_rows
+    )
+    credit_hac_metadata_pass = True
+    credit_hac_details: dict[str, dict[str, Any]] = {}
+    for row in credit_rows:
+        window = int(row.get("window_quarters", 0))
+        observations = int(row.get("n_windows", 0))
+        expected_lags = min(window - 1, observations - 2)
+        expected_ratio = (
+            expected_lags / observations if observations > 0 else None
+        )
+        row_passed = (
+            window in CREDIT_WINDOW_QUARTERS
+            and observations >= 10
+            and int(row.get("rolling_window_observations", 0)) == window
+            and int(row.get("association_observations", 0))
+            == observations
+            and int(row.get("association_hac_lags", -1))
+            == expected_lags
+            and int(row.get("covariance_lags", -1)) == expected_lags
+            and _optional_number_matches(
+                row.get("association_hac_bandwidth_ratio"),
+                expected_ratio,
+            )
+        )
+        credit_hac_metadata_pass = credit_hac_metadata_pass and row_passed
+        credit_hac_details[str(window)] = {
+            "association_observations": observations,
+            "expected_hac_lags": expected_lags,
+            "expected_bandwidth_ratio": expected_ratio,
+        }
+
+    credit_claims = _credit_admission_claims(credit_rows)
+    credit_admission_pass = (
+        set(credit_claims) == set(CREDIT_SCREEN_OUTCOME_IDS)
+        and all(
+            row.get("admission_status")
+            == credit_claims[str(row["credit_outcome_id"])][
+                "admission_status"
+            ]
+            and row.get("admission_reason")
+            == credit_claims[str(row["credit_outcome_id"])][
+                "admission_reason"
+            ]
+            and bool(row.get("outcome_iut_family_complete"))
+            is bool(
+                credit_claims[str(row["credit_outcome_id"])][
+                    "calibrated_family_complete"
+                ]
+            )
+            and _optional_number_matches(
+                row.get("outcome_iut_p_value_raw"),
+                credit_claims[str(row["credit_outcome_id"])][
+                    "outcome_iut_p_value_raw"
+                ],
+            )
+            and _optional_number_matches(
+                row.get("outcome_iut_p_value_holm"),
+                credit_claims[str(row["credit_outcome_id"])][
+                    "outcome_iut_p_value_holm"
+                ],
+            )
+            and (
+                row.get("admission_status") != "main_text_eligible"
+                or (
+                    row.get("inference_calibration_status") == "calibrated"
+                    and str(row.get("calibration_method", "")).strip()
+                    in CREDIT_CALIBRATION_METHODS
+                )
+            )
+            for row in credit_rows
+        )
     )
     tier_count_details = {
         tier: {
@@ -1589,6 +2131,10 @@ def _acceptance_checks(
                 "observed": sorted(stability_types),
             },
         ),
+        "unknown_break_extrema_truthful": _check(
+            unknown_break_truthful,
+            details=unknown_break_truth_details,
+        ),
         "materiality_stability_gate": _check(
             result.scientific_status in {"stable", "review", "unstable"},
             details={
@@ -1627,6 +2173,34 @@ def _acceptance_checks(
                     and int(row.get("covariance_lags", 0)) > 0
                     for row in credit_rows
                 )
+            },
+        ),
+        "credit_hac_metadata_truthful": _check(
+            len(credit_rows) == expected_credit_rows
+            and credit_hac_metadata_pass,
+            details=credit_hac_details,
+        ),
+        "credit_calibrated_admission_and_iut": _check(
+            len(credit_rows) == expected_credit_rows
+            and credit_admission_pass,
+            details={
+                outcome_id: {
+                    "calibration_complete": claim[
+                        "calibration_complete"
+                    ],
+                    "calibrated_family_complete": claim[
+                        "calibrated_family_complete"
+                    ],
+                    "outcome_iut_p_value_raw": claim[
+                        "outcome_iut_p_value_raw"
+                    ],
+                    "outcome_iut_p_value_holm": claim[
+                        "outcome_iut_p_value_holm"
+                    ],
+                    "admission_status": claim["admission_status"],
+                    "admission_reason": claim["admission_reason"],
+                }
+                for outcome_id, claim in credit_claims.items()
             },
         ),
         "credit_window_sign_checks": _check(
@@ -1767,6 +2341,7 @@ def write_open01_outputs(
 __all__ = [
     "BREAK_QUARTER",
     "CREDIT_ADJUSTMENTS",
+    "CREDIT_CALIBRATION_METHODS",
     "CREDIT_WINDOW_QUARTERS",
     "IDENTITY_TOLERANCE",
     "MATERIALITY_BANDS",
