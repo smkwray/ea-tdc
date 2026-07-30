@@ -21,12 +21,33 @@ class PathSanitizationResult:
 def _replace_prefix(text: str, prefix: str, replacement: str) -> str:
     if not prefix:
         return text
-    if replacement == "":
-        return text.replace(f"{prefix}/", "").replace(prefix, "")
-    exact = text.replace(prefix, replacement.rstrip("/"))
-    if prefix.endswith("/"):
-        return exact
-    return exact.replace(f"{prefix}/", replacement)
+    variants = tuple(
+        dict.fromkeys((prefix, prefix.replace("\\", "/")))
+    )
+    replacement_root = replacement.rstrip("/")
+    lines: list[str] = []
+    for original_line in text.splitlines(keepends=True):
+        line = original_line
+        for variant in variants:
+            start = 0
+            while True:
+                index = line.find(variant, start)
+                if index < 0:
+                    break
+                tail = line[index + len(variant) :]
+                if tail.startswith(("/", "\\")):
+                    tail = tail[1:]
+                normalized_tail = tail.replace("\\", "/")
+                separator = "/" if replacement_root and tail else ""
+                line = (
+                    line[:index]
+                    + replacement_root
+                    + separator
+                    + normalized_tail
+                )
+                start = index + len(replacement_root) + len(separator)
+        lines.append(line)
+    return "".join(lines)
 
 
 def _sanitize_text(content: str, *, repo_root: Path) -> str:
