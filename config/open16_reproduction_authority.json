@@ -2,7 +2,7 @@
   "schema_version": "ea_tdc_open16_fresh_authority_v1",
   "authority_class": "fresh_frozen_conditioning_space",
   "origin": "new_frozen_input_reproduction",
-  "status": "conditional_pending_validation",
+  "status": "approved_bounded_scope",
   "scope": [
     "common_control_covariance",
     "fixed_full_panel_selected_calendar_row_deletion"
@@ -12,8 +12,12 @@
     "sha256": "023c24f5fed2ad1dd53b241179601ab5b0ffc9ae34adfc4f46b6ae63228c2d7d",
     "bytes": 3177
   },
-  "validation_receipt": null,
-  "validation_producer_commit": null,
+  "validation_receipt": {
+    "path": "output/reproductions/open16_validation_v3_receipt_20260907/receipt.json",
+    "sha256": "2de44c8b3cf24212d91e1ca57a1787a51850ac734702caf225b758c8cfe300bf",
+    "bytes": 8092
+  },
+  "validation_producer_commit": "c108c4406c3ceaf166e7f000f5ef08cfcdac9ecc",
   "environments": [
     {
       "python": "3.13.12 (main, Mar  3 2026, 15:32:44) [Clang 21.1.4 ]",
