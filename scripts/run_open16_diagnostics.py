@@ -121,7 +121,7 @@ def _authority_file(root: Path, record: dict) -> dict:
     if (not isinstance(record, dict) or set(record) != {"path", "sha256", "bytes"}
             or not isinstance(record["sha256"], str) or len(record["sha256"]) != 64
             or any(c not in "0123456789abcdef" for c in record["sha256"])
-            or type(record["bytes"]) is not int or record["bytes"] <= 0):
+            or type(record["bytes"]) is not int or record["bytes"] < 0):
         raise ValueError("Authority requires a complete path/SHA-256/bytes record")
     actual = _file_record(root, record["path"], expected_sha256=record["sha256"])
     if _project_path(root, record["path"]).stat().st_size != record["bytes"]:
