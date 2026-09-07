@@ -12,7 +12,6 @@ import tempfile
 from pathlib import Path
 
 from run_frozen_factor_reproduction import (
-    copy_pinned,
     read_csv,
     record,
     sha256,
@@ -154,7 +153,87 @@ def rank_projector(matrix: list[list[float]]) -> tuple[int, list[list[float]]]:
     return rank, (q @ q.T).tolist()
 
 
+def scaled_geometry(x: object, y: object, policy: dict) -> dict:
+    import numpy as np
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    if not np.isfinite(x).all() or not np.isfinite(y).all():
+        raise ValueError("Nonfinite design or outcome")
+    scales = np.linalg.norm(x, axis=0)
+    if np.any(scales <= 0):
+        raise ValueError("Zero design column")
+    normalized = x / scales
+    u, singular, vt = np.linalg.svd(normalized, full_matrices=False)
+    rank = int(np.linalg.matrix_rank(normalized))
+    condition = float(singular[0] / singular[-1])
+    if rank != x.shape[1] or condition > policy["column_normalized_condition_cap"]:
+        raise ValueError("Scaled design rank or condition guard failed")
+    sy = max(float(np.linalg.norm(y)), policy["outcome_norm_floor"])
+    return {"scales": scales, "outcome_scale": sy, "rank": rank,
+            "condition": condition, "projector": u @ u.T,
+            "pseudoinverse": (vt.T / singular) @ u.T}
+
+
+def svd_reference(x: object, y: object, geometry: dict) -> dict:
+    import numpy as np
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    scales, pinv = geometry["scales"], geometry["pseudoinverse"]
+    normalized = x / scales
+    beta = (pinv @ y) / scales
+    fitted = x @ beta
+    residuals = y - fitted
+    scores = normalized * residuals[:, None]
+    meat = scores.T @ scores
+    lag = scores[1:].T @ scores[:-1]
+    meat += 0.5 * (lag + lag.T)
+    n, rank = x.shape
+    bread = pinv @ pinv.T
+    covariance = (bread @ (meat * (n / (n - rank))) @ bread) / np.outer(scales, scales)
+    return {"coefficients": beta.tolist(), "fitted": fitted.tolist(), "residuals": residuals.tolist(),
+            "covariance": covariance.tolist(), "beta_se": [float(beta[1]), float(np.sqrt(covariance[1, 1]))]}
+
+
+def numerical_sanity(values: dict, scales: object, sy: float, policy: dict) -> None:
+    import numpy as np
+    for key in ("coefficients", "fitted", "residuals", "covariance", "beta_se"):
+        if not np.isfinite(np.asarray(values[key], dtype=float)).all():
+            raise ValueError("Nonfinite numerical output")
+    covariance = np.asarray(values["covariance"], dtype=float)
+    d = np.asarray(scales) / sy
+    scaled = covariance * np.outer(d, d)
+    norm = max(float(np.linalg.norm(scaled, 2)), policy["covariance_norm_floor"])
+    if np.linalg.norm(scaled - scaled.T, 2) > policy["symmetry_relative_tolerance"] * norm:
+        raise ValueError("Covariance symmetry failed")
+    if np.min(np.diag(scaled)) < -policy["negative_diagonal_relative_tolerance"] * norm:
+        raise ValueError("Materially negative covariance diagonal")
+
+
+def compare_scaled(first: dict, second: dict, scales: object, sy: float, policy: dict) -> dict:
+    import numpy as np
+    numerical_sanity(first, scales, sy, policy)
+    numerical_sanity(second, scales, sy, policy)
+    for key in ("coefficients", "fitted", "residuals", "covariance", "beta_se"):
+        if np.asarray(first[key]).shape != np.asarray(second[key]).shape:
+            raise ValueError("Numerical output shapes differ")
+    scales = np.asarray(scales)
+    d = scales / sy
+    va, vb = (np.asarray(item["covariance"]) * np.outer(d, d) for item in (first, second))
+    differences = {
+        "coefficients": float(np.linalg.norm(scales * (np.asarray(first["coefficients"]) - second["coefficients"])) / sy),
+        "fitted": float(np.linalg.norm(np.asarray(first["fitted"]) - second["fitted"]) / sy),
+        "residuals": float(np.linalg.norm(np.asarray(first["residuals"]) - second["residuals"]) / sy),
+        "covariance": float(np.linalg.norm(va - vb, 2) / max(np.linalg.norm(va, 2), np.linalg.norm(vb, 2), policy["covariance_norm_floor"])),
+        "beta_se": float(np.max(np.abs(np.asarray(first["beta_se"]) - second["beta_se"]))),
+    }
+    for key, gap in differences.items():
+        tolerance = (policy["treatment_beta_se_absolute_tolerance"] if key == "beta_se" else
+                     policy["scaled_covariance_relative_tolerance"] if key == "covariance" else policy["scaled_vector_relative_tolerance"])
+        if not np.isfinite(gap) or gap > tolerance:
+            raise ValueError(f"V2 {key} equivalence failed: {gap} > {tolerance}")
+    return differences
+
+
 def numeric_worker(stage: Path, package: Path, destination: Path) -> None:
+    import numpy as np
     sys.path[:0] = [str(stage / "method/src"), str(stage / "method/scripts")]
     from ea_tdc.open01 import _fit_projection, _quarter_ordinal
     from ea_tdc.open_contract import (
@@ -163,6 +242,7 @@ def numeric_worker(stage: Path, package: Path, destination: Path) -> None:
         CANONICAL_TREATMENT_ID,
     )
 
+    policy = json.loads((stage / "policy.json").read_text())
     panel = read_csv(package / "results/frozen_projection_panel.csv")
     factors = [f"dflmx_k100_f{i}" for i in range(1, 5)]
     full = read_csv(package / "results/full_factor_scores.csv")
@@ -177,7 +257,6 @@ def numeric_worker(stage: Path, package: Path, destination: Path) -> None:
     if tuple(r["quarter"] for r in panel) != quarters or [r["window"] for r in reference] != labels:
         raise ValueError("Fixed panel or 57-window reference inventory differs")
     windows = []
-    reference_maxima = dict.fromkeys(("coefficients", "fitted", "residuals", "covariance", "archived_beta_se"), 0.0)
     for label, retained, comparison in zip(labels, reference, comparisons, strict=True):
         start = _quarter_ordinal(label) - 47 if label != "headline" else None
         observed = [r for r in panel if start is None or start <= _quarter_ordinal(r["quarter"]) <= _quarter_ordinal(label)]
@@ -186,19 +265,57 @@ def numeric_worker(stage: Path, package: Path, destination: Path) -> None:
                 or list(fit.control_ids_used) != retained["controls_used"] or list(fit.control_ids_rejected) != retained["controls_rejected"]):
             raise ValueError("Rank-aware control partition or row inventory changed")
         z = [[1.0, *[float(r[k]) for k in fit.control_ids_used]] for r in observed]
-        rank, projector = rank_projector(z)
-        rank_projector([[*row, float(r[CANONICAL_TREATMENT_ID])] for row, r in zip(z, observed, strict=True)])
-        current = {"window": label, "quarters": retained["quarters"], "controls_used": list(fit.control_ids_used),
-                   "controls_rejected": list(fit.control_ids_rejected), "conditioning_rank": rank, "projector": projector,
-                   "coefficients": fit.fit.beta, "fitted": fit.fit.fitted, "residuals": fit.fit.residuals,
+        x = [[row[0], float(r[CANONICAL_TREATMENT_ID]), *row[1:]] for row, r in zip(z, observed, strict=True)]
+        y = [float(r[CANONICAL_OUTCOME_ID]) for r in observed]
+        geometry = scaled_geometry(x, y, policy)
+        conditioning_rank, projector = rank_projector(z)
+        _, full_projector = rank_projector(x)
+        independent = svd_reference(x, y, geometry)
+        current = {"coefficients": fit.fit.beta, "fitted": fit.fit.fitted, "residuals": fit.fit.residuals,
                    "covariance": fit.fit.covariance, "beta_se": [fit.beta, fit.se]}
-        for key in ("coefficients", "fitted", "residuals", "covariance"):
-            reference_maxima[key] = max(reference_maxima[key], max_difference(current[key], retained[key]))
-        reference_maxima["archived_beta_se"] = max(reference_maxima["archived_beta_se"], max_difference(current["beta_se"], [float(comparison["archived_beta"]), float(comparison["archived_se"])]))
-        windows.append(current)
+        retained_values = {**retained, "beta_se": [float(comparison["archived_beta"]), float(comparison["archived_se"])]}
+        gaps = {"retained_new_vectors_archived_beta_se": compare_scaled(current, retained_values, geometry["scales"], geometry["outcome_scale"], policy),
+                "independent_svd": compare_scaled(current, independent, geometry["scales"], geometry["outcome_scale"], policy)}
+        z_geometry = scaled_geometry(z, y, policy)
+        projector_gaps = {"conditioning": float(np.linalg.norm(np.asarray(projector) - z_geometry["projector"], 2)),
+                          "full_design": float(np.linalg.norm(np.asarray(full_projector) - geometry["projector"], 2))}
+        if max(projector_gaps.values()) > policy["projector_tolerance"]:
+            raise ValueError("Independent SVD projector differs")
+        windows.append({"window": label, "quarters": retained["quarters"], "controls_used": list(fit.control_ids_used),
+            "controls_rejected": list(fit.control_ids_rejected), "conditioning_rank": conditioning_rank,
+            "design_rank": geometry["rank"], "condition": geometry["condition"], "projector": projector,
+            "full_projector": full_projector, "scales": geometry["scales"].tolist(), "outcome_scale": geometry["outcome_scale"],
+            "independent_svd": independent, "reference_differences": gaps,
+            "independent_projector_differences": projector_gaps, **current})
     write_json(destination, {"runtime": runtime_identity(), "factor_rank": factor_rank,
-        "sample_factor_rank": sample_factor_rank, "windows": windows, "max_abs_reference_differences": reference_maxima,
+        "sample_factor_rank": sample_factor_rank, "windows": windows, "numerical_policy": policy,
         "reference_scope": "780d new reproduction vectors; archived OPEN01 supplies beta/SE only"})
+
+
+def compare_v2_environments(first: dict, second: dict, policy: dict) -> dict:
+    import numpy as np
+    if (len(first.get("windows", [])) != 58 or len(second.get("windows", [])) != 58
+            or first["runtime"] == second["runtime"]
+            or any(r.get(k) != 4 for r in (first, second) for k in ("factor_rank", "sample_factor_rank"))
+            or any(r.get("numerical_policy") != policy for r in (first, second))):
+        raise ValueError("V2 requires both pinned environments, exact policy, four-factor ranks and all 58 fits")
+    differences = []
+    for a, b in zip(first["windows"], second["windows"], strict=True):
+        for key in ("window", "quarters", "controls_used", "controls_rejected", "conditioning_rank", "design_rank", "scales", "outcome_scale"):
+            if a[key] != b[key]:
+                raise ValueError(f"Cross-environment discrete design identity differs: {key}")
+        if max(a["condition"], b["condition"]) > policy["column_normalized_condition_cap"]:
+            raise ValueError("Cross-environment condition cap exceeded")
+        gaps = compare_scaled(a, b, a["scales"], a["outcome_scale"], policy)
+        for left, right in ((a, b["independent_svd"]), (b, a["independent_svd"]), (a["independent_svd"], b["independent_svd"])):
+            for key, value in compare_scaled(left, right, a["scales"], a["outcome_scale"], policy).items():
+                gaps[key] = max(gaps[key], value)
+        for key in ("projector", "full_projector"):
+            gaps[key] = float(np.linalg.norm(np.asarray(a[key]) - b[key], 2))
+            if not np.isfinite(gaps[key]) or gaps[key] > policy["projector_tolerance"]:
+                raise ValueError("Cross-environment projector differs")
+        differences.append({"window": a["window"], **gaps})
+    return {"windows": differences, "maxima": {key: max(r[key] for r in differences) for key in differences[0] if key != "window"}}
 
 
 def max_difference(left: object, right: object) -> float:
@@ -235,7 +352,7 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
     _verify_producer_commit(root, commit)
     config = json.loads((root / CONFIG).read_text())
     package = _project_path(root, config["reproduction_receipt"]["path"]).parent
-    inputs = verify_package(package, config["reproduction_receipt"]["sha256"])
+    verify_package(package, config["reproduction_receipt"]["sha256"])
     verify_accepted_estimator(root, package / "accepted_method.tar")
     source_manifest = production_manifest(root)
     output = _project_path(root, output_dir)
@@ -244,20 +361,27 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=".open16-validation-", dir=output.parent))
     try:
-        raw = inputs["raw_inventory_provenance_only_not_consumed"]
-        current = [record(root, p) for p in sorted((root / "data/seed/interpol/raw").glob("*.csv"))]
-        if current != raw or len(raw) != 395:
-            raise ValueError("Current raw inventory differs from the frozen reproduction inventory")
-        for item in raw:
-            copy_pinned(root, stage / "raw_rebuild", item)
+        structural = config["structural_evidence"]
+        for item in structural["records"]:
+            path = _project_path(root, item["path"])
+            if sha256(path) != item["sha256"] or path.stat().st_size != item["bytes"]:
+                raise ValueError("Previously passed structural evidence changed")
+        prior = {Path(item["path"]).name: json.loads(_project_path(root, item["path"]).read_text())
+                 for item in structural["records"] if item["path"].endswith(".json")}
+        if (prior["universe_comparison.json"]["cell_differences"] != 0
+                or prior["screen_comparison.json"]["screened_features"] != 6436
+                or not prior["screen_comparison.json"]["ordered_top100_equal"]
+                or prior["screen_comparison.json"]["cutoff_separation"] <= 0
+                or prior["commands.json"][0]["name"] != "raw" or prior["commands.json"][0]["exit_code"] != 0):
+            raise ValueError("Retained raw/screen proof did not pass")
+        write_json(stage / "policy.json", config["numerical_policy"])
         with tarfile.open(package / "accepted_method.tar") as archive:
             archive.extractall(stage / "method", filter="data")
         driver = stage / "validation_driver.py"
         shutil.copyfile(Path(__file__), driver)
         shutil.copyfile(root / "scripts/run_frozen_factor_reproduction.py", stage / "run_frozen_factor_reproduction.py")
         commands = []
-        for name, python, function, extra in (("raw", sys.executable, "raw_worker", []),
-                ("primary", sys.executable, "numeric_worker", [str(stage / "primary.json")]),
+        for name, python, function, extra in (("primary", sys.executable, "numeric_worker", [str(stage / "primary.json")]),
                 ("comparison", other_python, "numeric_worker", [str(stage / "comparison.json")])):
             code = "import runpy,sys; from pathlib import Path; runpy.run_path(sys.argv[1])[sys.argv[2]](*map(Path,sys.argv[3:]))"
             command = [python, "-B", "-c", code, str(driver), function, str(stage), str(package), *extra]
@@ -270,20 +394,16 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
         first, second = [json.loads((stage / f"{name}.json").read_text()) for name in ("primary", "comparison")]
         if [first["runtime"], second["runtime"]] != config["environments"]:
             raise ValueError("Numerical environments differ from committed pins")
-        maxima = compare_environments(first, second)
-        write_json(stage / "numerical_comparison.json", {"tolerance": TOLERANCE, "max_abs_differences": maxima})
-        # Freeze the raw bytes compactly after the sole accepted-helper rebuild.
-        with tarfile.open(stage / "raw_snapshot.tar.gz", "w:gz") as archive:
-            for item in raw:
-                archive.add(stage / "raw_rebuild" / item["path"], arcname=item["path"])
-        shutil.rmtree(stage / "raw_rebuild/data")
+        maxima = compare_v2_environments(first, second, config["numerical_policy"])
+        write_json(stage / "numerical_comparison.json", {"numerical_policy": config["numerical_policy"], **maxima})
         shutil.rmtree(stage / "method")
         verify_package(package, config["reproduction_receipt"]["sha256"])
         _verify_producer_commit(root, commit)
         outputs = [record(stage, p) for p in sorted(stage.rglob("*")) if p.is_file()]
         write_json(stage / "receipt.json", {"authority_class": "fresh_frozen_conditioning_space", "status": "passed",
             "producer_commit": commit, "production_source_manifest": source_manifest, "reproduction_receipt_sha256": config["reproduction_receipt"]["sha256"],
-            "gates": dict.fromkeys(GATES, True), "tolerance": TOLERANCE, "environments": config["environments"],
+            "gates": dict.fromkeys(GATES, True), "numerical_policy": config["numerical_policy"], "environments": config["environments"],
+            "structural_evidence": structural,
             "raw_factor_extractions_performed": 0, "outputs": outputs,
             "scope": config["scope"], "historical_coordinate_authenticity": "unavailable"})
         os.rename(stage, output)

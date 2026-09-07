@@ -123,7 +123,8 @@ def test_manifested_source_drift_rejects_before_reproduction_input(validator, tm
     manifest = admission.production_manifest(tmp_path)
     (tmp_path / admission.PRODUCTION_SOURCES[0]).write_text("changed source")
     proof = {"status": "passed", "gates": dict.fromkeys(admission.GATES, True),
-             "authority_class": gate["authority_class"], "scope": gate["scope"], "tolerance": 1e-7,
+             "authority_class": gate["authority_class"], "scope": gate["scope"],
+             "numerical_policy": gate["numerical_policy"], "structural_evidence": gate["structural_evidence"],
              "environments": gate["environments"], "producer_commit": gate["validation_producer_commit"],
              "reproduction_receipt_sha256": gate["reproduction_receipt"]["sha256"],
              "production_source_manifest": manifest}
@@ -142,3 +143,86 @@ def test_manifested_source_drift_rejects_before_reproduction_input(validator, tm
         runner.load_fresh_authority(tmp_path, "c" * 40)
     assert operations == ["proof.json"]
     assert not (tmp_path / "output").exists()
+
+
+@pytest.fixture
+def policy():
+    return json.loads((Path(__file__).resolve().parents[1] / "config/open16_reproduction_authority.json").read_text())["numerical_policy"]
+
+
+def synthetic_design():
+    rng = np.random.default_rng(871)
+    x = np.column_stack((np.ones(96), rng.normal(size=(96, 4))))
+    y = x @ np.array([2., .5, -.2, .3, .4]) + rng.normal(size=96)
+    return x, y
+
+
+def test_independent_scaled_svd_matches_accepted_newey_west(validator, policy):
+    from ea_tdc.estimation import _ols
+    x, y = synthetic_design()
+    geometry = validator.scaled_geometry(x, y, policy)
+    reference = validator.svd_reference(x, y, geometry)
+    fit = _ols(y.tolist(), x.tolist(), covariance_estimator="newey_west", covariance_lags=1)
+    accepted = {"coefficients": fit.beta, "fitted": fit.fitted, "residuals": fit.residuals,
+                "covariance": fit.covariance, "beta_se": [fit.beta[1], fit.ses[1]]}
+    gaps = validator.compare_scaled(accepted, reference, geometry["scales"], geometry["outcome_scale"], policy)
+    assert max(gaps.values()) < 1e-12
+
+
+def test_v2_full_comparison_is_invariant_to_control_units(validator, policy):
+    x, y = synthetic_design()
+    geometry = validator.scaled_geometry(x, y, policy)
+    reference = validator.svd_reference(x, y, geometry)
+    perturbed = copy.deepcopy(reference)
+    perturbed["coefficients"][2] += 1e-10
+    perturbed["covariance"][2][2] += 1e-12
+    before = validator.compare_scaled(reference, perturbed, geometry["scales"], geometry["outcome_scale"], policy)
+    conversion = np.array([1., 1., 1024., 1. / 1024., 1.])
+    for values in (reference, perturbed):
+        values["coefficients"] = (np.asarray(values["coefficients"]) / conversion).tolist()
+        values["covariance"] = (np.asarray(values["covariance"]) / np.outer(conversion, conversion)).tolist()
+    after = validator.compare_scaled(reference, perturbed, geometry["scales"] * conversion, geometry["outcome_scale"], policy)
+    assert after == pytest.approx(before, rel=2e-6, abs=1e-16)
+    _, old = validator.rank_projector(x.tolist())
+    _, new = validator.rank_projector((x * conversion).tolist())
+    assert np.linalg.norm(np.asarray(old) - new, 2) < policy["projector_tolerance"]
+
+
+def test_v2_condition_guard_does_not_expand_tolerance(validator, policy):
+    x, y = synthetic_design()
+    x[:, 4] = x[:, 3] + 1e-5 * x[:, 4]
+    with pytest.raises(ValueError, match="condition guard"):
+        validator.scaled_geometry(x, y, policy)
+
+
+@pytest.mark.parametrize("fault", ["beta", "nonfinite", "asymmetric", "negative_variance", "vector"])
+def test_v2_rejects_substantive_or_invalid_numerical_values(validator, policy, fault):
+    x, y = synthetic_design()
+    geometry = validator.scaled_geometry(x, y, policy)
+    reference = validator.svd_reference(x, y, geometry)
+    changed = copy.deepcopy(reference)
+    if fault == "beta": changed["beta_se"][0] += 1e-5
+    elif fault == "nonfinite": changed["fitted"][0] = float("nan")
+    elif fault == "asymmetric": changed["covariance"][1][2] += .01
+    elif fault == "negative_variance": changed["covariance"][2][2] = -1.
+    else: changed["fitted"][0] += .01
+    with pytest.raises(ValueError):
+        validator.compare_scaled(reference, changed, geometry["scales"], geometry["outcome_scale"], policy)
+
+
+@pytest.mark.parametrize("fault", ["conditioning_projector", "full_projector", "policy", "rank", "missing_window"])
+def test_v2_pair_gate_rejects_projector_policy_or_discrete_drift(validator, policy, fault):
+    first, second = reports()
+    for report in (first, second):
+        report["numerical_policy"] = policy
+        for window in report["windows"]:
+            window.update(full_projector=[[1.]], scales=[1.], outcome_scale=1., design_rank=1, condition=1.)
+            window["independent_svd"] = {k: window[k] for k in ("coefficients", "fitted", "residuals", "covariance", "beta_se")}
+    if fault == "policy": second["numerical_policy"] = {**policy, "projector_tolerance": 1.}
+    elif fault == "rank": second["windows"][0]["design_rank"] = 2
+    elif fault == "missing_window": second["windows"].pop()
+    else:
+        key = "projector" if fault == "conditioning_projector" else "full_projector"
+        second["windows"][0][key] = [[1. + 2e-10]]
+    with pytest.raises(ValueError):
+        validator.compare_v2_environments(first, second, policy)

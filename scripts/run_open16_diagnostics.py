@@ -219,7 +219,10 @@ def load_fresh_authority(root: Path, commit: str) -> dict:
     validation = json.loads(validation_path.read_text())
     if (validation.get("status") != "passed" or validation.get("gates") != dict.fromkeys(GATES, True)
             or validation.get("authority_class") != gate["authority_class"]
-            or validation.get("scope") != scope or validation.get("tolerance") != 1e-7
+            or validation.get("scope") != scope
+            or gate.get("numerical_policy", {}).get("version") != "conditioning_space_v2"
+            or validation.get("numerical_policy") != gate["numerical_policy"]
+            or validation.get("structural_evidence") != gate["structural_evidence"]
             or validation.get("environments") != gate["environments"]
             or validation.get("producer_commit") != gate["validation_producer_commit"]
             or validation.get("reproduction_receipt_sha256") != gate["reproduction_receipt"]["sha256"]):
@@ -228,6 +231,8 @@ def load_fresh_authority(root: Path, commit: str) -> dict:
     _authority_file(root, gate.get("reproduction_receipt"))
     package = _project_path(root, gate["reproduction_receipt"]["path"]).parent
     inputs = verify_package(package, gate["reproduction_receipt"]["sha256"])
+    for item in validation["structural_evidence"]["records"]:
+        _authority_file(root, item)
     for item in validation["outputs"]:
         path = (validation_path.parent / item["path"]).resolve()
         path.relative_to(validation_path.parent.resolve())
