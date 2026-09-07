@@ -108,3 +108,37 @@ def test_fresh_authority_rejects_unqualified_current_runtime_before_inputs(valid
     with pytest.raises(ValueError, match="runtime lacks pinned"):
         runner.load_fresh_authority(tmp_path, "c" * 40)
     assert list(tmp_path.iterdir()) == [path.parent]
+
+
+def test_manifested_source_drift_rejects_before_reproduction_input(validator, tmp_path, monkeypatch):
+    import run_open16_diagnostics as runner
+    import validate_open16_reproduction as admission
+
+    gate = json.loads((Path(__file__).resolve().parents[1] / "config/open16_reproduction_authority.json").read_text())
+    gate["status"] = "approved_bounded_scope"
+    gate["validation_producer_commit"] = "c" * 40
+    gate["validation_receipt"] = {"path": "proof.json", "sha256": "a" * 64, "bytes": 1}
+    for name in admission.PRODUCTION_SOURCES:
+        p = tmp_path / name; p.parent.mkdir(parents=True, exist_ok=True); p.write_text("validated source")
+    manifest = admission.production_manifest(tmp_path)
+    (tmp_path / admission.PRODUCTION_SOURCES[0]).write_text("changed source")
+    proof = {"status": "passed", "gates": dict.fromkeys(admission.GATES, True),
+             "authority_class": gate["authority_class"], "scope": gate["scope"], "tolerance": 1e-7,
+             "environments": gate["environments"], "producer_commit": gate["validation_producer_commit"],
+             "reproduction_receipt_sha256": gate["reproduction_receipt"]["sha256"],
+             "production_source_manifest": manifest}
+    (tmp_path / "proof.json").write_text(json.dumps(proof))
+    path = tmp_path / "config/open16_reproduction_authority.json"
+    path.parent.mkdir(exist_ok=True); path.write_text(json.dumps(gate))
+    monkeypatch.setattr(runner.subprocess, "run", lambda *a, **kw: SimpleNamespace(stdout=path.read_bytes()))
+    monkeypatch.setattr(admission, "runtime_identity", lambda: gate["environments"][0])
+    operations = []
+    def authority_file(root, item):
+        operations.append(item["path"])
+        assert item == gate["validation_receipt"]
+    monkeypatch.setattr(runner, "_authority_file", authority_file)
+    monkeypatch.setattr(admission, "verify_package", lambda *a: pytest.fail("Reproduction input read before source rejection"))
+    with pytest.raises(ValueError, match="Production source differs"):
+        runner.load_fresh_authority(tmp_path, "c" * 40)
+    assert operations == ["proof.json"]
+    assert not (tmp_path / "output").exists()

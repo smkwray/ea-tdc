@@ -98,13 +98,13 @@ review and do not authenticate original factor coordinates, alter historical
 outputs or authority, or admit OPEN-16 leg slopes. No source data is downloaded.
 
 
-The separate `fresh_frozen_conditioning_space` authority admits only common-control
-covariance contributions and fixed, full-panel-selected-control calendar-row
-deletion diagnostics. Its committed record pins a validation receipt proving named
-raw-universe equality, the ordered 6,436-feature screen and top 100, ranks/control
-partitions, and projector/full-vector equivalence across two pinned environments
-at absolute tolerance `1e-7`. The vector reference is the new reproduction;
-archived OPEN-01 supplies coefficient and standard-error comparisons only.
+The separate `fresh_frozen_conditioning_space` authority is currently pending
+validation. It can admit only common-control covariance contributions and fixed,
+full-panel-selected-control calendar-row deletion after a passed receipt binds
+the production source and stated structural and numerical gates. Until that
+receipt is committed, the fresh-reproduction lane fails closed. The vector
+reference is the new reproduction; archived OPEN-01 supplies coefficient and
+standard-error comparisons only.
 
 After that exact receipt is pinned, select `--authority-lane fresh-reproduction`
 in `run_open16_diagnostics.py`. Historical-coordinate authenticity remains

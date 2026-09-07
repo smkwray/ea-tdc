@@ -24,6 +24,30 @@ ROOT = Path(__file__).resolve().parents[1]
 TOLERANCE = 1e-7
 GATES = ("raw_semantic_equality", "screen_top100", "rank_partition", "projector_equivalence", "economics_equivalence")
 CONFIG = "config/open16_reproduction_authority.json"
+PRODUCTION_SOURCES = (
+    "src/ea_tdc/estimation.py", "src/ea_tdc/open01.py", "src/ea_tdc/open16.py",
+    "src/ea_tdc/open_contract.py", "scripts/run_open02_producer.py",
+    "scripts/run_open16_diagnostics.py", "scripts/validate_open16_reproduction.py",
+    "scripts/run_frozen_factor_reproduction.py",
+)
+
+
+def production_manifest(root: Path) -> list[dict]:
+    return [record(root, root / name) for name in PRODUCTION_SOURCES]
+
+
+def verify_production_manifest(root: Path, supplied: object) -> None:
+    if supplied != production_manifest(root):
+        raise ValueError("Production source differs from validated manifest")
+
+
+def verify_accepted_estimator(root: Path, archive_path: Path) -> None:
+    with tarfile.open(archive_path) as archive:
+        for name in ("src/ea_tdc/estimation.py", "src/ea_tdc/open01.py"):
+            member = archive.extractfile(name)
+            if member is None or member.read() != (root / name).read_bytes():
+                raise ValueError("Current estimator differs from accepted archived method")
+
 
 
 def verify_package(package: Path, expected_sha256: str) -> dict:
@@ -212,6 +236,8 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
     config = json.loads((root / CONFIG).read_text())
     package = _project_path(root, config["reproduction_receipt"]["path"]).parent
     inputs = verify_package(package, config["reproduction_receipt"]["sha256"])
+    verify_accepted_estimator(root, package / "accepted_method.tar")
+    source_manifest = production_manifest(root)
     output = _project_path(root, output_dir)
     if output.exists():
         raise ValueError("Validation destination exists; no overwrite")
@@ -256,7 +282,7 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
         _verify_producer_commit(root, commit)
         outputs = [record(stage, p) for p in sorted(stage.rglob("*")) if p.is_file()]
         write_json(stage / "receipt.json", {"authority_class": "fresh_frozen_conditioning_space", "status": "passed",
-            "producer_commit": commit, "reproduction_receipt_sha256": config["reproduction_receipt"]["sha256"],
+            "producer_commit": commit, "production_source_manifest": source_manifest, "reproduction_receipt_sha256": config["reproduction_receipt"]["sha256"],
             "gates": dict.fromkeys(GATES, True), "tolerance": TOLERANCE, "environments": config["environments"],
             "raw_factor_extractions_performed": 0, "outputs": outputs,
             "scope": config["scope"], "historical_coordinate_authenticity": "unavailable"})
