@@ -39,3 +39,39 @@ Rebuild the site:
 ```bash
 python -B -m ea_tdc build-site
 ```
+
+
+## Frozen quarterly diagnostics
+
+The diagnostic code preserves all 57 original rolling endpoints, 2011Q4–2025Q4.
+Each window spans 48 nominal calendar quarters. The first eight start in
+2000Q1–2001Q4 and contain 40–47 available observations; subsequent windows
+contain 48 before the fixed pandemic-quarter deletion. Deleted quarters are not
+refilled, and HAC pairs follow calendar distance.
+
+The publication runner reads only the committed `config/open16_authority.json`.
+Its default status is `unavailable`: accepted factor coordinates and the complete
+historical input graph/runtime are not established. Source publication does not
+authorize factor restoration. Covariance and pandemic diagnostics remain held;
+the three unestablished source-resolution bounds separately withhold leg slopes.
+
+A future approved record must pin a separately reviewed approval receipt and its
+canonical `approved_inputs` SHA-256. Every artifact record contains a relative
+`path`, `sha256`, and positive `bytes`. That inventory binds the panel and its
+provenance receipt, accepted source commit/tree, frozen factor policy, complete
+historical graph cut and completeness evidence, runtime identity or numerical
+invariance evidence, full and sample factor scores, ordered screening/top-100,
+full-vector 57-window equivalence reference, and upstream legs/receipt/producer.
+The provenance receipt equals the approved inventory excluding its own record.
+Approval requires historical evidence; a newly inventoried directory or matching
+projection coefficients cannot establish original coordinate identity.
+
+Only `retained_original_coordinates` and
+`deterministically_restored_accepted_graph` are admissible origins. Refreshed or
+reselected inputs, estimate matching, and equality of factor spans are outside
+this contract. The runner computes no factors and accepts no caller-provided
+input hashes. With a separately approved committed record, its invocation is:
+
+```bash
+python -B scripts/run_open16_diagnostics.py --producer-commit <exact-clean-commit>
+```

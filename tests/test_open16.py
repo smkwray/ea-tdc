@@ -8,9 +8,17 @@ import pytest
 from ea_tdc.estimation import _ols
 from ea_tdc.open01 import _fit_projection
 from ea_tdc.open16 import (
-    CANONICAL_CONTROL_IDS, CANONICAL_OUTCOME_ID, CANONICAL_TREATMENT_ID,
-    DELETED_QUARTERS, FROZEN_QUARTERS, calendar_hac, covariance_contributions,
-    join_legs, leg_preflight, pandemic_path, validate_panel,
+    CANONICAL_CONTROL_IDS,
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_TREATMENT_ID,
+    DELETED_QUARTERS,
+    FROZEN_QUARTERS,
+    calendar_hac,
+    covariance_contributions,
+    join_legs,
+    leg_preflight,
+    pandemic_path,
+    validate_panel,
 )
 
 
@@ -77,7 +85,9 @@ def test_pandemic_endpoints_no_refill_and_constant_control_policy(sample):
     for i, row in enumerate(rows):
         row[CANONICAL_CONTROL_IDS[4]] = float(i < 33)
     result = pandemic_path(rows)
-    assert len(result) == 49
+    assert len(result) == 57
+    assert [r["n_obs"] for r in result[:8]] == list(range(40, 48))
+    assert [r["nominal_start"] for r in result[:8]] == [f"{2000 + i // 4}Q{i % 4 + 1}" for i in range(8)]
     for q, n, last in [("2020Q1", 47, "2019Q4"), ("2020Q4", 44, "2019Q4"), ("2022Q3", 43, "2022Q3"), ("2025Q4", 43, "2025Q4")]:
         found = next(r for r in result if r["nominal_end"] == q)
         assert found["n_obs"] == n
@@ -163,12 +173,12 @@ def test_three_leg_rank_and_condition_fail_without_control_drops(sample):
     assert result["controls_dropped"] == []
 
 
-def test_producer_frozen_gate_rejects_stale_factor_realizations(sample, tmp_path, monkeypatch):
+@pytest.fixture
+def frozen_gate(sample, tmp_path, monkeypatch):
     import csv
-    import importlib.util
     import hashlib
+    import importlib.util
     from pathlib import Path
-    import sys
 
     scripts = Path(__file__).resolve().parents[1] / "scripts"
     monkeypatch.syspath_prepend(str(scripts))
@@ -188,9 +198,22 @@ def test_producer_frozen_gate_rejects_stale_factor_realizations(sample, tmp_path
     for end in range(39, 96):
         window = rows[max(0, end - 47):end + 1]
         fit = _fit_projection(window, treatment_id=CANONICAL_TREATMENT_ID, outcome_id=CANONICAL_OUTCOME_ID, control_ids=CANONICAL_CONTROL_IDS)
-        rolling.append({"outcome": CANONICAL_OUTCOME_ID, "horizon": "0", "n": str(len(window)), "window_start_quarter": window[0]["quarter"], "window_end_quarter": window[-1]["quarter"], "beta": fit.beta, "se": fit.se})
+        start = 2002 * 4 + end - 47
+        rolling.append({"outcome": CANONICAL_OUTCOME_ID, "treatment_id": CANONICAL_TREATMENT_ID,
+                        "horizon": "0", "n": str(len(window)), "window_quarters": "48",
+                        "window_start_quarter": f"{start // 4}Q{start % 4 + 1}",
+                        "window_end_quarter": window[-1]["quarter"],
+                        "effective_sample_start": window[0]["quarter"], "effective_sample_end": window[-1]["quarter"],
+                        "covariance_estimator": "newey_west", "covariance_lags": "1",
+                        "control_ids_used": ",".join(fit.control_ids_used), "dropped_control_ids": ",".join(fit.control_ids_rejected),
+                        "beta": fit.beta, "se": fit.se})
     r = table("rolling.csv", rolling)
     receipt = {"retained_outputs": {"fixed": {"same_quarter_headline": h, "rolling_estimates": r}}}
+    return runner, rows, receipt, rolling, table
+
+
+def test_producer_frozen_gate_rejects_stale_factor_realizations(frozen_gate, tmp_path, monkeypatch):
+    runner, rows, receipt, _, _ = frozen_gate
     _, _, gate = runner.validate_frozen_controls(tmp_path, rows, receipt)
     assert gate["rolling_windows_compared"] == 57
     assert gate["original_rolling_endpoints"] == list(FROZEN_QUARTERS[39:])
@@ -207,3 +230,205 @@ def test_producer_frozen_gate_rejects_stale_factor_realizations(sample, tmp_path
     with pytest.raises(ValueError, match="frozen estimate equivalence"):
         runner.validate_frozen_controls(tmp_path, stale, receipt)
     assert not (tmp_path / "receipt.json").exists()
+
+
+@pytest.mark.parametrize("mutation", ["missing_first", "duplicate", "window_start_quarter", "n", "covariance_lags", "window_quarters", "treatment_id", "control_ids_used"])
+def test_frozen_gate_rejects_changed_rolling_contract(frozen_gate, tmp_path, mutation):
+    runner, rows, receipt, rolling, table = frozen_gate
+    if mutation == "missing_first":
+        rolling.pop(0)
+    elif mutation == "duplicate":
+        rolling[1] = rolling[0].copy()
+    else:
+        rolling[0][mutation] = "changed"
+    # Refresh the self-hash so this tests semantic identity, not byte corruption.
+    receipt["retained_outputs"]["fixed"]["rolling_estimates"] = table("rolling.csv", rolling)
+    with pytest.raises(ValueError, match="rolling"):
+        runner.validate_frozen_controls(tmp_path, rows, receipt)
+
+
+@pytest.fixture
+def authority(tmp_path, monkeypatch):
+    import importlib.util
+    import json
+    from pathlib import Path
+    from types import SimpleNamespace
+
+    scripts = Path(__file__).resolve().parents[1] / "scripts"
+    monkeypatch.syspath_prepend(str(scripts))
+    spec = importlib.util.spec_from_file_location("open16_authority_test", scripts / "run_open16_diagnostics.py")
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+
+    def write(name, value):
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value, sort_keys=True))
+        return {"path": name, "sha256": runner._sha256_file(path), "bytes": path.stat().st_size}
+
+    pins = {"factor_origin": "retained_original_coordinates",
+            "accepted_source_commit": runner.EXPECTED_OPEN01_PRODUCER_COMMIT,
+            "accepted_source_tree": "a" * 40, "factor_policy": runner.FACTOR_POLICY,
+            "upstream_producer_commit": "b" * 40}
+    for key in ("panel", "full_factor_scores", "sample_factor_scores", "ordered_screening", "ordered_top100", "equivalence", "legs"):
+        pins[key] = write(key + ".json", {"synthetic": key})
+    pins["open01_receipt"] = write(runner.OPEN01_RECEIPT_LOCATOR, {"synthetic": "accepted"})
+    pins["graph_cut"] = {"kind": "complete_historical_raw_universe", "files": [write("raw.csv", {"synthetic": "raw"})],
+                         "completeness_evidence": write("completeness.json", {"synthetic": "complete"})}
+    pins["runtime"] = {"kind": "historical_runtime_identity", "evidence": write("runtime.json", {"synthetic": "runtime"})}
+    pins["legs_receipt"] = write("legs_receipt.json", {"producer_commit": "b" * 40,
+        "schema_version": "regression_legs_v1", "output": {"sha256": pins["legs"]["sha256"]},
+        "units": "USD million", "sample": {"start": "2002Q1", "end": "2025Q4", "n": 96}})
+    gate = {"schema_version": "ea_tdc_open16_authority_v1", "status": "approved", "approved_inputs": pins}
+
+    def approve():
+        # Synthetic approval only. Production config remains unavailable.
+        pins["provenance_receipt"] = write("provenance.json", {k: v for k, v in pins.items() if k != "provenance_receipt"})
+        gate["approval_receipt"] = write("approval.json", {"decision": "approved", "scope": "exact_factor_coordinates",
+                                                        "approved_inputs_sha256": runner._json_digest(pins)})
+        write(runner.AUTHORITY_LOCATOR, gate)
+    approve()
+    committed = (tmp_path / runner.AUTHORITY_LOCATOR).read_bytes()
+
+    def git(args, **kwargs):
+        if args[1] == "show":
+            return SimpleNamespace(stdout=committed)
+        return SimpleNamespace(stdout="a" * 40 + "\n")
+    monkeypatch.setattr(runner.subprocess, "run", git)
+
+    def commit():
+        nonlocal committed
+        write(runner.AUTHORITY_LOCATOR, gate)
+        committed = (tmp_path / runner.AUTHORITY_LOCATOR).read_bytes()
+    return runner, pins, gate, write, approve, commit
+
+
+@pytest.mark.parametrize("origin", ["retained_original_coordinates", "deterministically_restored_accepted_graph"])
+def test_provenance_accepts_only_independently_approved_coordinate_origins(authority, tmp_path, origin):
+    runner, pins, _, _, approve, commit = authority
+    pins["factor_origin"] = origin
+    approve(); commit()
+    assert runner.load_authority(tmp_path, "c" * 40)["factor_origin"] == origin
+
+
+@pytest.mark.parametrize("mutation", ["panel_self_receipt", "origin", "graph", "accepted_commit", "accepted_tree", "runtime", "factor_scores", "screening", "legs", "leg_receipt", "upstream_producer", "equivalence", "approval", "uncommitted_gate"])
+def test_provenance_rejects_independent_mutations(authority, tmp_path, mutation):
+    runner, pins, gate, write, _, commit = authority
+    if mutation == "panel_self_receipt":
+        write(pins["panel"]["path"], {"new": "panel"})
+        write(pins["provenance_receipt"]["path"], {"panel_sha256": runner._sha256_file(tmp_path / pins["panel"]["path"])})
+    elif mutation in {"origin", "accepted_commit", "accepted_tree", "upstream_producer"}:
+        key = {"origin": "factor_origin", "accepted_commit": "accepted_source_commit", "accepted_tree": "accepted_source_tree", "upstream_producer": "upstream_producer_commit"}[mutation]
+        pins[key] = "changed"
+        # Even a newly pinned approval cannot expand the hard accepted contract.
+        gate["approval_receipt"] = write("approval.json", {"decision": "approved", "scope": "exact_factor_coordinates", "approved_inputs_sha256": runner._json_digest(pins)})
+        commit()
+    elif mutation == "uncommitted_gate":
+        gate["status"] = "unavailable"
+        write(runner.AUTHORITY_LOCATOR, gate)
+    else:
+        record = {"graph": pins["graph_cut"]["files"][0], "runtime": pins["runtime"]["evidence"],
+                  "factor_scores": pins["full_factor_scores"], "screening": pins["ordered_screening"],
+                  "legs": pins["legs"], "leg_receipt": pins["legs_receipt"], "equivalence": pins["equivalence"],
+                  "approval": gate["approval_receipt"]}[mutation]
+        write(record["path"], {"changed": mutation})
+    with pytest.raises(ValueError):
+        runner.load_authority(tmp_path, "c" * 40)
+
+
+@pytest.mark.parametrize("origin", ["reselected", "refreshed_inputs", "estimate_matched_only", "equivalent_factor_space", "retained_accepted_realizations"])
+def test_restoration_rejects_unapproved_recovery_claims_even_with_integrity(authority, tmp_path, origin):
+    runner, pins, _, _, approve, commit = authority
+    pins["factor_origin"] = origin
+    approve(); commit()
+    with pytest.raises(ValueError, match="origin"):
+        runner.load_authority(tmp_path, "c" * 40)
+
+
+def test_provenance_unavailable_stops_before_calculation_or_destination(authority, tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    runner, _, gate, _, _, commit = authority
+    gate.update(status="unavailable", approved_inputs=None, approval_receipt=None)
+    commit()
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "_verify_producer_commit", lambda *args: "c" * 40)
+    monkeypatch.setattr(runner, "validate_frozen_controls", lambda *args: pytest.fail("unavailable authority reached calculation"))
+    with pytest.raises(ValueError, match="authority unavailable"):
+        runner.run(SimpleNamespace(producer_commit="c" * 40, output_dir="absent/outputs"))
+    assert not (tmp_path / "absent").exists()
+
+
+@pytest.fixture
+def coordinate_evidence(authority, sample, tmp_path):
+    import csv
+
+    from ea_tdc.open01 import _quarter_ordinal
+    runner, pins, _, write, _, _ = authority
+    rows = copy.deepcopy(sample[0])
+    for row in rows:
+        for key in runner.FACTOR_IDS:
+            row[key] = float(f"{row[key]:.10f}")
+    full_quarters = [f"{1946 + i // 4}Q{i % 4 + 1}" for i in range(320)]
+    by_quarter = {r["quarter"]: r for r in rows}
+    full = [{"quarter": q, **{k: f"{by_quarter.get(q, {}).get(k, 0):.10f}" for k in runner.FACTOR_IDS}} for q in full_quarters]
+    selected = [r for r in full if r["quarter"] in FROZEN_QUARTERS]
+    for key, records in (("full_factor_scores", full), ("sample_factor_scores", selected)):
+        path = tmp_path / pins[key]["path"]
+        with path.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(records[0]))
+            writer.writeheader(); writer.writerows(records)
+        pins[key].update(sha256=runner._sha256_file(path), bytes=path.stat().st_size)
+    pins["full_factor_quarters"] = full_quarters
+    reference = {"panel_sha256": pins["panel"]["sha256"], "original_rolling_endpoints": list(runner.ORIGINAL_ROLLING_ENDPOINTS), "windows": []}
+    for endpoint in runner.ORIGINAL_ROLLING_ENDPOINTS:
+        end = _quarter_ordinal(endpoint)
+        nominal = [f"{i // 4}Q{i % 4 + 1}" for i in range(end - 47, end + 1)]
+        window = {"nominal_quarters": nominal}
+        for lane in ("no_deletion", "calendar_deletion"):
+            observed = [r for r in rows if r["quarter"] in nominal and (lane == "no_deletion" or r["quarter"] not in DELETED_QUARTERS)]
+            estimate = _fit_projection(observed, treatment_id=CANONICAL_TREATMENT_ID, outcome_id=CANONICAL_OUTCOME_ID, control_ids=CANONICAL_CONTROL_IDS)
+            fit = estimate.fit
+            covariance = np.asarray(fit.covariance)
+            if lane == "calendar_deletion":
+                # Independent full-grid zero-score reference, not calendar_hac.
+                x = np.asarray([[1, r[CANONICAL_TREATMENT_ID], *[r[k] for k in estimate.control_ids_used]] for r in observed])
+                observed_scores = dict(zip((r["quarter"] for r in observed), x * np.asarray(fit.residuals)[:, None], strict=True))
+                scores = np.asarray([observed_scores.get(q, np.zeros(x.shape[1])) for q in nominal])
+                meat = scores.T @ scores + .5 * (scores[1:].T @ scores[:-1] + scores[:-1].T @ scores[1:])
+                bread = np.linalg.inv(x.T @ x)
+                covariance = bread @ meat @ bread * len(x) / (len(x) - x.shape[1])
+            window[lane] = {"observed_quarters": [r["quarter"] for r in observed],
+                            "controls_used": list(estimate.control_ids_used), "controls_rejected": list(estimate.control_ids_rejected),
+                            "covariance_lags": 1, "coefficients": fit.beta, "fitted": fit.fitted,
+                            "residuals": fit.residuals, "covariance": covariance.tolist(),
+                            "treatment_beta_se": [fit.beta[1], float(np.sqrt(covariance[1, 1]))]}
+        reference["windows"].append(window)
+    pins["equivalence"] = write(pins["equivalence"]["path"], reference)
+    return runner, pins, rows, reference, write
+
+
+def test_restoration_coordinates_and_full_vector_calendar_reference(coordinate_evidence, tmp_path):
+    runner, pins, rows, _, _ = coordinate_evidence
+    runner.validate_coordinate_evidence(tmp_path, rows, pins)
+
+
+@pytest.mark.parametrize("mutation", ["missing_first", "nominal_inventory", "observed_inventory", "control_partition", "coefficient_vector", "residual_vector", "full_covariance", "factor_coordinate"])
+def test_restoration_rejects_changed_equivalence_despite_estimate_match(coordinate_evidence, tmp_path, mutation):
+    runner, pins, rows, reference, write = coordinate_evidence
+    if mutation == "missing_first":
+        reference["windows"].pop(0)
+    elif mutation == "nominal_inventory":
+        reference["windows"][0]["nominal_quarters"][0] = "2001Q1"
+    elif mutation == "factor_coordinate":
+        rows[0][runner.FACTOR_IDS[0]] *= -1
+    else:
+        lane = reference["windows"][0]["calendar_deletion"]
+        if mutation == "observed_inventory": lane["observed_quarters"].pop(0)
+        elif mutation == "control_partition": lane["controls_used"].reverse()
+        elif mutation == "coefficient_vector": lane["coefficients"][-1] += .1
+        elif mutation == "residual_vector": lane["residuals"][0] += .1
+        else: lane["covariance"][-1][-1] += .1
+    # Deliberately retain treatment beta/SE; those scalars cannot identify factors.
+    pins["equivalence"] = write(pins["equivalence"]["path"], reference)
+    with pytest.raises(ValueError):
+        runner.validate_coordinate_evidence(tmp_path, rows, pins)
