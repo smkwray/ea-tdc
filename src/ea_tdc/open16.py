@@ -19,6 +19,7 @@ from ea_tdc.open_contract import (
 
 LEGS = ("R", "J", "O")
 FROZEN_QUARTERS = tuple(f"{2002 + i // 4}Q{i % 4 + 1}" for i in range(96))
+ORIGINAL_ROLLING_ENDPOINTS = FROZEN_QUARTERS[39:]
 DELETED_QUARTERS = tuple(f"2020Q{i}" for i in range(1, 5)) + ("2021Q1",)
 CHECKPOINTS = ("2020Q1", "2020Q4", "2022Q3", "2025Q4")
 DISCLOSURES = {
@@ -109,7 +110,7 @@ def pandemic_path(rows: Sequence[Mapping[str, Any]], *, nominal_endpoints: Seque
     result = []
     # Preserve the archived endpoint inventory, including partially observed
     # initial windows. Nominal boundaries precede both availability and deletion.
-    endpoints = tuple(nominal_endpoints) if nominal_endpoints is not None else FROZEN_QUARTERS[47:]
+    endpoints = tuple(nominal_endpoints) if nominal_endpoints is not None else ORIGINAL_ROLLING_ENDPOINTS
     if tuple(sorted(set(endpoints), key=_quarter_ordinal)) != endpoints or any(q not in FROZEN_QUARTERS for q in endpoints):
         raise ValueError("Nominal endpoints must be unique ordered frozen quarters")
     for endpoint in endpoints:
