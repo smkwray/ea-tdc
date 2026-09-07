@@ -287,3 +287,87 @@ def test_covariance_operator_rejects_nonfinite_derived_norm(monkeypatch):
     monkeypatch.setattr(np.linalg, "norm", lambda *a, **kw: float("inf"))
     with pytest.raises(ValueError, match="Nonfinite covariance norm"):
         canonical_covariance([[1., 0.], [0., 1.]], [1., 1.], 1.)
+
+
+def test_authority_file_accepts_exact_empty_file(validator, tmp_path):
+    import run_open16_diagnostics as runner
+
+    path = tmp_path / "silent.log"
+    path.write_bytes(b"")
+    item = validator.record(tmp_path, path)
+    assert item["bytes"] == 0
+    assert runner._authority_file(tmp_path, item) == item
+
+
+@pytest.mark.parametrize("fault", ["negative", "wrong_size", "wrong_hash", "missing", "escape"])
+def test_authority_file_rejects_invalid_empty_file_record(validator, tmp_path, fault):
+    import run_open16_diagnostics as runner
+
+    path = tmp_path / "silent.log"
+    path.write_bytes(b"")
+    item = validator.record(tmp_path, path)
+    if fault == "negative": item["bytes"] = -1
+    elif fault == "wrong_size": item["bytes"] = 1
+    elif fault == "wrong_hash": item["sha256"] = "0" * 64
+    elif fault == "missing": path.unlink()
+    else: item["path"] = "../silent.log"
+    with pytest.raises(FileNotFoundError if fault == "missing" else ValueError):
+        runner._authority_file(tmp_path, item)
+
+
+def test_complete_validation_receipt_loads_under_proposed_authority(validator, tmp_path, monkeypatch):
+    import run_open16_diagnostics as runner
+    import validate_open16_reproduction as admission
+
+    def write(name, value):
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(value if isinstance(value, bytes) else json.dumps(value).encode())
+        return admission.record(tmp_path, path)
+
+    gate = json.loads((Path(__file__).resolve().parents[1] / admission.CONFIG).read_text())
+    gate.update(status="approved_bounded_scope", validation_producer_commit="c" * 40,
+                environments=[admission.runtime_identity()])
+    for name in admission.PRODUCTION_SOURCES:
+        write(name, b"synthetic validated source\n")
+    package = tmp_path / "reproduction"
+    panel = write("reproduction/results/frozen_projection_panel.csv", b"quarter,value\n2002Q1,1\n")
+    original = write("reproduction/inputs/" + runner.OPEN01_RECEIPT_LOCATOR, {"synthetic": True})
+    input_receipt = write("reproduction/input_receipt.json", {
+        "frozen_input_graph": [{**original, "path": runner.OPEN01_RECEIPT_LOCATOR}]})
+    gate["reproduction_receipt"] = write("reproduction/receipt.json", {
+        "origin": "new_frozen_input_reproduction", "input_receipt_sha256": input_receipt["sha256"],
+        "retained_outputs": [{**panel, "path": "results/frozen_projection_panel.csv"}]})
+    gate["structural_evidence"] = {"records": [write("structural.json", {"passed": True})]}
+    gate["prior_failed_validation_records"] = [write("prior_failure.json", {"status": "failed"})]
+    gate["legs"] = write("legs.csv", b"quarter,C,R,J,O\n2002Q1,3,1,1,1\n")
+    gate["legs_receipt"] = write("legs_receipt.json", {
+        "producer_commit": gate["upstream_producer_commit"], "output": {"sha256": gate["legs"]["sha256"]},
+        "schema_version": "regression_legs_v1", "units": "USD million",
+        "sample": {"start": "2002Q1", "end": "2025Q4", "n": 96}})
+    for name in ("primary.log", "comparison.log"):
+        write("proof/" + name, b"")
+    write("proof/numerical_comparison.json", {"passed": True})
+    proof_dir = tmp_path / "proof"
+    proof = {"status": "passed", "gates": dict.fromkeys(admission.GATES, True),
+             "producer_commit": gate["validation_producer_commit"],
+             "production_source_manifest": admission.production_manifest(tmp_path),
+             "reproduction_receipt_sha256": gate["reproduction_receipt"]["sha256"],
+             "outputs": [admission.record(proof_dir, p) for p in sorted(proof_dir.iterdir())]}
+    proof.update({key: gate[key] for key in ("authority_class", "scope", "numerical_policy",
+                  "structural_evidence", "prior_failed_validation_records", "environments")})
+    gate["validation_receipt"] = write("proof/receipt.json", proof)
+    write(admission.CONFIG, gate)
+    proposed = (tmp_path / admission.CONFIG).read_bytes()
+
+    def proposed_git_show(argv, **kwargs):
+        assert argv == ["git", "show", "proposed:" + admission.CONFIG]
+        return SimpleNamespace(stdout=proposed)
+
+    # Only the proposed Git trust-root read is simulated; every source, receipt,
+    # input and output uses the real file/hash/path/length validators.
+    monkeypatch.setattr(runner.subprocess, "run", proposed_git_show)
+    loaded = runner.load_fresh_authority(tmp_path, "proposed")
+    assert loaded["validation_receipt"] == gate["validation_receipt"]
+    assert loaded["panel"]["path"] == str((package / "results/frozen_projection_panel.csv").relative_to(tmp_path))
+    assert (proof_dir / "primary.log").stat().st_size == (proof_dir / "comparison.log").stat().st_size == 0

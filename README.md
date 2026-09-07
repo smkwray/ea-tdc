@@ -98,11 +98,11 @@ review and do not authenticate original factor coordinates, alter historical
 outputs or authority, or admit OPEN-16 leg slopes. No source data is downloaded.
 
 
-The separate `fresh_frozen_conditioning_space` authority is currently pending
-validation. It can admit only common-control covariance contributions and fixed,
+The separate `fresh_frozen_conditioning_space` authority can admit only
+common-control covariance contributions and fixed,
 full-panel-selected-control calendar-row deletion after a passed receipt binds
 the production source and stated structural and numerical gates. Until that
-receipt is committed, the fresh-reproduction lane fails closed. The vector
+receipt is pinned by a committed approval, the fresh-reproduction lane fails closed. The vector
 reference is the new reproduction; archived OPEN-01 supplies coefficient and
 standard-error comparisons only. The failed absolute full-vector comparison and v2 raw-symmetry check are
 preserved. Prospective `conditioning_space_v3` compares exact input values, ranks and control
