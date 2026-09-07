@@ -104,7 +104,14 @@ full-panel-selected-control calendar-row deletion after a passed receipt binds
 the production source and stated structural and numerical gates. Until that
 receipt is committed, the fresh-reproduction lane fails closed. The vector
 reference is the new reproduction; archived OPEN-01 supplies coefficient and
-standard-error comparisons only.
+standard-error comparisons only. The failed absolute full-vector comparison is
+preserved. Prospective `conditioning_space_v2` compares exact ranks and control
+partitions, conditioning/full-design projectors, a column-normalized condition
+cap, treatment beta/SE, and scale-invariant vector/covariance errors against both
+pinned environments and an independent scaled SVD reference. Its complete policy
+is recorded in the authority and must match the validation receipt exactly.
+Numeric revalidation reuses the hashed passing raw/screen evidence without a raw
+rebuild or factor extraction.
 
 After that exact receipt is pinned, select `--authority-lane fresh-reproduction`
 in `run_open16_diagnostics.py`. Historical-coordinate authenticity remains

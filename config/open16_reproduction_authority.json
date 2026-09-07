@@ -28,7 +28,6 @@
       "numpy_core_sha256": "2a5f2e415c5e582109b015eafd0da1ce887b3e3006969369fe2e5e5b27720acd"
     }
   ],
-  "tolerance": 1e-07,
   "legs": {
     "path": "data/bundles/open16/tdc_regression_legs_v1.csv",
     "sha256": "bea2379870d1f129d15ca183312a3682c863b565dcae58f18fbbd609ced340c6",
@@ -41,5 +40,54 @@
   },
   "upstream_producer_commit": "b1ac49ae83c7fe68db1abf16742bb17aab3dc56f",
   "historical_coordinate_authenticity": "unavailable",
-  "leg_estimation_authority": "withheld_source_resolution_unestablished"
+  "leg_estimation_authority": "withheld_source_resolution_unestablished",
+  "numerical_policy": {
+    "version": "conditioning_space_v2",
+    "discrete_identity": "exact_rows_order_control_partition_factor_and_design_ranks",
+    "projector_norm": "spectral_2_conditioning_and_full_design",
+    "projector_tolerance": 1e-10,
+    "column_normalized_condition_cap": 10000.0,
+    "treatment_beta_se_absolute_tolerance": 1e-07,
+    "scaled_vector_relative_tolerance": 1e-07,
+    "scaled_covariance_relative_tolerance": 1e-07,
+    "covariance_norm_floor": 1e-30,
+    "symmetry_relative_tolerance": 1e-12,
+    "negative_diagonal_relative_tolerance": 1e-12,
+    "outcome_norm_floor": 1.0,
+    "reference_solver": "column_scaled_svd",
+    "covariance": "newey_west_lag1_bartlett_observed_n_over_n_minus_rank",
+    "structural_gates": "unchanged_exact",
+    "historical_absolute_policy": "failed_preserved_not_reinterpreted",
+    "covariance_sanity_coordinates": "D_V_D"
+  },
+  "structural_evidence": {
+    "producer_commit": "dd5a5510ff36e3390684ee324a0ec64b8664b11b",
+    "records": [
+      {
+        "path": "output/reproductions/.open16-validation-ni4y83wo/universe_comparison.json",
+        "sha256": "a8fa447fd09b572bd91df1376057830bb1d7a76e651720be1f77bd5088b8a3a7",
+        "bytes": 33649
+      },
+      {
+        "path": "output/reproductions/.open16-validation-ni4y83wo/screen_comparison.json",
+        "sha256": "2f6f15c640e9b1e18e091e88ce3e65aa3cfcf66212dff97dbd2115f053905a52",
+        "bytes": 148
+      },
+      {
+        "path": "output/reproductions/.open16-validation-ni4y83wo/rebuilt_ordered_screen.csv",
+        "sha256": "33f40115cc7e4cdf54a82b0e8b90b984b5600086d8e19e6feb5c12bd574aa1a6",
+        "bytes": 453318
+      },
+      {
+        "path": "output/reproductions/.open16-validation-ni4y83wo/commands.json",
+        "sha256": "7e4ae862b0b8a4b47c6c6f7ba61bce396a35a1c18dc5667d92f00e53c71595df",
+        "bytes": 1984
+      },
+      {
+        "path": "output/reproductions/.open16-validation-ni4y83wo/raw_rebuild/output/reports/control_universe_quarterly.csv",
+        "sha256": "ea12d1188c7a8231d37892cb8c727c33f7c2ef46beb71fc4701c5eba14761a15",
+        "bytes": 14584303
+      }
+    ]
+  }
 }
