@@ -190,6 +190,61 @@ def load_authority(root: Path, commit: str) -> dict:
     return pins
 
 
+def load_fresh_authority(root: Path, commit: str) -> dict:
+    from validate_open16_reproduction import GATES, runtime_identity, verify_package
+
+    locator = "config/open16_reproduction_authority.json"
+    committed = subprocess.run(["git", "show", f"{commit}:{locator}"], cwd=root, check=True, capture_output=True).stdout
+    if (root / locator).read_bytes() != committed:
+        raise ValueError("Fresh authority differs from committed trust root")
+    gate = json.loads(committed)
+    scope = ["common_control_covariance", "fixed_full_panel_selected_calendar_row_deletion"]
+    if (gate.get("schema_version") != "ea_tdc_open16_fresh_authority_v1"
+            or gate.get("authority_class") != "fresh_frozen_conditioning_space"
+            or gate.get("origin") != "new_frozen_input_reproduction"
+            or gate.get("status") != "approved_bounded_scope" or gate.get("scope") != scope
+            or gate.get("historical_coordinate_authenticity") != "unavailable"
+            or gate.get("leg_estimation_authority") != "withheld_source_resolution_unestablished"):
+        raise ValueError("Fresh reproduction authority unavailable or scope expanded")
+    if runtime_identity() not in gate.get("environments", []):
+        raise ValueError("Current diagnostic runtime lacks pinned numerical qualification")
+    _authority_file(root, gate.get("reproduction_receipt"))
+    _authority_file(root, gate.get("validation_receipt"))
+    package = _project_path(root, gate["reproduction_receipt"]["path"]).parent
+    inputs = verify_package(package, gate["reproduction_receipt"]["sha256"])
+    validation_path = _project_path(root, gate["validation_receipt"]["path"])
+    validation = json.loads(validation_path.read_text())
+    if (validation.get("status") != "passed" or validation.get("gates") != dict.fromkeys(GATES, True)
+            or validation.get("authority_class") != gate["authority_class"]
+            or validation.get("scope") != scope or validation.get("tolerance") != 1e-7
+            or validation.get("environments") != gate["environments"]
+            or validation.get("producer_commit") != gate["validation_producer_commit"]
+            or validation.get("reproduction_receipt_sha256") != gate["reproduction_receipt"]["sha256"]):
+        raise ValueError("Fresh reproduction validation does not establish the exact bounded gates")
+    for item in validation["outputs"]:
+        path = (validation_path.parent / item["path"]).resolve()
+        path.relative_to(validation_path.parent.resolve())
+        _authority_file(root, {**item, "path": path.relative_to(root.resolve()).as_posix()})
+    for key in ("legs", "legs_receipt"):
+        _authority_file(root, gate[key])
+    legs_receipt = json.loads(_project_path(root, gate["legs_receipt"]["path"]).read_text())
+    if (legs_receipt.get("producer_commit") != gate["upstream_producer_commit"]
+            or legs_receipt.get("output", {}).get("sha256") != gate["legs"]["sha256"]
+            or legs_receipt.get("schema_version") != "regression_legs_v1"
+            or legs_receipt.get("units") != "USD million"
+            or legs_receipt.get("sample") != {"start": "2002Q1", "end": "2025Q4", "n": 96}):
+        raise ValueError("Fresh lane treatment-leg identity changed")
+    receipt = json.loads((package / "receipt.json").read_text())
+    panel = next(item for item in receipt["retained_outputs"] if item["path"] == "results/frozen_projection_panel.csv")
+    accepted = next(item for item in inputs["frozen_input_graph"] if item["path"] == OPEN01_RECEIPT_LOCATOR)
+    return {"authority_class": gate["authority_class"], "factor_origin": gate["origin"],
+            "authority": _file_record(root, locator), "validation_receipt": gate["validation_receipt"],
+            "reproduction_receipt": gate["reproduction_receipt"],
+            "panel": {**panel, "path": (package / panel["path"]).relative_to(root).as_posix()},
+            "open01_receipt": {**accepted, "path": (package / "inputs" / accepted["path"]).relative_to(root).as_posix()},
+            "legs": gate["legs"], "legs_receipt": gate["legs_receipt"]}
+
+
 def validate_coordinate_evidence(root: Path, rows: list[dict], pins: dict) -> None:
     """Check approved coordinate and independent full-vector reference objects."""
     full = _read_csv_rows(_project_path(root, pins["full_factor_scores"]["path"]))
@@ -253,20 +308,31 @@ def _write_csv(path: Path, rows: list[dict]) -> None:
 
 def run(args: argparse.Namespace) -> Path:
     commit = _verify_producer_commit(ROOT, args.producer_commit)
-    pins = load_authority(ROOT, commit)
+    fresh = getattr(args, "authority_lane", "historical") == "fresh-reproduction"
+    pins = load_fresh_authority(ROOT, commit) if fresh else load_authority(ROOT, commit)
     panel_record = pins["panel"]
     panel_path = _project_path(ROOT, panel_record["path"])
     old_receipt = json.loads(_project_path(ROOT, pins["open01_receipt"]["path"]).read_text())
     rows, frozen_beta, checks = validate_frozen_controls(ROOT, _read_csv_rows(panel_path), old_receipt)
-    validate_coordinate_evidence(ROOT, rows, pins)
+    if fresh:
+        frozen_beta = _fit_projection(rows, treatment_id=CANONICAL_TREATMENT_ID, outcome_id=CANONICAL_OUTCOME_ID, control_ids=CANONICAL_CONTROL_IDS).beta
+        checks["conditioning_authority_class"] = pins["authority_class"]
+        checks["factor_origin"] = pins["factor_origin"]
+    else:
+        validate_coordinate_evidence(ROOT, rows, pins)
     legs_path = _project_path(ROOT, pins["legs"]["path"])
     leg_receipt = json.loads(_project_path(ROOT, pins["legs_receipt"]["path"]).read_text())
     rows = join_legs(rows, _read_csv_rows(legs_path))
-    preflight = leg_preflight(rows, leg_receipt["source_resolution"])
+    preflight = ({"status": "not_run_scope_excluded", "reason_codes": ["leg_estimation_outside_fresh_scope"],
+                  "leg_estimates_computed": False, "source_resolution": leg_receipt["source_resolution"]}
+                 if fresh else leg_preflight(rows, leg_receipt["source_resolution"]))
     if preflight["status"] == "passed":
         raise ValueError("Leg preflight passed: gated estimation and seven-test inference must be implemented before accepting this disposition")
     covariance = covariance_contributions(rows, frozen_beta)
     rolling = pandemic_path(rows, nominal_endpoints=checks["original_rolling_endpoints"])
+    if fresh:
+        for row in covariance + rolling:
+            row.update(conditioning_authority_class=pins["authority_class"], factor_origin=pins["factor_origin"])
     output = _project_path(ROOT, args.output_dir)
     if output.exists():
         raise ValueError("Output directory already exists; preserve or adjudicate it before rerunning")
@@ -276,11 +342,11 @@ def run(args: argparse.Namespace) -> Path:
         _write_csv(stage / "leg_covariance_contributions.csv", covariance)
         _write_csv(stage / "pandemic_calendar_deletion.csv", rolling)
         (stage / "leg_preflight.json").write_text(json.dumps(preflight, indent=2, allow_nan=False) + "\n")
-        inputs = {"authority": _file_record(ROOT, AUTHORITY_LOCATOR), "approved_inputs": pins}
+        inputs = {"authority": pins["authority"] if fresh else _file_record(ROOT, AUTHORITY_LOCATOR), "approved_inputs": pins}
         outputs = {p.name: {"sha256": _sha256_file(p), "bytes": p.stat().st_size} for p in sorted(stage.iterdir())}
         receipt = {"schema_version": "ea_tdc_frozen_diagnostics_v1", "producer_commit": commit,
                    "dependency_lock_sha256": _sha256_file(ROOT / "uv.lock"),
-                   "status": "completed_with_failed_leg_preflight", "sample": list(FROZEN_QUARTERS),
+                   "status": "completed_bounded_fresh_reproduction_diagnostics" if fresh else "completed_with_failed_leg_preflight", "sample": list(FROZEN_QUARTERS),
                    "inputs": inputs, "outputs": outputs, "frozen_controls": checks,
                    "leg_estimates_computed": False, "leg_preflight_reason_codes": preflight["reason_codes"],
                    "scientific_status": "appendix_only", **DISCLOSURES}
@@ -297,6 +363,7 @@ def run(args: argparse.Namespace) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--producer-commit", required=True)
+    parser.add_argument("--authority-lane", choices=("historical", "fresh-reproduction"), default="historical")
     parser.add_argument("--output-dir", default="output/reports/open16")
     receipt = run(parser.parse_args())
     print(json.dumps({"receipt": str(receipt.relative_to(ROOT)), "sha256": _sha256_file(receipt)}))
