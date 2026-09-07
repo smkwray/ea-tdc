@@ -104,12 +104,17 @@ full-panel-selected-control calendar-row deletion after a passed receipt binds
 the production source and stated structural and numerical gates. Until that
 receipt is committed, the fresh-reproduction lane fails closed. The vector
 reference is the new reproduction; archived OPEN-01 supplies coefficient and
-standard-error comparisons only. The failed absolute full-vector comparison is
-preserved. Prospective `conditioning_space_v2` compares exact ranks and control
+standard-error comparisons only. The failed absolute full-vector comparison and v2 raw-symmetry check are
+preserved. Prospective `conditioning_space_v3` compares exact input values, ranks and control
 partitions, conditioning/full-design projectors, a column-normalized condition
 cap, treatment beta/SE, and scale-invariant vector/covariance errors against both
 pinned environments and an independent scaled SVD reference. Its complete policy
 is recorded in the authority and must match the validation receipt exactly.
+Raw covariance matrices remain unchanged; comparison uses their explicitly
+symmetric operators, with a bounded representation error, positive-semidefinite
+guard and nonnegative diagonals. Calendar inference retains both representations
+and never clips a negative variance to zero. Floating normalization values are
+diagnostics; cross-runtime comparisons use one designated common normalization.
 Numeric revalidation reuses the hashed passing raw/screen evidence without a raw
 rebuild or factor extraction.
 

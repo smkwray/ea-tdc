@@ -125,6 +125,7 @@ def test_manifested_source_drift_rejects_before_reproduction_input(validator, tm
     proof = {"status": "passed", "gates": dict.fromkeys(admission.GATES, True),
              "authority_class": gate["authority_class"], "scope": gate["scope"],
              "numerical_policy": gate["numerical_policy"], "structural_evidence": gate["structural_evidence"],
+             "prior_failed_validation_records": gate["prior_failed_validation_records"],
              "environments": gate["environments"], "producer_commit": gate["validation_producer_commit"],
              "reproduction_receipt_sha256": gate["reproduction_receipt"]["sha256"],
              "production_source_manifest": manifest}
@@ -176,6 +177,7 @@ def test_v2_full_comparison_is_invariant_to_control_units(validator, policy):
     perturbed = copy.deepcopy(reference)
     perturbed["coefficients"][2] += 1e-10
     perturbed["covariance"][2][2] += 1e-12
+    reference.pop("raw_covariance"); perturbed.pop("raw_covariance")
     before = validator.compare_scaled(reference, perturbed, geometry["scales"], geometry["outcome_scale"], policy)
     conversion = np.array([1., 1., 1024., 1. / 1024., 1.])
     for values in (reference, perturbed):
@@ -201,6 +203,7 @@ def test_v2_rejects_substantive_or_invalid_numerical_values(validator, policy, f
     geometry = validator.scaled_geometry(x, y, policy)
     reference = validator.svd_reference(x, y, geometry)
     changed = copy.deepcopy(reference)
+    changed.pop("raw_covariance")
     if fault == "beta": changed["beta_se"][0] += 1e-5
     elif fault == "nonfinite": changed["fitted"][0] = float("nan")
     elif fault == "asymmetric": changed["covariance"][1][2] += .01
@@ -216,13 +219,71 @@ def test_v2_pair_gate_rejects_projector_policy_or_discrete_drift(validator, poli
     for report in (first, second):
         report["numerical_policy"] = policy
         for window in report["windows"]:
-            window.update(full_projector=[[1.]], scales=[1.], outcome_scale=1., design_rank=1, condition=1.)
+            window.update(full_projector=[[1.]], scales=[1., 1.], outcome_scale=1., design_rank=2, condition=1.,
+                          input_inventory_sha256="a" * 64, coefficients=[0., 1.], covariance=[[.2, 0.], [0., .2]])
             window["independent_svd"] = {k: window[k] for k in ("coefficients", "fitted", "residuals", "covariance", "beta_se")}
     if fault == "policy": second["numerical_policy"] = {**policy, "projector_tolerance": 1.}
-    elif fault == "rank": second["windows"][0]["design_rank"] = 2
+    elif fault == "rank": second["windows"][0]["design_rank"] = 3
     elif fault == "missing_window": second["windows"].pop()
     else:
         key = "projector" if fault == "conditioning_projector" else "full_projector"
         second["windows"][0][key] = [[1. + 2e-10]]
     with pytest.raises(ValueError):
-        validator.compare_v2_environments(first, second, policy)
+        validator.compare_policy_environments(first, second, policy)
+
+
+def operator_reports(policy):
+    first, second = reports()
+    for report in (first, second):
+        report["numerical_policy"] = policy
+        for window in report["windows"]:
+            window.update(full_projector=[[1.]], scales=[1., 1.], outcome_scale=1., design_rank=2, condition=1.,
+                          input_inventory_sha256="a" * 64, coefficients=[0., 1.], covariance=[[.2, 0.], [0., .2]])
+            window["independent_svd"] = {k: window[k] for k in ("coefficients", "fitted", "residuals", "covariance", "beta_se")}
+    return first, second
+
+
+def test_one_ulp_normalization_drift_preserves_input_identity(validator, policy):
+    first, second = operator_reports(policy)
+    second["windows"][0]["scales"][0] = float(np.nextafter(1., 2.))
+    second["windows"][0]["outcome_scale"] = float(np.nextafter(1., 2.))
+    assert max(validator.compare_policy_environments(first, second, policy)["maxima"].values()) == 0
+
+
+@pytest.mark.parametrize("field", ["quarter", "value"])
+def test_changed_input_row_or_value_fails_exact_inventory_gate(validator, policy, field):
+    first, second = operator_reports(policy)
+    original = [{"quarter": "2002Q1", "value": "1.000"}]
+    changed = [{**original[0], field: "2002Q2" if field == "quarter" else "1.001"}]
+    first["windows"][0]["input_inventory_sha256"] = validator.input_inventory_hash(original, ["quarter", "value"])
+    second["windows"][0]["input_inventory_sha256"] = validator.input_inventory_hash(changed, ["quarter", "value"])
+    with pytest.raises(ValueError, match="discrete design identity"):
+        validator.compare_policy_environments(first, second, policy)
+
+
+def test_covariance_operator_preserves_raw_and_exact_diagonal():
+    from ea_tdc.covariance import canonical_covariance
+    raw = np.array([[2., .2 + 1e-10], [.2, 1.]])
+    original = raw.copy()
+    evidence = canonical_covariance(raw, [2., 3.], 4.)
+    assert np.array_equal(raw, original)
+    assert np.array_equal(evidence["raw_covariance"], original)
+    assert np.array_equal(np.diag(evidence["covariance"]), np.diag(original))
+    assert np.array_equal(evidence["covariance"], np.asarray(evidence["covariance"]).T)
+    assert 0 < evidence["diagnostics"]["representation_relative_error"] < 1e-7
+    assert evidence["diagnostics"]["minimum_scaled_eigenvalue"] > 0
+
+
+@pytest.mark.parametrize("raw", [[[1., 2.], [2., 1.]], [[1., 0.], [0., -1e-30]],
+                                 [[1., 0.], [0., 0.]], [[1., .1], [0., 1.]]])
+def test_covariance_operator_rejects_indefiniteness_negative_zero_or_skew(raw):
+    from ea_tdc.covariance import canonical_covariance
+    with pytest.raises(ValueError):
+        canonical_covariance(raw, [1., 1.], 1.)
+
+
+def test_covariance_operator_rejects_nonfinite_derived_norm(monkeypatch):
+    from ea_tdc.covariance import canonical_covariance
+    monkeypatch.setattr(np.linalg, "norm", lambda *a, **kw: float("inf"))
+    with pytest.raises(ValueError, match="Nonfinite covariance norm"):
+        canonical_covariance([[1., 0.], [0., 1.]], [1., 1.], 1.)

@@ -42,7 +42,7 @@
   "historical_coordinate_authenticity": "unavailable",
   "leg_estimation_authority": "withheld_source_resolution_unestablished",
   "numerical_policy": {
-    "version": "conditioning_space_v2",
+    "version": "conditioning_space_v3",
     "discrete_identity": "exact_rows_order_control_partition_factor_and_design_ranks",
     "projector_norm": "spectral_2_conditioning_and_full_design",
     "projector_tolerance": 1e-10,
@@ -51,14 +51,22 @@
     "scaled_vector_relative_tolerance": 1e-07,
     "scaled_covariance_relative_tolerance": 1e-07,
     "covariance_norm_floor": 1e-30,
-    "symmetry_relative_tolerance": 1e-12,
-    "negative_diagonal_relative_tolerance": 1e-12,
     "outcome_norm_floor": 1.0,
     "reference_solver": "column_scaled_svd",
     "covariance": "newey_west_lag1_bartlett_observed_n_over_n_minus_rank",
     "structural_gates": "unchanged_exact",
     "historical_absolute_policy": "failed_preserved_not_reinterpreted",
-    "covariance_sanity_coordinates": "D_V_D"
+    "covariance_operator": {
+      "definition": "C=H(D_V_raw_D); raw covariance retained unchanged",
+      "representation_relative_budget": 1e-07,
+      "psd_relative_budget": 1e-07,
+      "spectral_norm_floor": 1e-30,
+      "reported_diagonal": "nonnegative_without_clipping",
+      "treatment_variance": "strictly_positive"
+    },
+    "common_comparison_normalization": "designated_primary_environment_D",
+    "exact_input_identity": "sha256_canonical_ordered_row_values",
+    "historical_v2_policy": "failed_preserved_not_reinterpreted"
   },
   "structural_evidence": {
     "producer_commit": "dd5a5510ff36e3390684ee324a0ec64b8664b11b",
@@ -89,5 +97,37 @@
         "bytes": 14584303
       }
     ]
-  }
+  },
+  "prior_failed_validation_records": [
+    {
+      "path": "output/reproductions/.open16-validation-ni4y83wo/failure.json",
+      "sha256": "5bb5831556c9cc71a54c1e926544703d296519fde02722eca11fca9e3392a92e",
+      "bytes": 261
+    },
+    {
+      "path": "output/reproductions/.open16-validation-ni4y83wo/comparison.log",
+      "sha256": "bae810ab63164036054742c1c73a62ab22c5188f4e4b7913b18179fb1c9ed26b",
+      "bytes": 707
+    },
+    {
+      "path": "output/reproductions/.open16-validation-1y1b9f5a/failure.json",
+      "sha256": "948f20270f13d71744f1f992d8d7d4770c16f51bae76d27beea823790ae61439",
+      "bytes": 255
+    },
+    {
+      "path": "output/reproductions/.open16-validation-1y1b9f5a/primary.log",
+      "sha256": "64776a6e814cf9f35096e5319b49e043560e1b8b87edf50cdfe1f4dced499dcc",
+      "bytes": 1218
+    },
+    {
+      "path": "output/reproductions/.open16-validation-1y1b9f5a/policy.json",
+      "sha256": "074e74c19bb826efd445f63f99a81ea9857526499f00afc5b5264bd348279ceb",
+      "bytes": 833
+    },
+    {
+      "path": "output/reproductions/.open16-validation-1y1b9f5a/commands.json",
+      "sha256": "eac6088b8ab5af51fd661d5f2931ab13d45803bb70d031a27dce7cc3d50a6468",
+      "bytes": 703
+    }
+  ]
 }
