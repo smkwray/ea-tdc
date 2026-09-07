@@ -1,0 +1,15 @@
+{
+  "schema_version": "ea_tdc_frozen_factor_reproduction_v1",
+  "origin": "new_frozen_input_reproduction",
+  "method_commit": "2e35658c055f7686f621618af14f9d5a9d8b35c3",
+  "accepted_receipt": {
+    "path": "output/manifests/open01_producer_run_receipt.json",
+    "sha256": "1ee790a0ddaddd8dd06da0236eabd48c7e035354105cf9595c62342470dd303d"
+  },
+  "graph_cut": {
+    "panel": {"path": "output/reports/control_universe_quarterly.csv", "sha256": "8821cbfa308f64c32724a7b36649868b80d4c5b6105dac17c5e2624105f50b74"},
+    "columns": {"path": "output/reports/control_universe_columns.csv", "sha256": "77dff081dd49f849ebafaf5d2b5ea378e426ce028c62214e20bd12ac21b52796"},
+    "metadata": {"path": "output/reports/control_universe_meta.json", "sha256": "19b886abf749b6d7bcf1f04eaf237f96724cfcc8e5febde301b8277b14661c9c"}
+  },
+  "claim_status": "new_reproduction_pending_review_not_original_coordinate_authentication"
+}

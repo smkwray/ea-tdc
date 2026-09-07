@@ -75,3 +75,24 @@ input hashes. With a separately approved committed record, its invocation is:
 ```bash
 python -B scripts/run_open16_diagnostics.py --producer-commit <exact-clean-commit>
 ```
+
+## Separate frozen-input reproduction
+
+`run_frozen_factor_reproduction.py` records a new reproduction from the pinned
+July control-universe graph cut, its ordered columns, and retained design inputs.
+It uses the accepted screening and factor code with unchanged balanced policy,
+100 screened features, four factors, and the full panel including the pandemic.
+The output retains input bytes, ordered screening and cutoff ties, complete factor
+scores, canonical projection vectors, comparisons with archived estimates, and the
+current code/runtime receipt. Differences are reported; matching old estimates is
+not a selection rule.
+
+```bash
+python -B scripts/run_frozen_factor_reproduction.py \
+  --producer-commit <exact-clean-commit> \
+  --output-dir output/reproductions/<new-run-name>
+```
+
+The origin is `new_frozen_input_reproduction`. These results require scientific
+review and do not authenticate original factor coordinates, alter historical
+outputs or authority, or admit OPEN-16 leg slopes. No source data is downloaded.
