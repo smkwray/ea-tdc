@@ -1,0 +1,45 @@
+{
+  "schema_version": "ea_tdc_open16_fresh_authority_v1",
+  "authority_class": "fresh_frozen_conditioning_space",
+  "origin": "new_frozen_input_reproduction",
+  "status": "conditional_pending_validation",
+  "scope": [
+    "common_control_covariance",
+    "fixed_full_panel_selected_calendar_row_deletion"
+  ],
+  "reproduction_receipt": {
+    "path": "output/reproductions/frozen_factor_20260907/receipt.json",
+    "sha256": "023c24f5fed2ad1dd53b241179601ab5b0ffc9ae34adfc4f46b6ae63228c2d7d",
+    "bytes": 3177
+  },
+  "validation_receipt": null,
+  "validation_producer_commit": null,
+  "environments": [
+    {
+      "python": "3.13.12 (main, Mar  3 2026, 15:32:44) [Clang 21.1.4 ]",
+      "executable_sha256": "3db3822b1ba0305482e83dd336c3cfcae15738a09693be5424d5ea123dedaeeb",
+      "numpy_version": "2.5.3",
+      "numpy_core_sha256": "c3f325f8c20ffada58134c2bf0cfe157bd03bccdaac784168f1b97bd6ba12c23"
+    },
+    {
+      "python": "3.11.14 (main, Oct  9 2025, 16:16:55) [Clang 17.0.0 (clang-1700.0.13.3)]",
+      "executable_sha256": "b41507ef245eac19f76b6ed5a53fbc5eb49bf7b83b95b78414a50fccfe0bf0e7",
+      "numpy_version": "2.4.6",
+      "numpy_core_sha256": "2a5f2e415c5e582109b015eafd0da1ce887b3e3006969369fe2e5e5b27720acd"
+    }
+  ],
+  "tolerance": 1e-07,
+  "legs": {
+    "path": "data/bundles/open16/tdc_regression_legs_v1.csv",
+    "sha256": "bea2379870d1f129d15ca183312a3682c863b565dcae58f18fbbd609ced340c6",
+    "bytes": 52052
+  },
+  "legs_receipt": {
+    "path": "data/bundles/open16/tdc_regression_legs_v1_receipt.json",
+    "sha256": "2f9fb28fd3a7d508557f124ce76cd4289410a41ca11f5b98ada8a428977867fc",
+    "bytes": 2930
+  },
+  "upstream_producer_commit": "b1ac49ae83c7fe68db1abf16742bb17aab3dc56f",
+  "historical_coordinate_authenticity": "unavailable",
+  "leg_estimation_authority": "withheld_source_resolution_unestablished"
+}
