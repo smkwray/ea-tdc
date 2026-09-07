@@ -6,15 +6,20 @@ occurs here. A failed leg-design preflight leaves coefficients unestimated.
 from __future__ import annotations
 
 import math
-from dataclasses import replace
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from itertools import pairwise
+from typing import Any
 
 import numpy as np
 
+from ea_tdc.covariance import COVARIANCE_OPERATOR_POLICY, canonical_covariance
 from ea_tdc.estimation import RegressionFit, _invert, _matmul, _ols, _transpose
 from ea_tdc.open01 import _fit_projection, _quarter_ordinal, _residualize
 from ea_tdc.open_contract import (
-    CANONICAL_CONTROL_IDS, CANONICAL_OUTCOME_ID, CANONICAL_TREATMENT_ID,
+    CANONICAL_CONTROL_IDS,
+    CANONICAL_OUTCOME_ID,
+    CANONICAL_TREATMENT_ID,
 )
 
 LEGS = ("R", "J", "O")
@@ -27,6 +32,14 @@ DISCLOSURES = {
     "controls": "The dflmx_k100 controls were selected and scored on the full panel including 2020-21. Quarterly features labeled lag001 anchor at t-2. Inference is conditional on these frozen generated controls, not selection-adjusted.",
     "claim": "Descriptive conditional associations; not funding shares, causal mechanisms, landing, or retention.",
 }
+
+
+@dataclass(frozen=True)
+class CalendarHACFit(RegressionFit):
+    """Canonical covariance plus the unmodified calendar sandwich and its checks."""
+
+    raw_covariance: list[list[float]]
+    covariance_diagnostics: dict[str, Any]
 
 
 def _finite(value: Any, label: str) -> float:
@@ -71,14 +84,14 @@ def _scaled_rank(x: np.ndarray) -> int:
     return int(np.linalg.matrix_rank(x / np.where(scales > 0, scales, 1.0)))
 
 
-def calendar_hac(y: Sequence[float], x: Sequence[Sequence[float]], ordinals: Sequence[int], *, lags: int = 1) -> RegressionFit:
+def calendar_hac(y: Sequence[float], x: Sequence[Sequence[float]], ordinals: Sequence[int], *, lags: int = 1) -> CalendarHACFit:
     """Observed-row OLS with Bartlett score products at calendar lag distances."""
     y_array, x_array = np.asarray(y, dtype=float), np.asarray(x, dtype=float)
     if x_array.ndim != 2 or len(y_array) != len(x_array) or len(ordinals) != len(y_array):
         raise ValueError("Calendar HAC inputs are not aligned")
     if not np.isfinite(x_array).all() or not np.isfinite(y_array).all():
         raise ValueError("Calendar HAC requires complete finite observed rows")
-    if any(not isinstance(q, (int, np.integer)) for q in ordinals) or any(b <= a for a, b in zip(ordinals, ordinals[1:])):
+    if any(not isinstance(q, (int, np.integer)) for q in ordinals) or any(b <= a for a, b in pairwise(ordinals)):
         raise ValueError("Quarter ordinals must be unique and strictly increasing")
     rank = _scaled_rank(x_array)
     if rank != x_array.shape[1] or len(y_array) <= rank:
@@ -98,11 +111,20 @@ def calendar_hac(y: Sequence[float], x: Sequence[Sequence[float]], ordinals: Seq
                 cross = np.outer(score, previous)
                 meat += weight * (cross + cross.T)
     bread = np.asarray(_invert(_matmul(_transpose(x_array.tolist()), x_array.tolist())))
-    covariance = bread @ (meat * (len(y_array) / (len(y_array) - rank))) @ bread
-    diagonal = np.diag(covariance)
-    if np.min(diagonal) < -numerical_tolerance(float(np.max(np.abs(diagonal)))):
-        raise ValueError("Calendar HAC has materially negative variance")
-    return replace(fit, covariance=covariance.tolist(), ses=np.sqrt(np.maximum(diagonal, 0)).tolist(), covariance_estimator="calendar_newey_west", covariance_lags=lags)
+    raw_covariance = bread @ (meat * (len(y_array) / (len(y_array) - rank))) @ bread
+    scales = np.linalg.norm(x_array, axis=0)
+    outcome_scale = max(float(np.linalg.norm(y_array)), 1.0)
+    operator = canonical_covariance(raw_covariance, scales, outcome_scale)
+    covariance = operator["covariance"]
+    diagnostics = operator["diagnostics"] | {
+        "scales": scales.tolist(), "outcome_scale": outcome_scale,
+        "policy": dict(COVARIANCE_OPERATOR_POLICY),
+    }
+    return CalendarHACFit(**(vars(fit) | {
+        "covariance": covariance, "ses": np.sqrt(np.diag(covariance)).tolist(),
+        "covariance_estimator": "calendar_newey_west", "covariance_lags": lags,
+        "raw_covariance": operator["raw_covariance"], "covariance_diagnostics": diagnostics,
+    }))
 
 
 def pandemic_path(rows: Sequence[Mapping[str, Any]], *, nominal_endpoints: Sequence[str] | None = None) -> list[dict[str, Any]]:
@@ -132,6 +154,9 @@ def pandemic_path(rows: Sequence[Mapping[str, Any]], *, nominal_endpoints: Seque
             "prespecified_endpoint": window[-1]["quarter"] in CHECKPOINTS,
             "description": "pandemic-row deletion conditional on frozen full-panel-generated controls",
             "covariance_lags": 1, "finite_sample_scale": len(observed) / (len(observed) - len(x[0])),
+            "covariance_evidence": {"raw_covariance": fit.raw_covariance,
+                                    "covariance": fit.covariance,
+                                    "diagnostics": fit.covariance_diagnostics},
             **DISCLOSURES,
         })
     return result

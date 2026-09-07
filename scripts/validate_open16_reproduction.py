@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -25,6 +26,7 @@ GATES = ("raw_semantic_equality", "screen_top100", "rank_partition", "projector_
 CONFIG = "config/open16_reproduction_authority.json"
 PRODUCTION_SOURCES = (
     "src/ea_tdc/estimation.py", "src/ea_tdc/open01.py", "src/ea_tdc/open16.py",
+    "src/ea_tdc/covariance.py",
     "src/ea_tdc/open_contract.py", "scripts/run_open02_producer.py",
     "scripts/run_open16_diagnostics.py", "scripts/validate_open16_reproduction.py",
     "scripts/run_frozen_factor_reproduction.py",
@@ -170,7 +172,7 @@ def scaled_geometry(x: object, y: object, policy: dict) -> dict:
     sy = max(float(np.linalg.norm(y)), policy["outcome_norm_floor"])
     return {"scales": scales, "outcome_scale": sy, "rank": rank,
             "condition": condition, "projector": u @ u.T,
-            "pseudoinverse": (vt.T / singular) @ u.T}
+            "pseudoinverse": (vt.T / singular) @ u.T, "policy": policy}
 
 
 def svd_reference(x: object, y: object, geometry: dict) -> dict:
@@ -187,36 +189,41 @@ def svd_reference(x: object, y: object, geometry: dict) -> dict:
     meat += 0.5 * (lag + lag.T)
     n, rank = x.shape
     bread = pinv @ pinv.T
-    covariance = (bread @ (meat * (n / (n - rank))) @ bread) / np.outer(scales, scales)
+    symmetric_meat = (meat + meat.T) / 2
+    covariance = (bread @ (symmetric_meat * (n / (n - rank))) @ bread.T) / np.outer(scales, scales)
+    from ea_tdc.covariance import canonical_covariance
+    evidence = canonical_covariance(covariance, scales, geometry["outcome_scale"], policy=geometry["policy"]["covariance_operator"])
     return {"coefficients": beta.tolist(), "fitted": fitted.tolist(), "residuals": residuals.tolist(),
-            "covariance": covariance.tolist(), "beta_se": [float(beta[1]), float(np.sqrt(covariance[1, 1]))]}
+            "covariance": evidence["covariance"], "raw_covariance": evidence["raw_covariance"],
+            "covariance_evidence": evidence, "beta_se": [float(beta[1]), float(np.sqrt(covariance[1, 1]))]}
 
 
-def numerical_sanity(values: dict, scales: object, sy: float, policy: dict) -> None:
+def numerical_sanity(values: dict, scales: object, sy: float, policy: dict) -> dict:
     import numpy as np
+
+    from ea_tdc.covariance import canonical_covariance
     for key in ("coefficients", "fitted", "residuals", "covariance", "beta_se"):
         if not np.isfinite(np.asarray(values[key], dtype=float)).all():
             raise ValueError("Nonfinite numerical output")
-    covariance = np.asarray(values["covariance"], dtype=float)
-    d = np.asarray(scales) / sy
-    scaled = covariance * np.outer(d, d)
-    norm = max(float(np.linalg.norm(scaled, 2)), policy["covariance_norm_floor"])
-    if np.linalg.norm(scaled - scaled.T, 2) > policy["symmetry_relative_tolerance"] * norm:
-        raise ValueError("Covariance symmetry failed")
-    if np.min(np.diag(scaled)) < -policy["negative_diagonal_relative_tolerance"] * norm:
-        raise ValueError("Materially negative covariance diagonal")
+    return canonical_covariance(values.get("raw_covariance", values["covariance"]), scales, sy,
+                                policy=policy["covariance_operator"])
+
+
+def input_inventory_hash(rows: list[dict], fields: list[str]) -> str:
+    payload = {"fields": fields, "rows": [[row[key] for key in fields] for row in rows]}
+    return hashlib.sha256(json.dumps(payload, ensure_ascii=True, allow_nan=False,
+                                    separators=(",", ":")).encode()).hexdigest()
 
 
 def compare_scaled(first: dict, second: dict, scales: object, sy: float, policy: dict) -> dict:
     import numpy as np
-    numerical_sanity(first, scales, sy, policy)
-    numerical_sanity(second, scales, sy, policy)
+    canonical_a = numerical_sanity(first, scales, sy, policy)
+    canonical_b = numerical_sanity(second, scales, sy, policy)
     for key in ("coefficients", "fitted", "residuals", "covariance", "beta_se"):
         if np.asarray(first[key]).shape != np.asarray(second[key]).shape:
             raise ValueError("Numerical output shapes differ")
     scales = np.asarray(scales)
-    d = scales / sy
-    va, vb = (np.asarray(item["covariance"]) * np.outer(d, d) for item in (first, second))
+    va, vb = (np.asarray(item["covariance_operator"]) for item in (canonical_a, canonical_b))
     differences = {
         "coefficients": float(np.linalg.norm(scales * (np.asarray(first["coefficients"]) - second["coefficients"])) / sy),
         "fitted": float(np.linalg.norm(np.asarray(first["fitted"]) - second["fitted"]) / sy),
@@ -228,7 +235,7 @@ def compare_scaled(first: dict, second: dict, scales: object, sy: float, policy:
         tolerance = (policy["treatment_beta_se_absolute_tolerance"] if key == "beta_se" else
                      policy["scaled_covariance_relative_tolerance"] if key == "covariance" else policy["scaled_vector_relative_tolerance"])
         if not np.isfinite(gap) or gap > tolerance:
-            raise ValueError(f"V2 {key} equivalence failed: {gap} > {tolerance}")
+            raise ValueError(f"V3 {key} equivalence failed: {gap} > {tolerance}")
     return differences
 
 
@@ -271,9 +278,14 @@ def numeric_worker(stage: Path, package: Path, destination: Path) -> None:
         conditioning_rank, projector = rank_projector(z)
         _, full_projector = rank_projector(x)
         independent = svd_reference(x, y, geometry)
+        current_evidence = numerical_sanity({"coefficients": fit.fit.beta, "fitted": fit.fit.fitted,
+            "residuals": fit.fit.residuals, "covariance": fit.fit.covariance, "beta_se": [fit.beta, fit.se]},
+            geometry["scales"], geometry["outcome_scale"], policy)
         current = {"coefficients": fit.fit.beta, "fitted": fit.fit.fitted, "residuals": fit.fit.residuals,
-                   "covariance": fit.fit.covariance, "beta_se": [fit.beta, fit.se]}
+                   "covariance": current_evidence["covariance"], "raw_covariance": current_evidence["raw_covariance"],
+                   "covariance_evidence": current_evidence, "beta_se": [fit.beta, fit.se]}
         retained_values = {**retained, "beta_se": [float(comparison["archived_beta"]), float(comparison["archived_se"])]}
+        retained_evidence = numerical_sanity(retained_values, geometry["scales"], geometry["outcome_scale"], policy)
         gaps = {"retained_new_vectors_archived_beta_se": compare_scaled(current, retained_values, geometry["scales"], geometry["outcome_scale"], policy),
                 "independent_svd": compare_scaled(current, independent, geometry["scales"], geometry["outcome_scale"], policy)}
         z_geometry = scaled_geometry(z, y, policy)
@@ -285,6 +297,8 @@ def numeric_worker(stage: Path, package: Path, destination: Path) -> None:
             "controls_rejected": list(fit.control_ids_rejected), "conditioning_rank": conditioning_rank,
             "design_rank": geometry["rank"], "condition": geometry["condition"], "projector": projector,
             "full_projector": full_projector, "scales": geometry["scales"].tolist(), "outcome_scale": geometry["outcome_scale"],
+            "input_inventory_sha256": input_inventory_hash(observed, ["quarter", CANONICAL_OUTCOME_ID, CANONICAL_TREATMENT_ID, *CANONICAL_CONTROL_IDS]),
+            "retained_covariance_evidence": retained_evidence,
             "independent_svd": independent, "reference_differences": gaps,
             "independent_projector_differences": projector_gaps, **current})
     write_json(destination, {"runtime": runtime_identity(), "factor_rank": factor_rank,
@@ -292,19 +306,21 @@ def numeric_worker(stage: Path, package: Path, destination: Path) -> None:
         "reference_scope": "780d new reproduction vectors; archived OPEN01 supplies beta/SE only"})
 
 
-def compare_v2_environments(first: dict, second: dict, policy: dict) -> dict:
+def compare_policy_environments(first: dict, second: dict, policy: dict) -> dict:
     import numpy as np
     if (len(first.get("windows", [])) != 58 or len(second.get("windows", [])) != 58
             or first["runtime"] == second["runtime"]
             or any(r.get(k) != 4 for r in (first, second) for k in ("factor_rank", "sample_factor_rank"))
             or any(r.get("numerical_policy") != policy for r in (first, second))):
-        raise ValueError("V2 requires both pinned environments, exact policy, four-factor ranks and all 58 fits")
+        raise ValueError("V3 requires both pinned environments, exact policy, four-factor ranks and all 58 fits")
     differences = []
     for a, b in zip(first["windows"], second["windows"], strict=True):
-        for key in ("window", "quarters", "controls_used", "controls_rejected", "conditioning_rank", "design_rank", "scales", "outcome_scale"):
+        for key in ("window", "quarters", "controls_used", "controls_rejected", "conditioning_rank", "design_rank", "input_inventory_sha256"):
             if a[key] != b[key]:
                 raise ValueError(f"Cross-environment discrete design identity differs: {key}")
-        if max(a["condition"], b["condition"]) > policy["column_normalized_condition_cap"]:
+        if (any(not np.isfinite(np.asarray(r[key], dtype=float)).all() for r in (a, b)
+                for key in ("condition", "scales", "outcome_scale"))
+                or max(a["condition"], b["condition"]) > policy["column_normalized_condition_cap"]):
             raise ValueError("Cross-environment condition cap exceeded")
         gaps = compare_scaled(a, b, a["scales"], a["outcome_scale"], policy)
         for left, right in ((a, b["independent_svd"]), (b, a["independent_svd"]), (a["independent_svd"], b["independent_svd"])):
@@ -362,7 +378,7 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
     stage = Path(tempfile.mkdtemp(prefix=".open16-validation-", dir=output.parent))
     try:
         structural = config["structural_evidence"]
-        for item in structural["records"]:
+        for item in structural["records"] + config["prior_failed_validation_records"]:
             path = _project_path(root, item["path"])
             if sha256(path) != item["sha256"] or path.stat().st_size != item["bytes"]:
                 raise ValueError("Previously passed structural evidence changed")
@@ -377,6 +393,8 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
         write_json(stage / "policy.json", config["numerical_policy"])
         with tarfile.open(package / "accepted_method.tar") as archive:
             archive.extractall(stage / "method", filter="data")
+        shutil.copyfile(root / "src/ea_tdc/covariance.py", stage / "covariance.py")
+        shutil.copyfile(stage / "covariance.py", stage / "method/src/ea_tdc/covariance.py")
         driver = stage / "validation_driver.py"
         shutil.copyfile(Path(__file__), driver)
         shutil.copyfile(root / "scripts/run_frozen_factor_reproduction.py", stage / "run_frozen_factor_reproduction.py")
@@ -394,7 +412,7 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
         first, second = [json.loads((stage / f"{name}.json").read_text()) for name in ("primary", "comparison")]
         if [first["runtime"], second["runtime"]] != config["environments"]:
             raise ValueError("Numerical environments differ from committed pins")
-        maxima = compare_v2_environments(first, second, config["numerical_policy"])
+        maxima = compare_policy_environments(first, second, config["numerical_policy"])
         write_json(stage / "numerical_comparison.json", {"numerical_policy": config["numerical_policy"], **maxima})
         shutil.rmtree(stage / "method")
         verify_package(package, config["reproduction_receipt"]["sha256"])
@@ -403,7 +421,7 @@ def run(root: Path, commit: str, other_python: str, output_dir: str) -> Path:
         write_json(stage / "receipt.json", {"authority_class": "fresh_frozen_conditioning_space", "status": "passed",
             "producer_commit": commit, "production_source_manifest": source_manifest, "reproduction_receipt_sha256": config["reproduction_receipt"]["sha256"],
             "gates": dict.fromkeys(GATES, True), "numerical_policy": config["numerical_policy"], "environments": config["environments"],
-            "structural_evidence": structural,
+            "structural_evidence": structural, "prior_failed_validation_records": config["prior_failed_validation_records"],
             "raw_factor_extractions_performed": 0, "outputs": outputs,
             "scope": config["scope"], "historical_coordinate_authenticity": "unavailable"})
         os.rename(stage, output)

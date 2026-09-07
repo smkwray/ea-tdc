@@ -220,9 +220,10 @@ def load_fresh_authority(root: Path, commit: str) -> dict:
     if (validation.get("status") != "passed" or validation.get("gates") != dict.fromkeys(GATES, True)
             or validation.get("authority_class") != gate["authority_class"]
             or validation.get("scope") != scope
-            or gate.get("numerical_policy", {}).get("version") != "conditioning_space_v2"
+            or gate.get("numerical_policy", {}).get("version") != "conditioning_space_v3"
             or validation.get("numerical_policy") != gate["numerical_policy"]
             or validation.get("structural_evidence") != gate["structural_evidence"]
+            or validation.get("prior_failed_validation_records") != gate["prior_failed_validation_records"]
             or validation.get("environments") != gate["environments"]
             or validation.get("producer_commit") != gate["validation_producer_commit"]
             or validation.get("reproduction_receipt_sha256") != gate["reproduction_receipt"]["sha256"]):
@@ -231,7 +232,7 @@ def load_fresh_authority(root: Path, commit: str) -> dict:
     _authority_file(root, gate.get("reproduction_receipt"))
     package = _project_path(root, gate["reproduction_receipt"]["path"]).parent
     inputs = verify_package(package, gate["reproduction_receipt"]["sha256"])
-    for item in validation["structural_evidence"]["records"]:
+    for item in validation["structural_evidence"]["records"] + validation["prior_failed_validation_records"]:
         _authority_file(root, item)
     for item in validation["outputs"]:
         path = (validation_path.parent / item["path"]).resolve()
@@ -318,6 +319,17 @@ def _write_csv(path: Path, rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
+def _write_calendar_evidence(stage: Path, rolling: list[dict]) -> list[dict]:
+    """Retain raw and canonical covariances separately from the compact table."""
+    evidence = []
+    for row in rolling:
+        covariance = row.pop("covariance_evidence")
+        evidence.append({"nominal_end": row["nominal_end"], **covariance})
+    (stage / "calendar_covariance_evidence.json").write_text(
+        json.dumps(evidence, indent=2, allow_nan=False) + "\n")
+    return [{"nominal_end": row["nominal_end"], **row["diagnostics"]} for row in evidence]
+
+
 def run(args: argparse.Namespace) -> Path:
     commit = _verify_producer_commit(ROOT, args.producer_commit)
     fresh = getattr(args, "authority_lane", "historical") == "fresh-reproduction"
@@ -351,6 +363,7 @@ def run(args: argparse.Namespace) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=".open16-", dir=output.parent))
     try:
+        calendar_covariance = _write_calendar_evidence(stage, rolling)
         _write_csv(stage / "leg_covariance_contributions.csv", covariance)
         _write_csv(stage / "pandemic_calendar_deletion.csv", rolling)
         (stage / "leg_preflight.json").write_text(json.dumps(preflight, indent=2, allow_nan=False) + "\n")
@@ -360,6 +373,7 @@ def run(args: argparse.Namespace) -> Path:
                    "dependency_lock_sha256": _sha256_file(ROOT / "uv.lock"),
                    "status": "completed_bounded_fresh_reproduction_diagnostics" if fresh else "completed_with_failed_leg_preflight", "sample": list(FROZEN_QUARTERS),
                    "inputs": inputs, "outputs": outputs, "frozen_controls": checks,
+                   "calendar_covariance": calendar_covariance,
                    "leg_estimates_computed": False, "leg_preflight_reason_codes": preflight["reason_codes"],
                    "scientific_status": "appendix_only", **DISCLOSURES}
         (stage / "receipt.json").write_text(json.dumps(receipt, indent=2, allow_nan=False) + "\n")

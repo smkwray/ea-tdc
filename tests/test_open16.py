@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import copy
+import json
 
 import numpy as np
 import pytest
 
+from ea_tdc import open16
+from ea_tdc.covariance import COVARIANCE_OPERATOR_POLICY, canonical_covariance
 from ea_tdc.estimation import _ols
 from ea_tdc.open01 import _fit_projection
 from ea_tdc.open16 import (
@@ -63,6 +66,7 @@ def test_gap_does_not_pair_2019q4_with_2021q2():
         meat += .5 * (cross + cross.T)
     bread = np.linalg.inv(np.asarray(x).T @ np.asarray(x))
     expected = bread @ meat @ bread * 5 / 3
+    np.testing.assert_allclose(actual.raw_covariance, expected, rtol=1e-12, atol=1e-12)
     np.testing.assert_allclose(actual.covariance, expected, rtol=1e-12, atol=1e-12)
     compressed = _ols(y, x, covariance_estimator="newey_west", covariance_lags=1)
     assert not np.allclose(actual.covariance, compressed.covariance)
@@ -77,6 +81,46 @@ def test_calendar_rejects_duplicate_unordered_or_unaligned_quarters(bad):
 def test_calendar_rejects_rank_deficient_design():
     with pytest.raises(ValueError, match="full-rank"):
         calendar_hac([1, 2, 3], [[1, 1]] * 3, [1, 2, 3])
+
+
+@pytest.mark.parametrize("raw,message", [
+    ([[1, 2], [2, 1]], "materially indefinite"),
+    ([[-1e-20, 0], [0, 1]], "Negative reported covariance diagonal"),
+    ([[1, 0], [0, 0]], "Treatment variance must be strictly positive"),
+])
+def test_calendar_consumer_rejects_invalid_raw_sandwich(monkeypatch, raw, message):
+    calls = []
+
+    def injected_sandwich(actual_raw, scales, outcome_scale):
+        calls.append(np.asarray(actual_raw).copy())
+        return canonical_covariance(raw, scales, outcome_scale)
+
+    monkeypatch.setattr(open16, "canonical_covariance", injected_sandwich)
+    with pytest.raises(ValueError, match=message):
+        calendar_hac([3, 10, -2, 12, 3], [[1, v] for v in [0, 1, 4, 7, 9]], range(5))
+    assert len(calls) == 1
+    assert calls[0].shape == (2, 2)
+
+
+def test_calendar_consumer_preserves_raw_and_reports_unclipped_canonical(monkeypatch):
+    raw = np.array([[1, 1e-10], [0, 2]], dtype=float)
+    original = raw.copy()
+
+    def injected_sandwich(actual_raw, scales, outcome_scale):
+        return canonical_covariance(raw, scales, outcome_scale)
+
+    monkeypatch.setattr(open16, "canonical_covariance", injected_sandwich)
+    fit = calendar_hac([3, 10, -2, 12, 3], [[1, v] for v in [0, 1, 4, 7, 9]], range(5))
+    np.testing.assert_array_equal(raw, original)
+    np.testing.assert_array_equal(fit.raw_covariance, original)
+    np.testing.assert_array_equal(np.diag(fit.covariance), np.diag(original))
+    np.testing.assert_array_equal(fit.ses, np.sqrt(np.diag(original)))
+    np.testing.assert_allclose(fit.covariance, (original + original.T) / 2, rtol=1e-15)
+    assert fit.covariance_diagnostics["raw_skew_relative_norm"] > 0
+    assert fit.covariance_diagnostics["minimum_scaled_eigenvalue"] > 0
+    assert fit.covariance_diagnostics["policy"] == COVARIANCE_OPERATOR_POLICY
+    assert len(fit.covariance_diagnostics["scales"]) == 2
+    assert fit.covariance_diagnostics["outcome_scale"] > 0
 
 
 def test_pandemic_endpoints_no_refill_and_constant_control_policy(sample):
@@ -97,6 +141,12 @@ def test_pandemic_endpoints_no_refill_and_constant_control_policy(sample):
         assert found["rank"] == expected_rank
         assert found["controls_rejected"] == (CANONICAL_CONTROL_IDS[4] if expected_rank == 17 else "")
         assert found["finite_sample_scale"] == n / (n - expected_rank)
+        evidence = found["covariance_evidence"]
+        assert np.asarray(evidence["raw_covariance"]).shape == (expected_rank, expected_rank)
+        np.testing.assert_array_equal(np.diag(evidence["covariance"]), np.diag(evidence["raw_covariance"]))
+        assert found["se"] == np.sqrt(evidence["covariance"][1][1])
+        assert len(evidence["diagnostics"]["scales"]) == expected_rank
+        assert evidence["diagnostics"]["policy"] == COVARIANCE_OPERATOR_POLICY
     assert len(DELETED_QUARTERS) == 5
 
 
@@ -210,6 +260,23 @@ def frozen_gate(sample, tmp_path, monkeypatch):
     r = table("rolling.csv", rolling)
     receipt = {"retained_outputs": {"fixed": {"same_quarter_headline": h, "rolling_estimates": r}}}
     return runner, rows, receipt, rolling, table
+
+
+def test_calendar_sidecar_retains_raw_and_operator_evidence(frozen_gate, tmp_path):
+    runner, _, _, _, _ = frozen_gate
+    operator = canonical_covariance([[1, 1e-10], [0, 2]], [2, 3], 5)
+    diagnostics = operator["diagnostics"] | {"scales": [2, 3], "outcome_scale": 5}
+    original = [{"nominal_end": "2025Q4", "beta": .5, "covariance_evidence": {
+        "raw_covariance": operator["raw_covariance"], "covariance": operator["covariance"],
+        "diagnostics": diagnostics,
+    }}]
+    compact = copy.deepcopy(original)
+    summary = runner._write_calendar_evidence(tmp_path, compact)
+    assert "covariance_evidence" in original[0]
+    assert compact == [{"nominal_end": "2025Q4", "beta": .5}]
+    retained = json.loads((tmp_path / "calendar_covariance_evidence.json").read_text())
+    assert retained == [{"nominal_end": "2025Q4", **original[0]["covariance_evidence"]}]
+    assert summary == [{"nominal_end": "2025Q4", **diagnostics}]
 
 
 def test_producer_frozen_gate_rejects_stale_factor_realizations(frozen_gate, tmp_path, monkeypatch):
