@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Consume frozen quarterly controls and receipted treatment legs without refitting."""
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from run_open02_producer import (  # noqa: E402
+from run_open02_producer import (
     EXPECTED_OPEN01_PRODUCER_COMMIT,
     OPEN01_RECEIPT_LOCATOR,
     _file_record,
@@ -28,8 +29,8 @@ from run_open02_producer import (  # noqa: E402
     _verify_producer_commit,
 )
 
-from ea_tdc.open01 import _fit_projection, _quarter_ordinal  # noqa: E402
-from ea_tdc.open16 import (  # noqa: E402
+from ea_tdc.open01 import _fit_projection, _quarter_ordinal
+from ea_tdc.open16 import (
     CANONICAL_CONTROL_IDS,
     CANONICAL_OUTCOME_ID,
     CANONICAL_TREATMENT_ID,
@@ -191,7 +192,12 @@ def load_authority(root: Path, commit: str) -> dict:
 
 
 def load_fresh_authority(root: Path, commit: str) -> dict:
-    from validate_open16_reproduction import GATES, runtime_identity, verify_package
+    from validate_open16_reproduction import (
+        GATES,
+        runtime_identity,
+        verify_package,
+        verify_production_manifest,
+    )
 
     locator = "config/open16_reproduction_authority.json"
     committed = subprocess.run(["git", "show", f"{commit}:{locator}"], cwd=root, check=True, capture_output=True).stdout
@@ -208,10 +214,7 @@ def load_fresh_authority(root: Path, commit: str) -> dict:
         raise ValueError("Fresh reproduction authority unavailable or scope expanded")
     if runtime_identity() not in gate.get("environments", []):
         raise ValueError("Current diagnostic runtime lacks pinned numerical qualification")
-    _authority_file(root, gate.get("reproduction_receipt"))
     _authority_file(root, gate.get("validation_receipt"))
-    package = _project_path(root, gate["reproduction_receipt"]["path"]).parent
-    inputs = verify_package(package, gate["reproduction_receipt"]["sha256"])
     validation_path = _project_path(root, gate["validation_receipt"]["path"])
     validation = json.loads(validation_path.read_text())
     if (validation.get("status") != "passed" or validation.get("gates") != dict.fromkeys(GATES, True)
@@ -221,6 +224,10 @@ def load_fresh_authority(root: Path, commit: str) -> dict:
             or validation.get("producer_commit") != gate["validation_producer_commit"]
             or validation.get("reproduction_receipt_sha256") != gate["reproduction_receipt"]["sha256"]):
         raise ValueError("Fresh reproduction validation does not establish the exact bounded gates")
+    verify_production_manifest(root, validation.get("production_source_manifest"))
+    _authority_file(root, gate.get("reproduction_receipt"))
+    package = _project_path(root, gate["reproduction_receipt"]["path"]).parent
+    inputs = verify_package(package, gate["reproduction_receipt"]["sha256"])
     for item in validation["outputs"]:
         path = (validation_path.parent / item["path"]).resolve()
         path.relative_to(validation_path.parent.resolve())
