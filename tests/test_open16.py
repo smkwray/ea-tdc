@@ -368,7 +368,8 @@ def coordinate_evidence(authority, sample, tmp_path):
     for row in rows:
         for key in runner.FACTOR_IDS:
             row[key] = float(f"{row[key]:.10f}")
-    full_quarters = [f"{1946 + i // 4}Q{i % 4 + 1}" for i in range(320)]
+    # Accepted full-grid shape has an initial gap; only the 96-row sample is contiguous.
+    full_quarters = ["1945Q4"] + [f"{i // 4}Q{i % 4 + 1}" for i in range(1946 * 4 + 3, 2026 * 4 + 2)]
     by_quarter = {r["quarter"]: r for r in rows}
     full = [{"quarter": q, **{k: f"{by_quarter.get(q, {}).get(k, 0):.10f}" for k in runner.FACTOR_IDS}} for q in full_quarters]
     selected = [r for r in full if r["quarter"] in FROZEN_QUARTERS]
@@ -407,7 +408,7 @@ def coordinate_evidence(authority, sample, tmp_path):
     return runner, pins, rows, reference, write
 
 
-def test_restoration_coordinates_and_full_vector_calendar_reference(coordinate_evidence, tmp_path):
+def test_restoration_accepts_approved_irregular_grid_and_full_vector_calendar_reference(coordinate_evidence, tmp_path):
     runner, pins, rows, _, _ = coordinate_evidence
     runner.validate_coordinate_evidence(tmp_path, rows, pins)
 
@@ -431,4 +432,27 @@ def test_restoration_rejects_changed_equivalence_despite_estimate_match(coordina
     # Deliberately retain treatment beta/SE; those scalars cannot identify factors.
     pins["equivalence"] = write(pins["equivalence"]["path"], reference)
     with pytest.raises(ValueError):
+        runner.validate_coordinate_evidence(tmp_path, rows, pins)
+
+
+@pytest.mark.parametrize("mutation", ["reordered", "duplicate"])
+def test_restoration_rejects_nonunique_or_reordered_approved_grid(coordinate_evidence, tmp_path, mutation):
+    import csv
+
+    runner, pins, rows, _, _ = coordinate_evidence
+    path = tmp_path / pins["full_factor_scores"]["path"]
+    with path.open() as handle:
+        scores = list(csv.DictReader(handle))
+    if mutation == "reordered":
+        scores[0], scores[1] = scores[1], scores[0]
+    else:
+        scores[0] = scores[1].copy()
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(scores[0]))
+        writer.writeheader(); writer.writerows(scores)
+    # An internally matching pin cannot turn a duplicate or reversed grid into the
+    # exact ordered historical coordinate object.
+    pins["full_factor_quarters"] = [r["quarter"] for r in scores]
+    pins["full_factor_scores"].update(sha256=runner._sha256_file(path), bytes=path.stat().st_size)
+    with pytest.raises(ValueError, match="320-quarter grid"):
         runner.validate_coordinate_evidence(tmp_path, rows, pins)

@@ -11,7 +11,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -197,7 +196,7 @@ def validate_coordinate_evidence(root: Path, rows: list[dict], pins: dict) -> No
     sample = _read_csv_rows(_project_path(root, pins["sample_factor_scores"]["path"]))
     full_quarters = [r["quarter"] for r in full]
     if (len(full) != 320 or full_quarters != pins.get("full_factor_quarters")
-            or any(_quarter_ordinal(b) - _quarter_ordinal(a) != 1 for a, b in pairwise(full_quarters))
+            or full_quarters != sorted(set(full_quarters), key=_quarter_ordinal)
             or tuple(r["quarter"] for r in sample) != FROZEN_QUARTERS):
         raise ValueError("Factor scores require the approved 320-quarter grid and exact 96-quarter sample")
     for record in full + sample:
