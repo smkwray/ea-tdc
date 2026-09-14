@@ -4,7 +4,7 @@ set -euo pipefail
 # hygiene_check.sh — Repo hygiene scan for tracked-eligible files.
 #
 # Enforces the project git-hygiene rules (documented in the project AGENTS.md contract):
-#   - no full system paths (/Users/..., /home/...) in tracked-eligible files
+#   - no local paths, cloud-account mount labels, real tailnet names, or device aliases in tracked-eligible files
 #   - no references to ../data.md or sibling data inventory paths in src/, tests/, configs/
 #   - git diff --check passes
 #
@@ -32,6 +32,37 @@ elif [[ -n "${1:-}" ]]; then
   exit 2
 fi
 
+PRIVATE_PATTERN='(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|[A-Za-z]:[\\/]Users|CloudStorage/(OneDrive|GoogleDrive)(-[^/[:space:]]+)?|(OneDrive|GoogleDrive)-[^/[:space:]]*@|[A-Za-z0-9._-]+[.]ts[.]net)'
+
+DENYLIST=""
+if [[ -f .private-denylist ]]; then
+  DENYLIST=".private-denylist"
+else
+  for f in .*-private-denylist; do
+    [[ -f "$f" ]] || continue
+    DENYLIST="$f"
+    break
+  done
+fi
+
+denylist_scan() {
+  # $1 = label; stdin = bytes to scan
+  [[ -n "$DENYLIST" ]] || return 0
+  python3 - "$DENYLIST" "$1" <<'PY'
+import sys
+
+terms = [
+    line.strip().lower().encode()
+    for line in open(sys.argv[1], encoding="utf-8")
+    if line.strip() and not line.startswith("#")
+]
+if not terms:
+    raise SystemExit("hygiene_check: FAIL — denylist exists but has no terms")
+if any(term in sys.stdin.buffer.read().lower() for term in terms):
+    raise SystemExit(f"hygiene_check: FAIL — denylisted identifier in {sys.argv[2]}")
+PY
+}
+
 # Tracked-eligible source roots. Override via HYGIENE_SCAN_ROOTS env var
 # if your project uses a different layout.
 SCAN_ROOTS=(${HYGIENE_SCAN_ROOTS:-src scripts config configs tests docs})
@@ -46,13 +77,6 @@ SCAN_GLOBS=("*.py" "*.md" "*.yml" "*.yaml" "*.toml" "*.sh" "*.ps1" "*.cfg" "*.in
 violations=0
 warnings=0
 
-is_self_referential() {
-  case "$1" in
-    scripts/hygiene_check.sh) return 0 ;;
-  esac
-  return 1
-}
-
 gather_files() {
   if [[ "$MODE" == "staged" ]]; then
     git diff --cached --name-only --diff-filter=ACMR 2>/dev/null \
@@ -61,7 +85,6 @@ gather_files() {
           case "$f" in
             do/*|var/*|data/*|output/*|outputs/*|dist/*|.git/*) continue ;;
           esac
-          is_self_referential "$f" && continue
           for pat in "${SCAN_GLOBS[@]}"; do
             # shellcheck disable=SC2053
             if [[ "$f" == $pat ]]; then echo "$f"; break; fi
@@ -74,7 +97,6 @@ gather_files() {
     [[ ${#roots[@]} -eq 0 ]] && return 0
     find "${roots[@]}" -type f 2>/dev/null \
       | while read -r f; do
-          is_self_referential "$f" && continue
           for pat in "${SCAN_GLOBS[@]}"; do
             # shellcheck disable=SC2053
             if [[ "$f" == $pat ]]; then echo "$f"; break; fi
@@ -87,23 +109,38 @@ gather_files() {
 FILES=()
 while IFS= read -r line; do FILES+=("$line"); done < <(gather_files)
 
-# --- Check 1: full system paths (FAIL) ---
+# --- Check 1: private local identifiers (FAIL) ---
 fail_paths=""
 for f in ${FILES[@]+"${FILES[@]}"}; do
   [[ -f "$f" ]] || continue
-  if hits="$(grep -nE '(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|[A-Za-z]:[\\/]Users)' "$f" 2>/dev/null)"; then
+  if hits="$(grep -nE "$PRIVATE_PATTERN" "$f" 2>/dev/null)"; then
     while IFS= read -r line; do
       [[ -z "$line" ]] && continue
+      # The checker must carry its generic detector. Only that definition line
+      # is exempt; all other checker lines remain subject to this scan.
+      [[ "$f" == "scripts/hygiene_check.sh" && "$line" == *"PRIVATE_PATTERN="* ]] && continue
       fail_paths+="${f}:${line}"$'\n'
     done <<< "$hits"
   fi
 done
 
 if [[ -n "$fail_paths" ]]; then
-  echo "hygiene_check: FAIL — absolute system paths in tracked-eligible files:" >&2
+  echo "hygiene_check: FAIL — private local identifier in tracked-eligible files:" >&2
   printf '%s' "$fail_paths" >&2
-  echo "  Fix: replace with \$HOME, ~, or repo-relative paths." >&2
+  echo "  Fix: use repository-relative paths and synthetic device/network examples." >&2
   violations=$((violations + 1))
+fi
+
+# Fixed-string private identifiers are scanned everywhere, including this
+# checker. The denylist is ignored and maintained locally.
+if [[ -n "$DENYLIST" ]]; then
+  for f in ${FILES[@]+"${FILES[@]}"}; do
+    [[ -f "$f" ]] || continue
+    if ! denylist_scan "$f" < "$f"; then
+      violations=$((violations + 1))
+      break
+    fi
+  done
 fi
 
 # --- Check 2: ../data.md or sibling-inventory references in source code (FAIL) ---
@@ -136,6 +173,7 @@ for f in ${FILES[@]+"${FILES[@]}"}; do
   if hits="$(grep -niE '\b(codex|claude|gpt[- ]?pro|gpt-?5|openai|anthropic|\borca\b|\bmako\b|\bdairy\b|\btandy\b)\b' "$f" 2>/dev/null)"; then
     while IFS= read -r line; do
       [[ -z "$line" ]] && continue
+      [[ "$f" == "scripts/hygiene_check.sh" && "$line" == *"grep -niE"* ]] && continue
       fail_ai+="${f}:${line}"$'\n'
     done <<< "$hits"
   fi

@@ -13,7 +13,8 @@ def test_sanitize_output_paths_rewrites_repo_sibling_and_home_paths(tmp_path: Pa
     legacy_path = paths.output / "legacy_paths.json"
     repo_target = paths.reports / "custom_report.csv"
     sibling_target = paths.root.parent / "tdcpass" / "output" / "models" / "published.csv"
-    cloud_target = Path.home() / "Library" / "CloudStorage" / "GoogleDrive-REDACTED_ACCOUNT" / "My Drive" / "github" / "econark"
+    cloud_account_label = "GoogleDrive-" + "example" + "@" + "example.test"
+    cloud_target = Path.home() / "Library" / "CloudStorage" / cloud_account_label / "My Drive" / "github" / "econark"
     legacy_path.write_text(
         "\n".join(
             [
@@ -36,4 +37,4 @@ def test_sanitize_output_paths_rewrites_repo_sibling_and_home_paths(tmp_path: Pa
     assert 'sibling="../tdcpass/output/models/published.csv"' in sanitized
     assert 'cloud="~/Library/CloudStorage/REDACTED_EMAIL/My Drive/github/econark"' in sanitized
     assert str(paths.root) not in sanitized
-    assert "REDACTED_ACCOUNT" not in sanitized
+    assert "example@example.test" not in sanitized

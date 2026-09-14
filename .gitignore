@@ -59,3 +59,7 @@ AGENTS.md
 
 # Ephemeral in-project worktrees
 .worktrees/
+
+# Maintainer-local identifiers used by the public-release privacy gate
+.private-denylist
+.*-private-denylist

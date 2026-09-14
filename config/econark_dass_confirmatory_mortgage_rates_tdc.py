@@ -11,15 +11,7 @@ from pathlib import Path
 
 CONFIG_DIR = Path(__file__).resolve().parent
 EA_TDC_ROOT = CONFIG_DIR.parent
-DEFAULT_ECONARK_ROOT = (
-    Path.home()
-    / "Library"
-    / "CloudStorage"
-    / "GoogleDrive-REDACTED_ACCOUNT"
-    / "My Drive"
-    / "github"
-    / "econark"
-)
+DEFAULT_ECONARK_ROOT = EA_TDC_ROOT.parent / "econark"
 ECONARK_ROOT = Path(os.environ.get("ECONARK_ROOT", str(DEFAULT_ECONARK_ROOT))).expanduser()
 
 CONFIRMATORY_SCOPE = "tdc_mortgage_rates"
