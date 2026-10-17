@@ -1,0 +1,94 @@
+{
+  "schema_version": "ea_tdc_vintage_refresh_v1",
+  "vintage": "2026q2",
+  "authority": {
+    "date": "2026-10-14",
+    "proposal": "Rerun quarterly chains through 2026Q2 on the September 2026 Financial Accounts (Z.1 release 2026-09-11) with unchanged specifications"
+  },
+  "output_root": "output/refresh_2026q2",
+  "admitted_sample": {"start": "2002Q1", "end": "2025Q4", "n": 96},
+  "sample": {"start": "2002Q1", "end": "2026Q2", "n": 98},
+  "observation_cutoff": "2026-06-30",
+  "method_tier_counts": {
+    "pre_component_h15_scaled_backcast": 33,
+    "component_pool_wamest_bucket_backcast": 47,
+    "constrained_component": 18
+  },
+  "z1_release": {
+    "release_date": "2026-09-11",
+    "archive_url": "https://www.federalreserve.gov/releases/z1/20260911/z1_csv_files.zip",
+    "archive_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6"
+  },
+  "fred": {
+    "series_manifest": {"path": "config/fred_manifest_seed.csv", "sha256": "99e9bc8727cba20a91985c75bc0653bc140c66bede8221c49418a740aba08d91"},
+    "raw_observation_start": "1980-01-01",
+    "api_key_env": "FRED_API_KEY"
+  },
+  "factor_features": {
+    "ordered_top100": {
+      "path": "output/reproductions/frozen_factor_20260907/results/ordered_top100.json",
+      "sha256": "825d19a7aa6d097ef415982200686575270f9a566214cbfdc2abcd30105935ff"
+    },
+    "universe_columns": {
+      "path": "output/reports/control_universe_columns.csv",
+      "sha256": "77dff081dd49f849ebafaf5d2b5ea378e426ce028c62214e20bd12ac21b52796"
+    },
+    "raw_inventory": {
+      "path": "output/reproductions/frozen_factor_20260907/input_receipt.json",
+      "sha256": "63461a5a5331828828314fef422a231af22a7a467e699fb1a57a877956483773"
+    },
+    "raw_seed_dir": "data/seed/interpol/raw"
+  },
+  "tdcest": {
+    "root": "../tdcest/data/refresh_2026q2",
+    "receipt_sha256": "d55e611d08d0668fe1c736ce21bcbbbb8b4a5efa9a52d2c11c6a8579888252f2",
+    "generated_at": "2026-10-14T15:30:31Z",
+    "files": {
+      "data/processed/tdc_tier2_regression_series.csv": "1e7d1e5e426dd101d9d4479b7e250c4dc33c5a3955b9bc152ded596668e6c503",
+      "data/processed/tdc_estimates.csv": "57fd08ffd42dc6f26f9af02fd247c4a0e91169272160ebf3b088507f9355d7cb",
+      "data/processed/tdc_components.csv": "60bceb535dc71be60c844ea740c723ad6e192ec10e5f67e6119863c903042a8d",
+      "data/processed/tdc_corrections.csv": "05eab910e89d076c2b66db4eb17bb02b23648eb8596bc4697ab76c435c8c09f1",
+      "data/processed/quarterly_inputs.csv": "0ee083cff59af5bbd1da65edad6a0154a438ad0b94aae5d978ae48bbf01374cd",
+      "data/processed/tier2_regression_interest_backcast.csv": "f9eba605dc118cfd5c5cb8ca7d0fde3a81baa801e389a271b4caee1f88775734",
+      "data/processed/tdc_regression_legs_v1.csv": "3da1a39412194932415a3000247b9f06ef0e632c6d3c566232fa997ec512ae70",
+      "data/processed/tdc_regression_legs_v1_receipt.json": "e8128188da4a1ecd1c2e15d361f98e55130eff7cf6c36904a89c9204467453e4",
+      "data/processed/tdc_downstream_handoff_bundle.json": "d601c05bae0db0194eb05eb566db49199fe5526333b1b2fbd8e5daece488741b"
+    }
+  },
+  "tdcpass": {
+    "root": "../tdcpass/output/refresh_2026q2",
+    "producer_commit": "a0e517c78aedf472f811919fe053b1444bb62d34",
+    "admitted_bundle": {
+      "path": "data/bundles/tdcpass/standardized_series.csv",
+      "sha256": "fd42fb64796feac3201302b55f886282f224aeb4d2b65fee06e963028dabcdd0",
+      "policy": "series the current release no longer publishes keep their admitted values; refreshed series are never overwritten"
+    },
+    "strict_loan_series": {
+      "strict_loan_mortgages_qoq": "BOGZ1FU763065005Q",
+      "strict_loan_consumer_credit_qoq": "BOGZ1FU763066000Q"
+    },
+    "files": {
+      "data/derived/quarterly_panel.csv": "34c763aa5cf6aaf04bc7f234e7b89fbe63157f4bfd95469026c9266708012f1a",
+      "output/shocks/unexpected_tdc.csv": "3b0885d8dcacee1b93f0218542d6f4e9fb953750c31332f5f340955db2b7eaa8",
+      "output/models/lp_irf_identity_baseline.csv": "cd58d16ba0c2386198e5b999fced25f1c4cbd0e6b65e906d24bd2f518c699b31",
+      "output/models/result_readiness_summary.json": "0de36d48a30999a48330348f124a48ed56cb91486d79f98fae3ed8c4d9b33c58",
+      "output/models/proxy_unit_audit.json": "eb01db729695f6aa48b87a22bd6df343c380f00b96ca672c79008bb209f83d23",
+      "output/manifests/raw_downloads.json": "eb55b2fd3f12effe563cf7218fa7e5fc9768f4866f26e67f90a1b970f5c319e4",
+      "output/manifests/pipeline_run.json": "7a84ab25c012d2d2a813b427c407ea734db427cf0ff9286096792a35a8d7e57d"
+    }
+  },
+  "carried_bundles": {
+    "data/bundles/qrawatch/standardized_series.csv": "8db307d3df90ff9c3bc49886a8dcf851d33bf6f52425b1582a928f5d41799132",
+    "data/bundles/coordwatch/standardized_series.csv": "5870225bcc25d93920316d6db8cd56f13be72050b85a428b8613d4af06b6e69e",
+    "data/bundles/tsyparty/standardized_series.csv": "444b736a840979af4133966336accaf261599f089e7a8b47a1b3c1f4c1104e26",
+    "data/bundles/wamest/standardized_series.csv": "93382a2037ce56f1b6700b19c77920de307131f37918e8ff416abf4407309976",
+    "data/bundles/slrwatch/standardized_series.csv": "7a1b769584c85cce7ac7c165be0b8566dd3e5a817aa18804a5d290e37a410102",
+    "data/bundles/accounting/standardized_series.csv": "0f17e2849554397519a52ae8f11782edbe19a5f75ff3436a8cd39bf7bce0e3f8"
+  },
+  "open02": {
+    "admitted_source_bundle": {
+      "path": "data/bundles/open02/financial_accounts_2026-03-19.json",
+      "sha256": "15a872b9f1803bb0b07be323cd1a89a8100767e0e850bd136238ac8f5926e798"
+    }
+  }
+}

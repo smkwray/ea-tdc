@@ -1,0 +1,184 @@
+{
+  "schema_version": "ea_tdc_reserve_projection_v1",
+  "scope": "Reserve-side same-quarter conditional associations only. The deposit OPEN-01 and OPEN-16 results are frozen and outside this design.",
+  "units": "USD million",
+  "upstream": {
+    "producer": "tdcest",
+    "producer_commit": "3f85045f925b20d27b3ef8376cb0697c6d63db8e",
+    "receipt_schema_version": "reserve_factor_ledger_v1"
+  },
+  "inputs": {
+    "trc_components": {
+      "path": "data/bundles/reserve_projection/trc_quarterly_components_v1.csv",
+      "upstream_path": "data/processed/trc_quarterly_components_v1.csv",
+      "sha256": "bb7058c70d88adf85fde6f64ce263390c1d310d4c70be07583960eef0d52b7e9",
+      "bytes": 112388
+    },
+    "bridges": {
+      "path": "data/bundles/reserve_projection/reserve_factor_bridges_quarterly_v1.csv",
+      "upstream_path": "data/processed/reserve_factor_bridges_quarterly_v1.csv",
+      "sha256": "a30d124da17338a106de188daaee50e872af042b7288f6aa01b4db63c2d89c0d",
+      "bytes": 180825
+    },
+    "ledger": {
+      "path": "data/bundles/reserve_projection/reserve_factor_ledger_quarterly_v1.csv",
+      "upstream_path": "data/processed/reserve_factor_ledger_quarterly_v1.csv",
+      "sha256": "9091762f43440a25337c15d70c469d3810cca61670a2f658750179e0136d3989",
+      "bytes": 65849
+    },
+    "ledger_receipt": {
+      "path": "data/bundles/reserve_projection/reserve_factor_ledger_v1_receipt.json",
+      "upstream_path": "data/processed/reserve_factor_ledger_v1_receipt.json",
+      "sha256": "62d6ac96136dba8b4c76a1ce7e1c7d4f8364f7322fe4160a3f7a55614d3deec3",
+      "bytes": 135732
+    }
+  },
+  "sample": {"start": "2003Q1", "end": "2025Q4", "n": 92},
+  "eras": [
+    {"id": "era_2003Q1_2008Q3", "start": "2003Q1", "end": "2008Q3", "label": "Before interest on reserves"},
+    {"id": "era_2009Q1_2015Q3", "start": "2009Q1", "end": "2015Q3", "label": "Interest on reserves before the ON RRP facility"},
+    {"id": "era_2016Q1_2025Q4", "start": "2016Q1", "end": "2025Q4", "label": "Interest on reserves with the ON RRP facility"}
+  ],
+  "transition_quarters": ["2008Q4", "2015Q4"],
+  "era_declaration": "The three eras follow an externally dated operating-tool chronology but were declared after the exploratory pilot estimates were inspected. They are dated descriptive comparisons, not a preregistration, an independent confirmation sample, or a causal policy attribution. Transition quarters are shown separately and stay in the pooled sample.",
+  "outcomes": {
+    "y_h": {"role": "primary", "label": "Change in H.4.1 reserve balances (WRBWFRBL) between last Wednesdays", "outcome_bridge": false},
+    "y_z": {"role": "comparison", "label": "Z.1 FU713113003 transactions (term deposits and historical FHLB treatment included; quarter-end clock)", "outcome_bridge": true}
+  },
+  "treatments": {
+    "trc_preferred": {"role": "primary", "gamma_source": "mmf_route_prop"},
+    "trc_core": {"role": "measurement_assumption_sensitivity", "gamma_source": null},
+    "trc_mmf_lower": {"role": "measurement_assumption_sensitivity", "gamma_source": "mmf_route_lb"},
+    "trc_mmf_upper": {"role": "measurement_assumption_sensitivity", "gamma_source": "mmf_route_ub"}
+  },
+  "legs": [
+    {"id": "C_M", "column": "c_m", "label": "Treasury cash leg (trc_cash_leg)"},
+    {"id": "B", "column": "b", "label": "Fed Treasury bridge (trc_fed_bridge)"},
+    {"id": "Gamma", "column": "gamma", "label": "MMF/ON RRP route term"}
+  ],
+  "specifications": {
+    "conditional": {"role": "primary", "controls": ["quarter_of_year"]},
+    "marginal": {"role": "comparator", "controls": []},
+    "lag_sensitivity": {"role": "declared_sensitivity", "controls": ["quarter_of_year", "lag1_treatment", "lag1_outcome"]}
+  },
+  "hac": {"kernel": "bartlett_calendar_distance", "primary_lags": 4, "sensitivity_lags": [1, 8], "finite_sample_scale": "n_over_n_minus_k"},
+  "bootstrap": {
+    "statistic": "fixed_scale_maximum: maximum absolute contrast divided by one bootstrap SD per contrast; no regression SE is recomputed per replicate",
+    "method": "dependent_wild",
+    "replicates": 9999,
+    "seed": 20261009,
+    "level": 0.95,
+    "specifications": [
+      "conditional",
+      "marginal"
+    ],
+    "kernel": "bartlett_calendar_distance",
+    "bandwidth_quarters": 4,
+    "multiplier": "gaussian_moving_average",
+    "residual_scale": "unadjusted_ols",
+    "monte_carlo_batches": 20,
+    "near_threshold_mc_se_multiplier": 2,
+    "reference": "Shao (2010), The Dependent Wild Bootstrap, JASA 105(489), 218-235, doi:10.1198/jasa.2009.tm08744",
+    "resampling": "One mean-zero unit-variance Gaussian multiplier path on the full calendar per replicate, with covariance max(1 - calendar_distance / bandwidth_quarters, 0). The identical temporal weights apply to every outcome, variant, factor, leg, pooled fit and era. Dates and treatment design stay fixed; unrestricted multivariate responses are fitted on controls and treatment, then residuals receive common multipliers, preserving the accounting identities. Residualization, denominators and projections are recomputed in each replicate. Joint tests instead reweight residuals of the restricted common-slope fit with era-specific controls; unrestricted fits supply intervals. No leverage adjustment or post-result tuning.",
+    "monte_carlo_error": "P-value MC SE is sqrt(p*(1-p)/B). Endpoint MC SE is the standard deviation of endpoints recomputed in disjoint replicate batches divided by sqrt(number of batches), an approximate diagnostic including reestimated bootstrap SD scales. Near threshold means within two MC SEs of 0.05; this is not a binary significance claim."
+  },
+  "calibration": {
+    "coverage": {
+      "nominal_level": 0.95,
+      "minimum_acceptable": 0.9,
+      "mc_se_multiplier": 2,
+      "rule": "Fail a tested interval when measured coverage plus two binomial Monte Carlo SEs is below 0.90 for nominal 0.95 coverage. Otherwise label coverage_checked_specified_dgp. An interval aggregate fails if any specified DGP fails. Untested intervals remain coverage_unverified. Checked applies only to the specified equal-slope conditional DGPs, not general coverage or power.",
+      "intervals": [
+        "pointwise_era_slope_percentile",
+        "simultaneous_contrast_fixed_scale_maximum"
+      ],
+      "compute_allocation": "Retain all 2000 size-calibration simulations and 999 inner draws per DGP on this host; coverage reuses the identical simulated outcomes and multiplier paths without consuming random draws."
+    },
+    "treatment": "trc_preferred",
+    "outcomes": [
+      "y_h",
+      "y_z"
+    ],
+    "specifications": [
+      "conditional",
+      "marginal"
+    ],
+    "hac_lags": 4,
+    "replications": 2000,
+    "bootstrap_replicates": 999,
+    "seed": 20261010,
+    "seed_policy": "Reset SeedSequence([seed, DGP-and-innovation index]) for each outcome and specification. Coverage reuses each size simulation's outcome and full-calendar multiplier path, with no extra random draws.",
+    "nominal_level": 0.05,
+    "max_acceptable_size": 0.075,
+    "conservative_below": 0.025,
+    "size_rule": "Calibrated means only that all specified joint-test null rejection rates are at most max_acceptable_size, with simulation MC SE reported. Conservative describes under-rejection, not power. These checks establish no slope-interval or contribution-interval coverage and no power claim.",
+    "dgps": [
+      {
+        "id": "empirical_ar1",
+        "scale": "absolute_restricted_residual",
+        "ar1": "estimated_calendar_lag1"
+      },
+      {
+        "id": "persistent_ar1",
+        "scale": "absolute_restricted_residual",
+        "ar1": 0.5
+      }
+    ],
+    "null_model": "Equal era slopes with era-specific intercepts (and era-specific quarter-of-year terms in the conditional specification), fitted on the observed era quarters; simulated outcomes keep the observed treatment design. Absolute restricted residuals set heteroskedastic scales. Each innovation has unit variance; the full-calendar AR process includes transition quarters and uses a 256-quarter burn-in for the heavy-tailed stationary start.",
+    "innovations": [
+      {
+        "id": "gaussian",
+        "distribution": "normal"
+      },
+      {
+        "id": "student_t4",
+        "distribution": "student_t",
+        "df": 4
+      }
+    ]
+  },
+  "influence": {
+    "block_deletions": [["2008Q3", "2009Q2"], ["2020Q1", "2021Q1"]],
+    "status": "coefficient diagnostics only; no deletion-sample inference"
+  },
+  "component_groups": [
+    {"id": "treasury_securities_valuation_bridge", "label": "Treasury-securities valuation, accrual and Fed-payment bridge", "components": ["bridge_securities"]},
+    {"id": "treasury_cash_clock_bridge", "label": "Treasury-cash clock and source bridge", "components": ["bridge_cash"]},
+    {"id": "outcome_bridge", "label": "Outcome perimeter, clock and source bridge", "components": ["bridge_outcome_term_deposits", "bridge_outcome_z1_flow_vs_level", "bridge_outcome_unattributed"], "outcomes": ["y_z"]},
+    {"id": "mbs_agency_premiums_discounts", "label": "MBS, agency debt, and unamortized premiums and discounts", "components": ["f_mortgage_backed_securities", "f_federal_agency_debt", "f_unamortized_premiums", "f_unamortized_discounts"]},
+    {"id": "lending_and_facilities", "label": "Repo, loans, term auction credit, facility LLC portfolios and swaps", "components": ["f_repurchase_agreements", "f_term_auction_credit", "f_loans", "f_cpff_llc", "f_mmiff_llcs", "f_maiden_lane_llc", "f_maiden_lane_ii_llc", "f_maiden_lane_iii_llc", "f_talf_llc", "f_aia_alico_preferred_interests", "f_cpff_ii_llc", "f_corporate_credit_facilities_llc", "f_municipal_liquidity_facility_llc", "f_ms_facilities_llc", "f_talf_ii_llc", "f_central_bank_liquidity_swaps"]},
+    {"id": "currency_in_circulation", "label": "Currency in circulation", "components": ["f_currency_in_circulation"]},
+    {"id": "rrp_others_net_of_gamma", "label": "RRP others net of the MMF route", "components": ["n_rrp_others"]},
+    {"id": "foreign_official_rrp_and_deposits", "label": "Foreign official RRP and deposits", "components": ["f_rrp_foreign_official", "f_foreign_official_deposits"]},
+    {"id": "all_other_factors", "label": "All other factors", "components": ["f_float", "f_other_federal_reserve_assets", "f_foreign_currency_denominated_assets", "f_gold_stock", "f_sdr_certificate_account", "f_treasury_currency_outstanding", "f_treasury_cash_holdings", "f_term_deposits", "f_service_related_deposits", "f_other_deposits", "f_aig_disposition_funds_held_as_agent", "f_treasury_contributions_to_credit_facilities", "f_other_liabilities_and_capital"]},
+    {"id": "rho", "label": "Published rounding and unmapped remainder", "components": ["rho"]}
+  ],
+  "uncertainty_definitions": {
+    "hac_interval": "Conventional asymptotic normal approximation; joint-test calibration does not validate interval coverage. See the joint-test row for the specified null-size check status.",
+    "bootstrap_interval": "Unrestricted fixed-design dependent-wild pointwise percentile interval or simultaneous fixed-scale maximum contrast band (each contrast divided by its bootstrap SD, fixed across draws). Status and measured coverage come only from the specified equal-slope coverage DGPs; pooled slopes and untested intervals remain coverage_unverified.",
+    "joint_test": "Restricted equal-era-slope dependent-wild fixed-scale maximum test or stacked calendar HAC Wald test. bootstrap_calibrated_only with conservative direction refers only to specified null-size checks. It establishes no equality, power or interval coverage.",
+    "contribution_interval": "Unrestricted dependent-wild pointwise percentile interval; coverage is unverified.",
+    "era_selection": "The three eras follow an externally dated operating-tool chronology but were declared after the exploratory pilot estimates were inspected. They are dated descriptive comparisons, not a preregistration, an independent confirmation sample, or a causal policy attribution. Transition quarters are shown separately and stay in the pooled sample.",
+    "representation": "Every observed quarter enters every wild-bootstrap replicate exactly once with the observed treatment and controls; Gaussian residual multipliers do not sample or delete rows."
+  },
+  "frozen_deposit_sources": [
+    {"path": "src/ea_tdc/estimation.py", "sha256": "4a4698d1ef138ae5a216334f3052ab41a7d38c4a8b1b514c06ab4bdc6b748256", "bytes": 44666},
+    {"path": "src/ea_tdc/open01.py", "sha256": "1dc2b5b1ee60bace36cf4973f2b4089728e42b8d7b6d37c90cdf31b4da35ef16", "bytes": 87398},
+    {"path": "src/ea_tdc/open16.py", "sha256": "6d42f512127aaddcd13b27c422a8705fc0609eb204614241bca4ba4f7757a9d5", "bytes": 14652},
+    {"path": "src/ea_tdc/covariance.py", "sha256": "640289fbbbee9097060389cd54a2947e1e600b6a40dcaa69effcdb9e5609a5fb", "bytes": 3684},
+    {"path": "src/ea_tdc/open_contract.py", "sha256": "1fc1635d843f2bdba21b6ddf2b9fd1954ad1267e583cf7d196900e2d622eae1b", "bytes": 48510},
+    {"path": "scripts/run_open02_producer.py", "sha256": "76420edece532e0518f2e409cd184b14bba9a05f41bbe7a1dfe7e091b43d1875", "bytes": 58298},
+    {"path": "scripts/run_open16_diagnostics.py", "sha256": "f79f58b360bb424b2bbe1cff153c573b31f709575c6f0f57142cb90889e09089", "bytes": 24760},
+    {"path": "scripts/validate_open16_reproduction.py", "sha256": "c37736eb167b9d190ae0904a8ee563babba7f182478fa89aabef00e5a980a3f2", "bytes": 26904},
+    {"path": "scripts/run_frozen_factor_reproduction.py", "sha256": "156a027b23da673f5c4c198330e5de940035db5b47cba4d444ec47dc2f045737", "bytes": 17621}
+  ],
+  "disclosures": {
+    "estimand": "beta is the OLS dollar-on-dollar slope of the quarterly reserve change on measured TRC within a fixed mask and control set. beta - 1 = x'N/x'x after common residualization, where N = y - x is the measured remainder; it is a conditional covariance association, not landing, retention, survival, or a causal response.",
+    "outcomes": "y_h is the H.4.1 Wednesday-bounded change in reserve balances. y_z is the Z.1 FU713113003 outcome, which includes H.4.1 term deposits, historical FHLB treatment and a quarter-end clock; its difference from y_h enters as the outcome bridge.",
+    "treatments": "trc_preferred is primary. trc_core, trc_mmf_lower and trc_mmf_upper are measurement-assumption sensitivities, never coefficient bounds.",
+    "clocks": "TRC legs are mixed-clock: the Treasury cash leg follows its row clock, the Fed bridge is Z.1 calendar-quarter amortized-cost transactions from 2012Q1 plus remittances less a coupon proxy, and the MMF route is a fund-month sum. The cash and securities bridges record the differences from the H.4.1 Wednesday rows.",
+    "controls": "Controls are only an intercept and quarter-of-year indicators within each sample, plus one declared lag sensitivity. No contemporaneous total-reserves control, deposit control, factor model or break search enters.",
+    "inference": "Calendar-distance Bartlett HAC with n/(n-k) scaling; normal intervals are approximations. The era-contrast family has two contrasts and is the primary inferential family; tests of beta = 1 are secondary covariance tests, not accounting tests. Era differences remain descriptive only; specified-DGP interval coverage does not authorize inferential admission.",
+    "influence": "Leave-one-out and declared block deletions are coefficient diagnostics only."
+  }
+}

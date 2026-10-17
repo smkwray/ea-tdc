@@ -1,0 +1,206 @@
+{
+  "schema_version": "ea_tdc_local_projection_v1",
+  "vintage": "2026q2",
+  "output_dir": "output/reports/local_projection_2026q2",
+  "authority": {
+    "design": "Retrospective kernel-weighted local projections of deposit and reserve changes, with fixed bandwidths, effective-sample and numerical screens, influence diagnostics, and simulation coverage checks.",
+    "review_scope": "Results-blind design and implementation review. The scaled weighted QR solve is cross-checked against SVD partial-out; rolling and full-sample parity require resolved finite fits and positive standard errors. The paths make no robustness-to-deletion claim."
+  },
+  "scope": "Retrospective descriptive paths of the admitted same-quarter conditional projections. Not landing, retention, a causal response, a structural break or a state mechanism. The deposit stability classification remains unstable and its controlling Holm test does not reject (p = 0.082). The kernel uses at most 47 quarters per point: a tapered local alternative to the 48-quarter rolling windows, centered on each quarter, not an estimator that adds observations; screened dates stay unavailable.",
+  "estimator": {
+    "id": "fully_local_kernel_weighted_least_squares",
+    "definition": "At each target quarter t, weighted least squares of the panel's admitted outcome on [1, treatment, admitted controls] with weights w_ts = K(|s - t| / h) over observed sample quarters s, where |s - t| is the calendar-quarter distance. Every coefficient is refitted locally, as in the rolling windows. The reported coordinate is the treatment slope. Its target, conditional on the observed design, is the same coordinate of (X'W_tX)^-1 X'W_t E[y | X]: a kernel-weighted projection coefficient, not an instantaneous structural coefficient.",
+    "kernel": "epanechnikov",
+    "kernel_weight": "max(1 - (d / h)^2, 0)",
+    "primary_half_width": 24,
+    "sensitivity_half_widths": [
+      16,
+      32
+    ],
+    "boundary": "Weights are truncated at the observed sample ends; no reflection, padding or estimator switch. Targets within h - 1 quarters of either end are flagged as boundary estimates and report their weighted calendar centroid.",
+    "covariance": "Weighted sandwich on scores w_s X_s e_s with the panel's own calendar-distance Bartlett lags; for the slope this is c * [sum u_s^2 + 2 sum_l (1 - l/(L+1)) sum_{s - r = l} u_s u_r] with u_s = [(X'WX)^-1 X'W]_{slope,s} e_s and e_s the unweighted residual.",
+    "finite_sample_scale": "c = n_eff / (n_eff - k), n_eff = (sum w)^2 / sum w^2, k the admitted design rank; uniform weights recover the admitted n / (n - k). Heuristic weighted HC1 correction, assessed only by the calibration below.",
+    "interval": "Nominal pointwise 95 percent normal interval, beta +/- 1.959963984540054 se. No uniform band; no inference from band overlap.",
+    "screen": "Report a target only when the admitted design has full rank on the support, is numerically resolved, the treatment has positive weighted partial variation, n_eff >= max(2k, k + 20), and the estimate and covariance are finite. Every target keeps a row; screened targets carry a status and no estimate.",
+    "numerical": {
+      "solver": "QR of the column-scaled weighted design sqrt(w) X / ||sqrt(w) X_j||; never the normal equations",
+      "min_reciprocal_condition": 1e-10,
+      "slope_crosscheck_relative": 1e-06,
+      "status": "A target whose scaled design has reciprocal condition below the minimum, or whose QR slope row differs from the SVD partial-out slope row by more than the relative tolerance, is numerically_unresolved and reports no estimate."
+    }
+  },
+  "panels": {
+    "deposit": {
+      "label": "Change in US-chartered deposits on preferred measured TDC",
+      "source": "sealed_open01_panel",
+      "panel": {
+        "path": "output/refresh_2026q2/run/output/refresh/open01_projection_panel.csv",
+        "sha256": "c571d14a105588fef4c54b142c1a9da5b837b20638053c4f68ca87bfda00e318",
+        "bytes": 19682
+      },
+      "panel_receipt": {
+        "path": "output/refresh_2026q2/run/output/refresh/open01_projection_panel_receipt.json",
+        "sha256": "2939551eb1baecc49958db21d4e4b49f825e53f7692aeeff7c98405f07f6cc9f",
+        "bytes": 1658
+      },
+      "sealed_refresh_receipt": {
+        "path": "output/refresh_2026q2/receipt.json",
+        "sha256": "7c6288ad61426da0286785c3ac0cbe44bde82458a4c529d219fab21b945aba6e",
+        "bytes": 32323
+      },
+      "treatment": "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq",
+      "outcome": "matched_total_deposits",
+      "controls": [
+        "GDP",
+        "gdp_deflator",
+        "FEDFUNDS",
+        "TOTRESNS",
+        "tier2_regression_bank_row_tier_pre_component_h15_scaled",
+        "tdcpass_strict_loan_core_min_qoq__lag_2",
+        "tdcpass_strict_loan_core_min_qoq__lag_4",
+        "tdcpass_strict_loan_consumer_credit_qoq__lag_4",
+        "bank_credit_qoq__lag_4",
+        "dgs2__lag_4",
+        "dgs10__lag_1",
+        "dgs10__lag_2",
+        "dflmx_k100_f1",
+        "dflmx_k100_f2",
+        "dflmx_k100_f3",
+        "dflmx_k100_f4"
+      ],
+      "control_admission": "The frozen greedy rank-aware admission (run_submission_appendix_diagnostics._admit_controls_rank_aware) on the target's support quarters, in declared order; positive weights do not change rank.",
+      "hac_lags": 1,
+      "sample": {
+        "start": "2002Q1",
+        "end": "2026Q2",
+        "n": 98
+      },
+      "parity": {
+        "rolling": {
+          "path": "output/refresh_2026q2/run/output/models/tier2_rolling_selected_credit_rate_pass_through_estimates.csv",
+          "sha256": "6ba9e69e00177c193a0aa95b6e645ccb1f8649edcf0833bed7a0d5a06c51fa35",
+          "bytes": 119169,
+          "outcome_filter": "matched_total_deposits",
+          "window_quarters": 48,
+          "rows": 59
+        },
+        "full_sample": {
+          "path": "output/refresh_2026q2/run/outputs/tables/tdc_same_quarter_headline.csv",
+          "sha256": "2d4fd14b3e1224d6d65bfd4c6ff4e38263dc4c3ae962fbf5e199dc059432eca5",
+          "bytes": 2946,
+          "estimand_role": "headline_conditional_projection"
+        }
+      },
+      "nuisance_drift_control": "GDP"
+    },
+    "reserve": {
+      "label": "Change in H.4.1 reserve balances on preferred measured TRC",
+      "source": "reserve_projection_design",
+      "design_config": "config/reserve_projection_2026q2.json",
+      "outcome": "y_h",
+      "treatment": "trc_preferred",
+      "spec": "conditional",
+      "hac_lags": 4,
+      "parity": {
+        "rolling": {
+          "path": "output/reports/reserve_rolling_2026q2/reserve_rolling_v1.csv",
+          "sha256": "54e38daecd5b0963fb4120f78190d09ebae63149fcb44ff1510531d9d3025d57",
+          "bytes": 9846,
+          "producer_commit": "c34d713",
+          "window_quarters": 48,
+          "rows": 47
+        },
+        "full_sample": "pooled conditional y_h on trc_preferred from the same design, recomputed by fit_cell"
+      },
+      "nuisance_drift_control": "quarter_of_year_q2"
+    }
+  },
+  "parity_tolerance": {
+    "beta_relative": 1e-08,
+    "se_relative": 1e-08
+  },
+  "influence": {
+    "definition": "p_ts = w_ts r_ts^2 / sum_s w_ts r_ts^2, with r the treatment residualized on the admitted controls under the same weights; n_F = 1 / sum p^2. Report the maximum share, its quarter and n_F per target. Weighted leverage h_s is the squared row norm of Q from the scaled weighted QR; report the maximum and its quarter.",
+    "flags": {
+      "max_share_above": 0.2,
+      "n_F_below": 10,
+      "max_leverage_above": 0.5
+    },
+    "status": "disclosure only; no deletion diagnostics, winsorizing or bandwidth change, and no robustness-to-deletion claim"
+  },
+  "calibration": {
+    "bandwidths": "primary",
+    "replications": 2000,
+    "seed": 2026101601,
+    "seed_policy": "numpy SeedSequence([seed, panel_index, dgp_index]) with dgp_index enumerating mean x scale x AR(1) x innovation in declared order; one full-calendar error path per replication shared by every target of that panel and DGP",
+    "residuals": "Full-sample uniform-kernel fit of the panel's admitted specification",
+    "ar1": [
+      {
+        "id": "empirical_ar1",
+        "value": "calendar lag-1 autocorrelation of the full-sample residuals"
+      },
+      {
+        "id": "ar1_0",
+        "value": 0.0
+      },
+      {
+        "id": "ar1_0_5",
+        "value": 0.5
+      },
+      {
+        "id": "ar1_0_8",
+        "value": 0.8
+      }
+    ],
+    "innovations": [
+      {
+        "id": "gaussian"
+      },
+      {
+        "id": "student_t4",
+        "df": 4,
+        "standardized": true
+      }
+    ],
+    "burn_in": 256,
+    "means": [
+      {
+        "id": "pooled",
+        "definition": "Full-sample fitted values X theta_hat"
+      },
+      {
+        "id": "slope_drift",
+        "definition": "pooled plus delta_s * treatment_s, delta linear from -0.5 at the first to +0.5 at the last sample quarter"
+      },
+      {
+        "id": "slope_steps",
+        "definition": "pooled plus treatment_s * (0.5 * 1[s >= 2008Q4] - 0.5 * 1[s >= 2020Q1])"
+      },
+      {
+        "id": "nuisance_drift",
+        "definition": "pooled plus 0.25 * SD(y) * (2u_s - 1) * z_s, u_s the sample position in [0, 1] and z the panel's declared nuisance control standardized to unit SD (deposit: GDP; reserve: centered Q2 indicator)"
+      }
+    ],
+    "target": "Exact weighted projection of the noiseless mean at each target: [(X'W_tX)^-1 X'W_t mu]_slope",
+    "rule": "Per DGP and target: failed when coverage + 2 MCSE < 0.90; qualified only when coverage - 2 MCSE > 0.90; otherwise inconclusive. A target is qualified only if every declared DGP qualifies, failed if any fails, otherwise inconclusive. Qualified applies only to these 64 DGPs and establishes no general coverage or power. A failed or inconclusive calibration is reported as such and does not trigger any estimator, bandwidth or interval change.",
+    "nominal_level": 0.95,
+    "minimum_acceptable": 0.9,
+    "mc_se_multiplier": 2,
+    "bandwidths_note": "Sensitivity paths keep coverage_unverified.",
+    "scales": [
+      {
+        "id": "absolute_residual",
+        "definition": "absolute full-sample residual per quarter (heteroskedastic)"
+      },
+      {
+        "id": "homoskedastic",
+        "definition": "constant equal to the root mean square full-sample residual"
+      }
+    ]
+  },
+  "rolling_overlay": "Each admitted 48-quarter rolling estimate is plotted at the calendar midpoint of its effective observed sample; the eight deposit windows with 40 to 47 observations are marked as partial.",
+  "outputs": {
+    "estimates": "local_projection_estimates_v1.csv",
+    "calibration": "local_projection_calibration_v1.csv"
+  }
+}

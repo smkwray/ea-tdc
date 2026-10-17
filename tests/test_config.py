@@ -52,16 +52,34 @@ def test_treast_confirmatory_configs_are_explicitly_marked_non_tdc() -> None:
         assert getattr(module, "PUBLIC_TREATMENT_LABEL", "") == "TREAST"
 
 
-def test_tdc_confirmatory_configs_use_repo_public_tdc() -> None:
+def test_tdc_confirmatory_configs_use_repo_public_tdc(tmp_path: Path) -> None:
     config_paths = [
         Path("config/econark_dass_confirmatory_deposit_growth.py"),
         Path("config/econark_dass_confirmatory_macro_prices_baaff_tdc.py"),
         Path("config/econark_dass_confirmatory_macro_prices_shortlist_tdc.py"),
         Path("config/econark_dass_confirmatory_macro_prices_refined_tdc.py"),
     ]
+    bundle = tmp_path / "data/bundles/tdcpass/standardized_series.csv"
+    bundle.parent.mkdir(parents=True)
+    bundle.write_text(
+        "series_label,period_end,value\n"
+        "tdc_bank_only_qoq,2020-06-30,25.0\n"
+        "unrelated_series,2020-03-31,999.0\n"
+        "tdc_bank_only_qoq,2020-03-31,10.0\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "config").mkdir()
     for config_path in config_paths:
-        module = _load_module_from_path(config_path.resolve())
+        fixture_config = tmp_path / config_path
+        fixture_config.write_bytes(config_path.read_bytes())
+        module = _load_module_from_path(fixture_config)
         assert getattr(module, "CONFIRMATORY_SCOPE", "") == "tdc_confirmatory"
         assert getattr(module, "PUBLIC_TREATMENT_LABEL", "") == "tdc_bank_only_qoq"
         assert "tdc_est" in getattr(module, "EXTERNAL_Q_SERIES", {})
-        assert Path(module.EXTERNAL_Q_SERIES["tdc_est"]["path"]).exists()
+        panel = Path(module.EXTERNAL_Q_SERIES["tdc_est"]["path"])
+        assert panel.is_relative_to(tmp_path)
+        assert panel.read_text(encoding="utf-8").splitlines() == [
+            "date,tdc_est",
+            "2020-03-31,10.0",
+            "2020-06-30,25.0",
+        ]

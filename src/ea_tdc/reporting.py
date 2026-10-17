@@ -869,7 +869,7 @@ def build_release_artifact_contract(paths: ProjectPaths) -> ReleaseArtifactContr
         if tier not in {"release1_main_candidate", "release1_appendix_candidate"}:
             continue
         committed_jobs += 1
-        job_id = str(contract_row.get("job_id", "")).strip()
+        _job_id = str(contract_row.get("job_id", "")).strip()
         design_manifest_path = Path(str(contract_row.get("design_manifest_path", "")).strip())
         design_manifest = _read_json(design_manifest_path) if design_manifest_path.exists() else {}
         if tier == "release1_main_candidate":

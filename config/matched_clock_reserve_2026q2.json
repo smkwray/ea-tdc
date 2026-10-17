@@ -1,0 +1,330 @@
+{
+  "schema_version": "ea_tdc_matched_clock_reserve_v1",
+  "vintage": "2026q2",
+  "refresh_scope": "Refresh of the admitted matched-clock comparison on the 2026q2 TDCest vintage: weekly core TRC summed to Wednesday quarters and the 2026q2 reserve-projection objects. Variants, components, difference components, influence quarters, controls and the descriptive-only inference are unchanged; only the sample end, the last era end, the pins and the output directory differ. Variant ids keep their admitted names; admitted_* rows are the 2026q2 mixed-clock measures.",
+  "output_dir": "output/reports/matched_clock_reserve_2026q2",
+  "sample": {
+    "start": "2006Q1",
+    "end": "2026Q2",
+    "n": 82
+  },
+  "units": "USD million",
+  "upstream_producer_commit": "d892731d44bb4b4770ca0010327e21b3f6b5568c",
+  "inputs": {
+    "weekly": {
+      "path": "data/bundles/reserve_refresh_2026q2/trc_weekly_components_v1.csv",
+      "upstream_path": "data/processed/trc_weekly_components_v1.csv",
+      "sha256": "68dabee345c2383fabc5d8826e19587bfb9c7d56e905da1528d49ac154f3bb95",
+      "bytes": 847198
+    },
+    "quarterly": {
+      "path": "data/bundles/reserve_refresh_2026q2/trc_weekly_quarterly_v1.csv",
+      "upstream_path": "data/processed/trc_weekly_quarterly_v1.csv",
+      "sha256": "5a76e236836db905f2841df122af65ded4578b356d04d0d48bbd4d5f15d72c69",
+      "bytes": 39494
+    },
+    "identity": {
+      "path": "data/bundles/reserve_refresh_2026q2/trc_weekly_identity_v1.csv",
+      "upstream_path": "data/processed/trc_weekly_identity_v1.csv",
+      "sha256": "c26c358295309e46baed15c5734f2174ba4ae0769231cca0c1ddd8fdaede8535",
+      "bytes": 559096
+    },
+    "weekly_receipt": {
+      "path": "data/bundles/reserve_refresh_2026q2/trc_weekly_v1_receipt.json",
+      "upstream_path": "data/processed/trc_weekly_v1_receipt.json",
+      "sha256": "eb97e3c72bb5b684e727935fefe91e2110e7317c88be150387f1cf59a9001976",
+      "bytes": 1672496
+    },
+    "definitions": {
+      "path": "data/bundles/reserve_refresh_2026q2/weekly_trc.md",
+      "upstream_path": "docs/weekly_trc.md",
+      "upstream_commit": "d892731d44bb4b4770ca0010327e21b3f6b5568c",
+      "sha256": "e61a72dbab807587cdfbe672539da97eca7c167f9130e559dfe5c7fe33a73308",
+      "bytes": 20662
+    },
+    "refresh_receipt": {
+      "path": "data/bundles/reserve_refresh_2026q2/RECEIPT.json",
+      "upstream_path": "RECEIPT.json",
+      "sha256": "d55e611d08d0668fe1c736ce21bcbbbb8b4a5efa9a52d2c11c6a8579888252f2",
+      "bytes": 349257
+    }
+  },
+  "admitted_inputs": {
+    "trc_components": {
+      "path": "data/bundles/reserve_refresh_2026q2/trc_quarterly_components_v1.csv",
+      "upstream_path": "data/processed/trc_quarterly_components_v1.csv",
+      "sha256": "57debfb35356287a70825348a6c11b8774b71e0f37d9f454bc1aca77dfb7db03",
+      "bytes": 115002
+    },
+    "bridges": {
+      "path": "data/bundles/reserve_refresh_2026q2/reserve_factor_bridges_quarterly_v1.csv",
+      "upstream_path": "data/processed/reserve_factor_bridges_quarterly_v1.csv",
+      "sha256": "9d0831a5e729bcd0a93b0fd65746d7b796b0545b09870e76b0614eda3c2b5d5e",
+      "bytes": 184869
+    },
+    "ledger": {
+      "path": "data/bundles/reserve_refresh_2026q2/reserve_factor_ledger_quarterly_v1.csv",
+      "upstream_path": "data/processed/reserve_factor_ledger_quarterly_v1.csv",
+      "sha256": "9091762f43440a25337c15d70c469d3810cca61670a2f658750179e0136d3989",
+      "bytes": 65849
+    },
+    "ledger_receipt": {
+      "path": "data/bundles/reserve_refresh_2026q2/reserve_factor_ledger_v1_receipt.json",
+      "upstream_path": "data/processed/reserve_factor_ledger_v1_receipt.json",
+      "sha256": "1b3feaa5948ea23c62a3c209579e4932dac49d79856121843f005a64e286509c",
+      "bytes": 135833
+    },
+    "refresh_receipt": {
+      "path": "data/bundles/reserve_refresh_2026q2/RECEIPT.json",
+      "upstream_path": "RECEIPT.json",
+      "sha256": "d55e611d08d0668fe1c736ce21bcbbbb8b4a5efa9a52d2c11c6a8579888252f2",
+      "bytes": 349257
+    }
+  },
+  "admitted_config": {
+    "path": "config/reserve_projection_2026q2.json",
+    "sha256": "6d95f4e9039daa79710bd9bc580e726d00b5d83e503be13884f26d741871a16e",
+    "bytes": 18557
+  },
+  "admitted_outputs": {
+    "output/reports/reserve_projection_2026q2/receipt.json": {
+      "path": "output/reports/reserve_projection_2026q2/receipt.json",
+      "sha256": "e8d0615563a79d4b3c9c6a01a885a081aa6abd3348d0d34a59add6b6d4f60f73",
+      "bytes": 176124
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_balance_coefficients_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_balance_coefficients_v1.csv",
+      "sha256": "54de1048f133511daee61c0c4a13fd782889cb1532c2534aaccd813221a79755",
+      "bytes": 119912
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_calibration_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_calibration_v1.csv",
+      "sha256": "a19545f4b3bb3a7e9b230a352258a7068e59f9fa9ed40b5b240e8773b9f900db",
+      "bytes": 28432
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_contributions_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_contributions_v1.csv",
+      "sha256": "db72dea2c530994fca87780b3dad80fc8b8c0d558ede13888fd85840e6db0cff",
+      "bytes": 1453369
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_era_contrasts_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_era_contrasts_v1.csv",
+      "sha256": "04454615ba669869847791bf1fc23c5849a2d239dbb2b400af46730967274f62",
+      "bytes": 43129
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_estimates_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_estimates_v1.csv",
+      "sha256": "d126d85678cea1e932a4eb938ce974f5ab89d1f72868cc764b856f4dfa477936",
+      "bytes": 66700
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_grouped_contributions_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_grouped_contributions_v1.csv",
+      "sha256": "cd5d7f0ca6ad1618844e7d24e1eee56d37a0675f516037315e062be6ea98470a",
+      "bytes": 279569
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_influence_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_influence_v1.csv",
+      "sha256": "a1a0d5cdb8c892763605a58d5ba62f119d82b541e3c354d2c7d8e3660cd9b56b",
+      "bytes": 816121
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_leg_factor_matrix_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_leg_factor_matrix_v1.csv",
+      "sha256": "8221a967bb3e83cd8ca5667ecf802876bfba074db75e2ba1948dfc2557424ced",
+      "bytes": 2190441
+    },
+    "output/reports/reserve_projection_2026q2/reserve_projection_transition_quarters_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/reserve_projection_transition_quarters_v1.csv",
+      "sha256": "479e94c77930bdfc8b59a8be75102384fe3ccd04e1eccb774ff111e5f10a03e7",
+      "bytes": 12585
+    },
+    "output/reports/reserve_projection_2026q2/thin/reserve_balance_coefficients_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/thin/reserve_balance_coefficients_v1.csv",
+      "sha256": "410b0123ccc6a0e81e471345fa72f301e98dff00652ac35b880183a373e2f7aa",
+      "bytes": 16055
+    },
+    "output/reports/reserve_projection_2026q2/thin/reserve_era_table_y_h_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/thin/reserve_era_table_y_h_v1.csv",
+      "sha256": "caf76aa3ff045d7fbf24fce7782a1545e6cfdf87efc1a44cd3ffb9c65ed9cd70",
+      "bytes": 27190
+    },
+    "output/reports/reserve_projection_2026q2/thin/reserve_era_table_y_z_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/thin/reserve_era_table_y_z_v1.csv",
+      "sha256": "e216a2f90b0dd113b4e3e38e3f486d43d5c1f1dbd76c58c27e94acf29098551b",
+      "bytes": 27173
+    },
+    "output/reports/reserve_projection_2026q2/thin/reserve_grouped_contributions_y_h_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/thin/reserve_grouped_contributions_y_h_v1.csv",
+      "sha256": "86a250c8085c7576d6111eedce21804aef76751dae4285c7240cf76efabb85f7",
+      "bytes": 15873
+    },
+    "output/reports/reserve_projection_2026q2/thin/reserve_grouped_contributions_y_z_v1.csv": {
+      "path": "output/reports/reserve_projection_2026q2/thin/reserve_grouped_contributions_y_z_v1.csv",
+      "sha256": "16c69b84a7eb7f0ab8e892fa6f0f9930ca817f6ea7d447c9041f1225827b22be",
+      "bytes": 17124
+    }
+  },
+  "authorities": {
+    "adjudication": {
+      "path": "<ADJUDICATION_FILE>",
+      "sha256": "9147db4c4f0bd80bdc82796e7e7227ec40e87f698870af5230166d4a1cc08161",
+      "bytes": 7873
+    },
+    "design_memo": {
+      "path": "<DESIGN_MEMO_FILE>",
+      "sha256": "940cdc85aef56b7f424ba2efbe1513b4e50ec6d45e274df5dd3c036258bbb7db",
+      "bytes": 33894
+    }
+  },
+  "variants": [
+    {
+      "id": "admitted_core",
+      "definition": "Mixed-clock quarterly core, 2026q2 vintage",
+      "source": "admitted",
+      "column": "trc_core"
+    },
+    {
+      "id": "matched_core",
+      "definition": "Wednesday weekly-summed cash-corrected core proxy (primary)",
+      "source": "weekly",
+      "column": "trc_core"
+    },
+    {
+      "id": "matched_par",
+      "definition": "Wednesday weekly-summed uncorrected par sensitivity",
+      "source": "weekly",
+      "column": "trc_par_sensitivity"
+    },
+    {
+      "id": "matched_cash",
+      "definition": "Wednesday cash leg c_h alone (reference)",
+      "source": "weekly",
+      "column": "c_h"
+    },
+    {
+      "id": "admitted_preferred",
+      "definition": "Mixed-clock preferred TRC, 2026q2 vintage (reference; includes the route)",
+      "source": "admitted",
+      "column": "trc_preferred"
+    }
+  ],
+  "samples": [
+    {
+      "id": "pooled",
+      "start": "2006Q1",
+      "end": "2026Q2",
+      "label": "Pooled including transitions"
+    },
+    {
+      "id": "early",
+      "start": "2006Q1",
+      "end": "2008Q3",
+      "label": "Source-truncated relative to admitted 2003Q1 start"
+    },
+    {
+      "id": "transition_2008Q4",
+      "start": "2008Q4",
+      "end": "2008Q4",
+      "label": "Transition; conditional slope unidentified"
+    },
+    {
+      "id": "middle",
+      "start": "2009Q1",
+      "end": "2015Q3",
+      "label": "2009Q1-2015Q3"
+    },
+    {
+      "id": "transition_2015Q4",
+      "start": "2015Q4",
+      "end": "2015Q4",
+      "label": "Transition; conditional slope unidentified"
+    },
+    {
+      "id": "modern",
+      "start": "2016Q1",
+      "end": "2026Q2",
+      "label": "2016Q1-2026Q2"
+    }
+  ],
+  "components": {
+    "non_treasury_signed_factors": {
+      "label": "Other signed reserve factors excluding RRP and security premiums",
+      "weekly": "non_treasury_signed_factors"
+    },
+    "rrp_others": {
+      "label": "Signed RRP-others contribution, net of route only for admitted preferred",
+      "weekly": "rrp_others_net_route"
+    },
+    "treasury_deposit_clock": {
+      "label": "Treasury-deposit clock and source bridge",
+      "weekly": null
+    },
+    "admitted_securities_bridge": {
+      "label": "Admitted Treasury securities valuation, accrual and payment bridge",
+      "weekly": null
+    },
+    "all_securities_premium_discount": {
+      "label": "all securities premium discount",
+      "weekly": "bridge_all_securities_premium_discount"
+    },
+    "treasury_securities_source_inflation": {
+      "label": "treasury securities source inflation",
+      "weekly": "bridge_treasury_securities_source_inflation"
+    },
+    "maturity_payment_clock": {
+      "label": "maturity payment clock",
+      "weekly": "bridge_maturity_payment_clock"
+    },
+    "primary_cash_price": {
+      "label": "primary cash price",
+      "weekly": "bridge_primary_cash_price"
+    },
+    "redemption_inflation": {
+      "label": "redemption inflation",
+      "weekly": "bridge_redemption_inflation"
+    },
+    "internal_postings": {
+      "label": "internal postings",
+      "weekly": "bridge_internal_postings"
+    },
+    "coupon_remittance_payments": {
+      "label": "coupon remittance payments",
+      "weekly": "bridge_coupon_remittance_payments"
+    },
+    "published_rounding": {
+      "label": "published rounding",
+      "weekly": "bridge_published_rounding"
+    },
+    "cash_reference_treasury_securities": {
+      "label": "H.4.1 Treasury-securities factor for cash-leg reference",
+      "weekly": null
+    }
+  },
+  "difference_components": [
+    "difference_treasury_deposit_clock",
+    "difference_fed_source_par_vs_z1",
+    "difference_coupon_measurement_clock",
+    "difference_remittance_source_clock",
+    "difference_maturity_payment_clock",
+    "difference_primary_cash_price",
+    "difference_redemption_inflation",
+    "difference_internal_postings"
+  ],
+  "influence_quarters": [
+    "2008Q3",
+    "2008Q4",
+    "2020Q1"
+  ],
+  "controls": [
+    "quarter_of_year"
+  ],
+  "inference": "Descriptive only; no new tests, intervals, stars or bootstrap. Eras were declared after the pilot. Non-rejection cannot establish equality.",
+  "validation_inputs": {
+    "legacy_default_suite_public_tdc": {
+      "path": "data/bundles/tdcpass/standardized_series.csv",
+      "sha256": "fd42fb64796feac3201302b55f886282f224aeb4d2b65fee06e963028dabcdd0",
+      "bytes": 14225237,
+      "source_checkout_commit": "096ba3879d9dbeb6406d6be9a100b4a94131f818",
+      "role": "Legacy default-suite dependency only; not consumed by reserve projections"
+    }
+  }
+}

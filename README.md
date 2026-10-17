@@ -1,125 +1,124 @@
 # EA-TDC
 
-Website: [smkwray.github.io/ea-tdc](https://smkwray.github.io/ea-tdc/)
+EA-TDC estimates quarterly associations between measured Treasury Deposit
+Component (TDC) flows, bank deposits, and reserve balances. It combines public
+data adapters, conditional projections, accounting decompositions, stability
+checks, and a static results site. The quarterly TDC measurement comes from
+[TDCest](https://github.com/smkwray/tdcest).
 
-EA-TDC studies Treasury Deposit Contribution in quarterly public data.
+[Results site](https://smkwray.github.io/ea-tdc/) ·
+[Source](https://github.com/smkwray/ea-tdc)
 
-## About
+## Interpretation
 
-EA-TDC is a research package built on [EconArk](https://github.com/smkwray/econark). It collects the treatment definition, quarterly estimation code, figures, tables, and the static site for the current public release.
+The central deposit estimate is a same-quarter conditional projection
+coefficient. It is not the coefficient in the exact deposit accounting identity,
+a causal effect, an immediate landing share, or a retention ratio. The measured
+Treasury-flow perimeter and the deposit outcome perimeter differ; the latter
+covers US-chartered institutions' currency and deposits. A coefficient below
+one therefore does not measure the fraction of a Treasury payment that remains
+in deposits.
 
-The finished package should be read in this order:
+The deposit construction checks pass, but the stability classification is
+**unstable**. The controlling multiple-testing adjustment does not reject the
+headline null in the current quarterly sample. Factor controls were selected
+using the full panel, including the pandemic; the associated diagnostics are
+conditional on that selection.
 
-- headline evidence: the quarterly deposit response to the baseline bank-only TDC estimate
-- independent boundary evidence: the narrower `tdcpass` strict source-side comparison, used to separate broad TDC from truly independent non-TDC measurement
-- explanatory sidecar: component evidence on RU acquisition, Treasury operating cash, and positive Fed remittances
-- sensitivity only: corrected Tier 2 and Tier 3 treatment-ladder variants, including the canonical Tier 2 depository-institution row with bill-discount and proportional MMF/RRP corrections
+Reserve projections and their signed factor decompositions are conditional
+associations. Simulation checks distinguish restricted joint tests from interval
+coverage. A calibrated joint test does not validate era differences, unrestricted
+intervals, or a causal interpretation. Failed coverage checks and unavailable
+estimates remain explicit in the outputs.
 
-EA-TDC no longer treats residual/accounting closure as an independent non-TDC measurement lane. That boundary is handled in sibling `tdcpass`, where the broad Treasury-attributed TDC object is kept separate from the narrower strict source-side evidence.
+## Analyses
 
-The preferred corrected Tier 2 sensitivity is `tdc_tier2_canonical_di_mmf_rrp_prop_qoq`. Its bank-only, lower/upper MMF/RRP, and non-bill-discount rows remain robustness checks rather than replacements for the public `baseline_tdc_lp_deposits` headline.
+| Analysis | Implementation and scope |
+| --- | --- |
+| Quarterly deposit projection | `scripts/run_open01_producer.py` and `scripts/run_open01_acceptance.py`; common-sample construction, projection, stability, and influence checks |
+| Bank portfolio associations | `scripts/run_open02_producer.py`; joint transaction system with multiple-testing and influence checks; existing results remain limited diagnostics |
+| Reserve projections | `scripts/run_reserve_projection.py`; same-quarter reserve change, signed reserve factors, and separate size and coverage simulations |
+| Matched settlement clocks | `scripts/run_matched_clock_reserve.py`; compares quarterly exposure definitions on one common sample; [method and interpretation](docs/matched_clock_reserve.md) |
+| Rolling and kernel-weighted projections | `scripts/run_reserve_rolling.py` and `scripts/run_local_projection.py`; descriptive variation in the conditional coefficient, with numerical screens and pointwise coverage labels |
+| Frozen-control diagnostics | `scripts/run_frozen_factor_reproduction.py` and `scripts/run_open16_diagnostics.py`; explicitly distinguishes fresh reproduction from authentication of historical factor coordinates |
 
-## Project structure
+`OPEN-01`, `OPEN-02`, and `OPEN-16` are identifiers retained in the script and
+configuration names. Their availability is determined by the input and approval
+records each producer validates. Historical factor coordinates remain
+unauthenticated; a separate approved fresh-reproduction configuration supports
+bounded covariance and calendar-deletion diagnostics. Neither route supplies
+conditional component slopes without their separate input checks.
 
-- `src/ea_tdc/` Python package for data adapters, designs, estimation, reporting, artifacts, and site generation
-- `config/` manifests, job definitions, and runtime configuration
-- `docs/` static site bundle for GitHub Pages
-- `tests/` regression tests
+The Financial Accounts vintage used for the quarterly refresh omits three loan
+series required by the portfolio system. That refresh remains unavailable for
+this system; replacement series are not silently substituted.
 
-## Build
+## Install and validate
 
-Run the test suite:
-
-```bash
-python -B -m pytest
-```
-
-Rebuild the site:
-
-```bash
-python -B -m ea_tdc build-site
-```
-
-
-## Frozen quarterly diagnostics
-
-The diagnostic code preserves all 57 original rolling endpoints, 2011Q4–2025Q4.
-Each window spans 48 nominal calendar quarters. The first eight start in
-2000Q1–2001Q4 and contain 40–47 available observations; subsequent windows
-contain 48 before the fixed pandemic-quarter deletion. Deleted quarters are not
-refilled, and HAC pairs follow calendar distance.
-
-The publication runner reads only the committed `config/open16_authority.json`.
-Its default status is `unavailable`: accepted factor coordinates and the complete
-historical input graph/runtime are not established. Source publication does not
-authorize factor restoration. Covariance and pandemic diagnostics remain held;
-the three unestablished source-resolution bounds separately withhold leg slopes.
-
-A future approved record must pin a separately reviewed approval receipt and its
-canonical `approved_inputs` SHA-256. Every artifact record contains a relative
-`path`, `sha256`, and positive `bytes`. That inventory binds the panel and its
-provenance receipt, accepted source commit/tree, frozen factor policy, complete
-historical graph cut and completeness evidence, runtime identity or numerical
-invariance evidence, full and sample factor scores, ordered screening/top-100,
-full-vector 57-window equivalence reference, and upstream legs/receipt/producer.
-The provenance receipt equals the approved inventory excluding its own record.
-Approval requires historical evidence; a newly inventoried directory or matching
-projection coefficients cannot establish original coordinate identity.
-
-Only `retained_original_coordinates` and
-`deterministically_restored_accepted_graph` are admissible origins. Refreshed or
-reselected inputs, estimate matching, and equality of factor spans are outside
-this contract. The runner computes no factors and accepts no caller-provided
-input hashes. With a separately approved committed record, its invocation is:
+Use Python 3.11 or later and run from a source checkout:
 
 ```bash
-python -B scripts/run_open16_diagnostics.py --producer-commit <exact-clean-commit>
+uv venv
+uv pip install -e '.[dev]'
+uv run --no-sync python -B -m ea_tdc --help
+uv run --no-sync python -B -m pytest
+uvx ruff check .
 ```
 
-## Separate frozen-input reproduction
-
-`run_frozen_factor_reproduction.py` records a new reproduction from the pinned
-July control-universe graph cut, its ordered columns, and retained design inputs.
-It uses the accepted screening and factor code with unchanged balanced policy,
-100 screened features, four factors, and the full panel including the pandemic.
-The output retains input bytes, ordered screening and cutoff ties, complete factor
-scores, canonical projection vectors, comparisons with archived estimates, and the
-current code/runtime receipt. Differences are reported; matching old estimates is
-not a selection rule.
+A configuration smoke check needs no downloaded data:
 
 ```bash
-python -B scripts/run_frozen_factor_reproduction.py \
-  --producer-commit <exact-clean-commit> \
-  --output-dir output/reproductions/<new-run-name>
+uv run --no-sync python -B -m ea_tdc smoke
 ```
 
-The origin is `new_frozen_input_reproduction`. These results require scientific
-review and do not authenticate original factor coordinates, alter historical
-outputs or authority, or admit OPEN-16 leg slopes. No source data is downloaded.
+It validates the manifests and writes a local bootstrap receipt under
+`output/manifests/`. It does not run an empirical model. Tests construct small
+fixtures; data-backed reproduction requires the exact external inputs described
+below.
 
+## Inputs and production runs
 
-The separate `fresh_frozen_conditioning_space` authority can admit only
-common-control covariance contributions and fixed,
-full-panel-selected-control calendar-row deletion after a passed receipt binds
-the production source and stated structural and numerical gates. Until that
-receipt is pinned by a committed approval, the fresh-reproduction lane fails closed. The vector
-reference is the new reproduction; archived OPEN-01 supplies coefficient and
-standard-error comparisons only. The failed absolute full-vector comparison and v2 raw-symmetry check are
-preserved. Prospective `conditioning_space_v3` compares exact input values, ranks and control
-partitions, conditioning/full-design projectors, a column-normalized condition
-cap, treatment beta/SE, and scale-invariant vector/covariance errors against both
-pinned environments and an independent scaled SVD reference. Its complete policy
-is recorded in the authority and must match the validation receipt exactly.
-Raw covariance matrices remain unchanged; comparison uses their explicitly
-symmetric operators, with a bounded representation error, positive-semidefinite
-guard and nonnegative diagonals. Calendar inference retains both representations
-and never clips a negative variance to zero. Floating normalization values are
-diagnostics; cross-runtime comparisons use one designated common normalization.
-Numeric revalidation reuses the hashed passing raw/screen evidence without a raw
-rebuild or factor extraction.
+`config/runtime.yaml` declares local data/output roots and the public FRED and
+Treasury download manifests. `config/source_registry.template.yaml` names the
+optional sibling exports and their environment variables. Set those variables
+locally when importing a bundle; a private environment file is not part of the
+installation.
 
-After that exact receipt is pinned, select `--authority-lane fresh-reproduction`
-in `run_open16_diagnostics.py`. Historical-coordinate authenticity remains
-unavailable, and this route excludes three-leg estimation. Pandemic deletion
-continues to condition on factors selected using the full panel including the
-pandemic; it is not selection-independent or out-of-sample validation.
+Empirical producers require the pinned source files, receipts, and sample
+contracts named in their configuration. Installing the package does not supply
+those datasets. Producers with `--producer-commit` require an exact clean source
+commit and verify hashes before estimating. Inspect an interface before running
+it, for example:
+
+```bash
+uv run --no-sync python -B scripts/run_reserve_projection.py --help
+uv run --no-sync python -B scripts/run_local_projection.py --help
+```
+
+Do not substitute a newer source file for a pinned vintage or overwrite an
+existing result bundle. Production runs write tables and receipts to ignored
+local output directories. Calibration runs can be substantially more expensive
+than the test suite or smoke check.
+
+The static site can be rebuilt after its configured release inputs exist:
+
+```bash
+uv run --no-sync python -B -m ea_tdc build-site
+```
+
+This command writes `docs/`, the tracked site export. The site is a curated
+results snapshot; new local results are not automatically included.
+
+## Repository layout
+
+- `src/ea_tdc/`: adapters, designs, estimation, diagnostics, and site generation.
+- `config/`: source registries, versioned designs, and input-hash contracts.
+- `scripts/`: analysis and validation entry points.
+- `tests/`: regression and contract tests.
+- `docs/`: intentionally tracked static site and curated release assets.
+- `data/raw/`, `data/seed/`, `data/bundles/`, and `output/`: local inputs and
+  generated results, ignored by Git.
+
+[EconArk](https://github.com/smkwray/econark) provides the related modeling
+framework. [TDCpass](https://github.com/smkwray/tdcpass) supplies an accounting
+boundary comparison; it is not an independent causal estimate.

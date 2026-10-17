@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import json
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any
 
 from ea_tdc.paths import ProjectPaths
 from ea_tdc.utils import utc_now_iso, write_json

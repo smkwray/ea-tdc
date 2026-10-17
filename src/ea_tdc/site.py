@@ -2813,59 +2813,6 @@ def _independent_nontdc_payload(paths: ProjectPaths) -> dict[str, Any] | None:
     }
 
 
-def _factor_summary_payload(robustness_snapshot: dict[str, Any], paths: ProjectPaths) -> list[dict[str, Any]]:
-    payload: list[dict[str, Any]] = []
-    rows = {str(item.get("job_id", "")).strip(): item for item in robustness_snapshot.get("rows", [])}
-    for job_id in FACTOR_SUMMARY_JOB_IDS:
-        row = rows.get(job_id)
-        if not row:
-            continue
-        top_loadings = []
-        for item in list(row.get("top_loadings", []))[:6]:
-            feature_id = str(item.get("feature_id", "")).strip()
-            if not feature_id:
-                continue
-            factor_id = str(item.get("factor_id", "")).strip()
-            loading_value = _coerce_float(item.get("loading_abs"))
-            if loading_value is None:
-                loading_value = _coerce_float(item.get("loading"))
-            top_loadings.append(
-                {
-                    "factor_id": factor_id,
-                    "factor_label": _factor_label(factor_id),
-                    "feature_id": feature_id,
-                    "feature_label": _feature_label(feature_id),
-                    "loading": loading_value,
-                }
-            )
-        payload.append(
-            {
-                "job_id": job_id,
-                "title": _job_meta(job_id)["title"],
-                "summary": ROBUSTNESS_META.get(job_id, {}).get("summary", ""),
-                "top_loadings": top_loadings,
-                "links": [
-                    {
-                        "label": "Top loadings CSV",
-                        "href": _copied_report_href(str((row.get("links", {}) or {}).get("factor_loadings_path", "")), paths),
-                    },
-                    {
-                        "label": "Factor metadata",
-                        "href": _copied_report_href(str((row.get("links", {}) or {}).get("factor_meta_path", "")), paths),
-                    },
-                    {
-                        "label": "Control screen",
-                        "href": _copied_report_href(str((row.get("links", {}) or {}).get("control_screen_path", "")), paths),
-                    },
-                    {
-                        "label": "Control policy",
-                        "href": _copied_report_href(str((row.get("links", {}) or {}).get("control_policy_path", "")), paths),
-                    },
-                ],
-            }
-        )
-        payload[-1]["links"] = [link for link in payload[-1]["links"] if link["href"]]
-    return payload
 
 
 def _iv_lab_payload(paths: ProjectPaths) -> dict[str, Any] | None:

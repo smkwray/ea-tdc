@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from math import isclose, sqrt
+from math import sqrt
 
 import pytest
 

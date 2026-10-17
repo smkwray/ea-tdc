@@ -30,6 +30,7 @@ from ea_tdc.robustness import (
     build_control_universe,
 )
 from ea_tdc.utils import utc_now_iso, write_json
+from ea_tdc.vintage import active_vintage, pinned_factor_features
 
 
 @dataclass(frozen=True)
@@ -105,14 +106,26 @@ def _load_factor_branch(
         outcome_ids=outcome_ids,
         mode=control_policy_mode,
     )
-    screened = _screen_features(
-        rows=merged_rows,
-        candidate_ids=eligible_feature_ids,
-        treatment_id=treatment_id,
-        outcome_ids=outcome_ids,
-        min_coverage=min_coverage,
-    )
-    selected = [item["feature_id"] for item in screened[:k_screened]]
+    vintage = active_vintage(paths.root)
+    if vintage is None:
+        screened = _screen_features(
+            rows=merged_rows,
+            candidate_ids=eligible_feature_ids,
+            treatment_id=treatment_id,
+            outcome_ids=outcome_ids,
+            min_coverage=min_coverage,
+        )
+        selected = [item["feature_id"] for item in screened[:k_screened]]
+    else:
+        # A vintage refreshes the underlying series of the frozen K=100 features;
+        # it never rescreens or reselects them.
+        selected = pinned_factor_features(vintage, paths.root)
+        if k_screened != len(selected):
+            raise ValueError("A vintage pins exactly the admitted K=100 factor features")
+        ineligible = sorted(set(selected).difference(eligible_feature_ids))
+        if ineligible:
+            raise ValueError(f"Pinned factor features are absent or policy-ineligible: {ineligible[:5]}")
+        screened = selected
     factor_ids, factor_rows, _, _ = _extract_factor_controls(
         rows=merged_rows,
         feature_ids=selected,

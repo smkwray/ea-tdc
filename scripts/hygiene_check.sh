@@ -48,8 +48,7 @@ fi
 denylist_scan() {
   # $1 = label; stdin = bytes to scan
   [[ -n "$DENYLIST" ]] || return 0
-  python3 - "$DENYLIST" "$1" <<'PY'
-import sys
+  python3 -c 'import sys
 
 terms = [
     line.strip().lower().encode()
@@ -58,9 +57,9 @@ terms = [
 ]
 if not terms:
     raise SystemExit("hygiene_check: FAIL — denylist exists but has no terms")
-if any(term in sys.stdin.buffer.read().lower() for term in terms):
-    raise SystemExit(f"hygiene_check: FAIL — denylisted identifier in {sys.argv[2]}")
-PY
+payload = sys.stdin.buffer.read().lower()
+if any(term in payload for term in terms):
+    raise SystemExit(f"hygiene_check: FAIL — denylisted identifier in {sys.argv[2]}")' "$DENYLIST" "$1"
 }
 
 # Tracked-eligible source roots. Override via HYGIENE_SCAN_ROOTS env var

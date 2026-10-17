@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ea-tdc"
 version = "0.1.0"
-description = "Self-contained Treasury deposit component x EconArk research scaffold"
+description = "Quarterly Treasury deposit and reserve projections with accounting and stability diagnostics"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -31,3 +31,13 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-q -p no:cacheprovider"
+
+# Release lint checks Python correctness; formatting is not a release gate.
+[tool.ruff.lint]
+select = ["E9", "F"]
+
+# Preserve exact source bytes used by the retained factor-production evidence.
+# These unused names have no effect on the numerical calculation.
+[tool.ruff.lint.per-file-ignores]
+"src/ea_tdc/robustness.py" = ["F841"]
+"scripts/run_submission_appendix_diagnostics.py" = ["F401"]

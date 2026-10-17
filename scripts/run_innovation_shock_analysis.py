@@ -461,7 +461,7 @@ def deck_rows(
     for row in estimates:
         outcome = str(row.get("outcome", ""))
         beta = _coerce_float(row.get("beta", ""))
-        se = _coerce_float(row.get("se", ""))
+        _se = _coerce_float(row.get("se", ""))
         lower = _coerce_float(row.get("lower95", ""))
         upper = _coerce_float(row.get("upper95", ""))
         multiplier, unit = multiplier_map.get(outcome, (100.0, "$B per +$100B"))
@@ -508,7 +508,7 @@ def main() -> None:
     base_controls = [str(item) for item in design_manifest.get("control_ids", [])]
     lag_source_cols = [TREATMENT_ID, *base_controls, *factor_ids]
     lagged_cols = add_lags(factor_rows, lag_source_cols)
-    imputed_lagged_cols = impute_columns(factor_rows, lagged_cols)
+    _imputed_lagged_cols = impute_columns(factor_rows, lagged_cols)
     cycle_cols = select_cycle_controls(factor_rows)
     imputed_cycle_cols = impute_columns(factor_rows, cycle_cols)
 

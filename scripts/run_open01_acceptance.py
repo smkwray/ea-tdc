@@ -32,6 +32,7 @@ from ea_tdc.open_contract import (  # noqa: E402
     OPEN01_DESIGN_JOB_IDS,
 )
 from ea_tdc.paths import project_paths  # noqa: E402
+from ea_tdc.vintage import active_vintage, open01_tier_counts  # noqa: E402
 from run_pinned_factor_residual_bridge import MERGE_JOBS  # noqa: E402
 from run_submission_appendix_diagnostics import _build_inputs  # noqa: E402
 
@@ -71,6 +72,21 @@ def _design_bundle_hashes(root: Path) -> dict[str, str]:
 
 
 def run(*, tdcest_bundle: Path = DEFAULT_TDCEST_BUNDLE) -> dict[str, Any]:
+    vintage = active_vintage(ROOT)
+    if vintage is None:
+        return _run(tdcest_bundle=tdcest_bundle, vintage_record=None)
+    with open01_tier_counts(vintage) as tier_counts:
+        return _run(
+            tdcest_bundle=tdcest_bundle,
+            vintage_record={**vintage.record(), "rebound_tier_counts": tier_counts},
+        )
+
+
+def _run(
+    *,
+    tdcest_bundle: Path,
+    vintage_record: dict[str, Any] | None,
+) -> dict[str, Any]:
     if tuple(MERGE_JOBS) != tuple(OPEN01_DESIGN_JOB_IDS):
         raise ValueError(
             "The live four-bundle merge path drifted from OPEN01_DESIGN_JOB_IDS"
@@ -110,6 +126,8 @@ def run(*, tdcest_bundle: Path = DEFAULT_TDCEST_BUNDLE) -> dict[str, Any]:
         },
         "design_bundles": design_hashes,
     }
+    if vintage_record is not None:
+        producer_inputs["vintage"] = vintage_record
     write_open01_outputs(
         result,
         root=ROOT,

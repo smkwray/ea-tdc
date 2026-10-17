@@ -29,7 +29,6 @@ from ea_tdc.open_contract import (  # noqa: E402
 )
 from run_submission_appendix_diagnostics import (  # noqa: E402
     _build_inputs,
-    _effect_per_100b,
     _fit_lp,
     _normal_p_two_sided,
     _normalization,
@@ -38,7 +37,6 @@ from run_submission_appendix_diagnostics import (  # noqa: E402
 from run_tier2_pass_through_offset_diagnostics import (  # noqa: E402
     _between,
     _canonical_controls,
-    _pearson,
     _quarter_key,
     _safe_float,
     _subset_rows,

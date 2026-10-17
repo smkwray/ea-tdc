@@ -508,7 +508,7 @@ def _build_innovation_specs(
     ]
     lag_source_cols = [source_treatment_id, *base_controls, *method_controls, *factor_ids]
     lagged_cols = add_lags(rows, lag_source_cols)
-    imputed_lagged_cols = impute_columns(rows, lagged_cols)
+    _imputed_lagged_cols = impute_columns(rows, lagged_cols)
     cycle_cols = select_cycle_controls(rows)
     imputed_cycle_cols = impute_columns(rows, cycle_cols)
 
