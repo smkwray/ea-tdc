@@ -43,10 +43,13 @@ playwright-report/
 test-results/
 screenshots/
 
-# Generated report sidecars that are not part of the public release bundle
-docs/site_assets/reports/*slide*/
-docs/site_assets/reports/du_residual_sensitivity/
-docs/site_assets/reports/du_residual_technical_pass/
+# Generated HTML exports and assets
+docs/.nojekyll
+docs/index.html
+docs/artifacts/
+docs/assets/
+docs/sidecar-results/
+docs/site_assets/
 
 # Editor / OS
 .DS_Store

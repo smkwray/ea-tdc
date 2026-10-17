@@ -2,12 +2,9 @@
 
 EA-TDC estimates quarterly associations between measured Treasury Deposit
 Component (TDC) flows, bank deposits, and reserve balances. It combines public
-data adapters, conditional projections, accounting decompositions, stability
-checks, and a static results site. The quarterly TDC measurement comes from
+data adapters, conditional projections, accounting decompositions, and stability
+checks. The quarterly TDC measurement comes from
 [TDCest](https://github.com/smkwray/tdcest).
-
-[Results site](https://smkwray.github.io/ea-tdc/) ·
-[Source](https://github.com/smkwray/ea-tdc)
 
 ## Interpretation
 
@@ -100,22 +97,13 @@ existing result bundle. Production runs write tables and receipts to ignored
 local output directories. Calibration runs can be substantially more expensive
 than the test suite or smoke check.
 
-The static site can be rebuilt after its configured release inputs exist:
-
-```bash
-uv run --no-sync python -B -m ea_tdc build-site
-```
-
-This command writes `docs/`, the tracked site export. The site is a curated
-results snapshot; new local results are not automatically included.
-
 ## Repository layout
 
-- `src/ea_tdc/`: adapters, designs, estimation, diagnostics, and site generation.
+- `src/ea_tdc/`: adapters, designs, estimation, and diagnostics.
 - `config/`: source registries, versioned designs, and input-hash contracts.
 - `scripts/`: analysis and validation entry points.
 - `tests/`: regression and contract tests.
-- `docs/`: intentionally tracked static site and curated release assets.
+- `docs/`: treatment, outcome, and data-contract registries, plus method notes.
 - `data/raw/`, `data/seed/`, `data/bundles/`, and `output/`: local inputs and
   generated results, ignored by Git.
 

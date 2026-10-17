@@ -45,7 +45,6 @@ from .residualized_shock import build_quarterly_fwl_audit
 from .robustness import DEFAULT_CONTROL_POLICY_MODE, build_control_universe, build_quarterly_robustness
 from .sanitize import sanitize_output_paths
 from .seeds import copy_seed_source
-from .site import build_site
 from .smoke import run_smoke
 
 
@@ -205,12 +204,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Render committed Release 1 figures and tables from the artifact contract",
     )
     release_artifacts_parser.add_argument("--repo-root", default=None, help="Override the repository root")
-
-    site_parser = subparsers.add_parser(
-        "build-site",
-        help="Build a GitHub Pages-ready static site from release artifacts and reports",
-    )
-    site_parser.add_argument("--repo-root", default=None, help="Override the repository root")
 
     iv_lab_parser = subparsers.add_parser("build-iv-lab", help="Scan alternative IV candidates for lp_iv jobs")
     iv_lab_parser.add_argument("--repo-root", default=None, help="Override the repository root")
@@ -631,18 +624,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             "gallery_path": str(artifact_build.gallery_path),
             "summary_csv_path": str(artifact_build.summary_csv_path),
             "summary_path": str(artifact_build.summary_path),
-        }
-    elif args.command == "build-site":
-        runtime = load_runtime_config(repo_root)
-        paths = project_paths(repo_root, data_root=runtime.data_root, output_root=runtime.output_root)
-        built_site = build_site(paths)
-        result = {
-            "copied_artifacts": built_site.copied_artifacts,
-            "copied_reports": built_site.copied_reports,
-            "copied_models": built_site.copied_models,
-            "index_path": str(built_site.index_path),
-            "sidecar_index_path": str(built_site.sidecar_index_path),
-            "summary_path": str(built_site.summary_path),
         }
     elif args.command == "build-iv-lab":
         runtime = load_runtime_config(repo_root)

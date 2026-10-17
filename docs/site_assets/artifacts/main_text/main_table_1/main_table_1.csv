@@ -1,7 +1,0 @@
-outcome,horizon,beta,p_value_normal,n,significance
-matched_total_deposits,0,61.63494354563133,0.0023033050954164302,96,
-other_component_tier2_regression_mmf_rrp_prop_bank_only_qoq,0,-38.36505645436926,0.05779116610241308,96,
-tdcpass_strict_loan_core_min_qoq,0,-3.750479389613832,0.20063539102324812,96,
-tdcpass_strict_loan_mortgages_qoq,0,-0.399094457765794,0.8520484713221332,96,
-tdcpass_strict_loan_consumer_credit_qoq,0,-3.351384931847944,0.03317601406435111,96,
-bank_credit_qoq,0,7.368866454362865,0.5272395422326568,96,
