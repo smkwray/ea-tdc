@@ -338,11 +338,12 @@ def test_pinned_reserve_outputs_may_live_in_a_vintage_directory(tmp_path):
         runner.verify_admitted(tmp_path, {"admitted_outputs": {k: v for k, v in records.items() if "thin" in k}})
 
 
-def test_refresh_changes_only_vintage_bound_fields():
+@pytest.mark.parametrize("locator", ["config/matched_clock_reserve_2026q2.json", "config/matched_clock_reserve_2026q2_tfx.json"])
+def test_refresh_changes_only_vintage_bound_fields(locator):
     # Same comparisons on a later vintage: only the sample end, the last era end, pins and
     # variant wording may change; components, controls, influence quarters and inference may not.
     admitted = json.loads((ROOT / mc.CONFIG).read_text())
-    refresh = json.loads((ROOT / "config/matched_clock_reserve_2026q2.json").read_text())
+    refresh = json.loads((ROOT / locator).read_text())
     vintage_bound = {"sample", "upstream_commit", "upstream_producer_commit", "inputs", "admitted_inputs",
                      "admitted_config", "admitted_outputs", "variants", "samples"}
     for key in admitted:
