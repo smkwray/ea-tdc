@@ -569,3 +569,17 @@ def test_addendum_fails_closed(tree, case):
     with pytest.raises(ValueError, match=message):
         tree.reuse(tdcest)
     assert not (tree.root / "output/refresh_new/inputs").exists()
+
+
+def test_corrected_vintage_changes_only_tdcest_objects_and_can_reuse_the_acquisition(refresh, vintage):
+    # The correction reruns the same sample on corrected TDCest objects; everything else, including
+    # the FRED and factor-seed acquisition it reuses, must be the 2026q2 vintage's.
+    corrected = load_vintage(ROOT, "config/vintage_2026q2_tfx.json")
+    old, new = vintage.payload, corrected.payload
+    assert set(new) == set(old) and {k for k in old if old[k] != new[k]} == {"authority", "output_root", "tdcest"}
+    assert {f: corrected.record()[f] for f in refresh.REUSED_VINTAGE_FIELDS} == {f: vintage.record()[f] for f in refresh.REUSED_VINTAGE_FIELDS}
+    assert corrected.vintage_id == vintage.vintage_id and new["output_root"] != old["output_root"]
+    tdcest = new["tdcest"]
+    assert (tdcest["root"], tdcest["receipt_sha256"]) == (old["tdcest"]["root"], old["tdcest"]["receipt_sha256"])
+    assert set(tdcest["files"]) == set(old["tdcest"]["files"]) and tdcest["files"] != old["tdcest"]["files"]
+    assert Path(tdcest["receipt_addendum"]["path"]).name == tdcest["receipt_addendum"]["path"]

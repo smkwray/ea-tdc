@@ -1084,6 +1084,29 @@ def test_bridges_without_internal_transfers_load_on_the_original_identity(refres
         rp.build_panel(refresh, components, bridges, ledger, receipt)
 
 
+def test_corrected_refresh_moves_only_the_facility_round_trip_into_one_group(refresh):
+    # The TGA leg (bridge), the Treasury-contributions liability and the facility LLC holdings
+    # are three sides of the same internal transfers; only they move, and only into one group.
+    corrected = rp.load_design(ROOT, "config/reserve_projection_2026q2_tfx.json")
+    old, new = refresh.raw, corrected.raw
+    assert set(new) == set(old)
+    assert {k for k in old if old[k] != new[k]} == {"refresh_scope", "output_dir", "upstream", "inputs", "component_groups"}
+    assert new["upstream"]["receipt_schema_version"] == old["upstream"]["receipt_schema_version"]
+    assert set(new["inputs"]) == set(old["inputs"]) | {rp.REFRESH_RECEIPT_ADDENDUM}
+    before = {g["id"]: g for g in old["component_groups"]}
+    after = {g["id"]: g for g in new["component_groups"]}
+    moved = {rp.INTERNAL_TRANSFERS, "f_treasury_contributions_to_credit_facilities"}
+    assert list(after) == list(before)
+    assert set(after[FACILITIES]["components"]) == set(before[FACILITIES]["components"]) | moved
+    assert set(after["all_other_factors"]["components"]) == set(before["all_other_factors"]["components"]) - moved
+    for gid in set(before) - {FACILITIES, "all_other_factors"}:
+        assert after[gid] == before[gid], gid
+    panel = rp.build_panel(corrected, *synthetic(corrected, transfers=True))
+    assert "bridge_cash_plus_internal_transfers_is_c_h_minus_c_m" in panel.checks
+    with pytest.raises(ValueError, match="exactly when the bridges declare it"):
+        rp.build_panel(corrected, *synthetic(corrected))
+
+
 def test_runner_writes_refresh_vintage_balance_tables_to_its_declared_directory(refresh_produced, tmp_path, monkeypatch):
     d, panel, _ = refresh_produced
     scripts = ROOT / "scripts"
