@@ -526,6 +526,27 @@ def test_reuse_refuses_an_acquisition_for_another_sample_or_tier_split(tree, fie
         tree.reuse()
 
 
+@pytest.mark.parametrize("pin", ["fred_start", "z1_release", "open02_bundle"])
+def test_reuse_refuses_inputs_acquired_under_other_fred_or_open02_pins(tree, pin):
+    # Reuse stands in for the live fetch only if the live lane would have asked for the same thing.
+    tree.forbid_network()
+    if pin == "fred_start":
+        tree.payload["fred"] = {**tree.payload["fred"], "raw_observation_start": "1990-01-01"}
+        message = "start on another date"
+    elif pin == "z1_release":
+        tree.payload["z1_release"] = {**tree.payload["z1_release"], "release_date": "2026-12-11"}
+        message = "another release or admitted bundle"
+    else:
+        other = {"series": [{"key": OPEN02_CONTRACT.series[0].key, "observations": [{"date": "2025-12-31"}]}]}
+        tree.payload["open02"] = {"admitted_source_bundle": {
+            "path": "data/bundles/open02/other.json", "sha256": _put(tree.root, "data/bundles/open02/other.json", json.dumps(other))}}
+        message = "another release or admitted bundle"
+    with pytest.raises(ValueError, match=message):
+        tree.reuse()
+    assert not any((tree.root / "output/refresh_new" / name).exists() for name in ("inputs", "tdcest", "tdcpass"))
+    assert not list((tree.root / "output/refresh_new").glob(".acquire-*"))
+
+
 def test_addendum_binds_the_corrected_tdcest_objects(tree):
     tree.forbid_network()
     receipt = json.loads(tree.reuse().read_text())
@@ -548,12 +569,21 @@ def test_corrected_objects_need_the_addendum_because_the_original_receipt_binds_
         tree.reuse(tree.tdcest_pins(tree.corrected))
 
 
-@pytest.mark.parametrize("case", ["vintage", "schema", "addendum_hash", "stale_pin", "outside_root"])
+@pytest.mark.parametrize("case", ["vintage", "schema", "commits", "foreign", "addendum_hash", "stale_pin",
+                                  "outside_root", "drive_relative"])
 def test_addendum_fails_closed(tree, case):
     tree.forbid_network()
     tdcest = tree.corrected_pins()
-    message = "schema, vintage or outputs differ"
-    if case == "vintage":
+    message = "addendum schema, vintage, step commits or outputs differ"
+    if case == "commits":
+        tdcest["receipt_addendum"]["sha256"] = tree.write_addendum(producers={})
+    elif case == "foreign":
+        # An addendum from another refresh run supersedes bytes the original receipt never listed.
+        outputs = {loc: {"sha256": tree.corrected[loc], "bytes": len(text), "superseded_sha256": "1" * 64}
+                   for loc, text in CORRECTED.items()}
+        tdcest["receipt_addendum"]["sha256"] = tree.write_addendum(outputs=outputs)
+        message = "does not supersede this receipt's outputs"
+    elif case == "vintage":
         tdcest["receipt_addendum"]["sha256"] = tree.write_addendum(vintage="2026q3")
     elif case == "schema":
         tdcest["receipt_addendum"]["sha256"] = tree.write_addendum(schema_version="tdcest_refresh_receipt_addendum_v2")
@@ -564,7 +594,7 @@ def test_addendum_fails_closed(tree, case):
         tdcest["files"]["data/processed/tdc_components.csv"] = tree.original["data/processed/tdc_components.csv"]
         message = "receipt and vintage pin disagree: data/processed/tdc_components.csv"
     else:
-        tdcest["receipt_addendum"]["path"] = f"../tdcest/{ADDENDUM}"
+        tdcest["receipt_addendum"]["path"] = f"../tdcest/{ADDENDUM}" if case == "outside_root" else f"C:{ADDENDUM}"
         message = "inside the TDCest refresh root"
     with pytest.raises(ValueError, match=message):
         tree.reuse(tdcest)

@@ -20,6 +20,7 @@ from typing import Any, Iterator, Mapping
 
 VINTAGE_ENV = "EA_TDC_VINTAGE"
 SCHEMA_VERSION = "ea_tdc_vintage_refresh_v1"
+REFRESH_ADDENDUM_SCHEMA = "tdcest_refresh_receipt_addendum_v1"
 FACTOR_FEATURE_COUNT = 100
 ROLLING_MINIMUM_OBSERVATIONS = 40
 _QUARTER = re.compile(r"^(?P<year>\d{4})Q(?P<quarter>[1-4])$")
@@ -60,6 +61,28 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def refresh_addendum(receipt: Mapping[str, Any], addendum: Mapping[str, Any],
+                     vintage_id: str) -> tuple[dict[str, Any], dict[str, str]]:
+    """Outputs a TDCest receipt addendum lists, and the commits of its steps.
+
+    The addendum must be the declared schema and vintage, name its step commits, and
+    give every output of the original receipt it replaces that output's original hash,
+    so it cannot bind objects from another refresh run.
+    """
+    step_commits = addendum.get("producers", {}).get("step_commits")
+    outputs = addendum.get("outputs")
+    if (addendum.get("schema_version") != REFRESH_ADDENDUM_SCHEMA or addendum.get("vintage") != vintage_id
+            or not isinstance(step_commits, dict) or not step_commits
+            or not isinstance(outputs, dict) or not outputs):
+        raise ValueError("Refresh receipt addendum schema, vintage, step commits or outputs differ from the declared design")
+    original = receipt.get("outputs", {})
+    foreign = sorted(path for path, item in outputs.items()
+                     if path in original and item.get("superseded_sha256") != original[path].get("sha256"))
+    if foreign:
+        raise ValueError(f"Refresh receipt addendum does not supersede this receipt's outputs: {foreign[:3]}")
+    return dict(outputs), dict(step_commits)
 
 
 @dataclass(frozen=True)

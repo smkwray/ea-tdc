@@ -16,6 +16,7 @@ import pytest
 from ea_tdc import reserve_projection as rp
 from ea_tdc.estimation import _ols
 from ea_tdc.open16 import calendar_hac
+from ea_tdc.vintage import REFRESH_ADDENDUM_SCHEMA
 
 ROOT = Path(__file__).resolve().parents[1]
 H41_TREASURY = ("treasury_general_account", "supplementary_financing_account", "treasury_securities")
@@ -884,7 +885,7 @@ def _write_json_record(root: Path, locator: str, payload: dict, upstream_path: s
 
 
 def _addendum(outputs: dict, *, vintage: str = "2026q2", step_commit: str = "8" * 40) -> dict:
-    return {"schema_version": rp.REFRESH_ADDENDUM_SCHEMA, "vintage": vintage,
+    return {"schema_version": REFRESH_ADDENDUM_SCHEMA, "vintage": vintage,
             "producers": {"step_commits": {"t07_trc": step_commit, "t08_ledger": step_commit}}, "outputs": outputs}
 
 
@@ -938,17 +939,23 @@ def test_refresh_receipt_addendum_supersedes_the_outputs_it_lists(tmp_path):
         other = {**records, "refresh_receipt_addendum": _write_json_record(tmp_path, f"{name}.json", payload, "A.json")}
         with pytest.raises(ValueError, match="addendum schema, vintage, step commits or outputs differ"):
             rp.verify_refresh_receipt(tmp_path, other, fix_commit, "2026q2")
+    # An addendum from another refresh run supersedes other bytes than this receipt lists.
+    foreign = {**amended, "data/processed/a": {**amended["data/processed/a"], "superseded_sha256": "1" * 64}}
+    other = {**records, "refresh_receipt_addendum": _write_json_record(tmp_path, "foreign.json", _addendum(foreign), "A.json")}
+    with pytest.raises(ValueError, match="does not supersede this receipt's outputs"):
+        rp.verify_refresh_receipt(tmp_path, other, fix_commit, "2026q2")
     (tmp_path / "ADDENDUM.json").write_bytes(json.dumps(_addendum(amended, step_commit="f" * 40)).encode())
     with pytest.raises(ValueError, match="hash or size differs"):
         rp.verify_refresh_receipt(tmp_path, records, fix_commit, "2026q2")
 
 
-def test_load_panel_reads_corrected_objects_bound_only_by_the_addendum(refresh, tmp_path):
+def test_load_panel_reads_corrected_objects_bound_only_by_the_addendum(tmp_path):
     fix_commit = "8" * 40
-    raw = copy.deepcopy(refresh.raw)
+    corrected = rp.load_design(ROOT, "config/reserve_projection_2026q2_tfx.json")
+    raw = copy.deepcopy(corrected.raw)
     raw["upstream"]["producer_commit"] = fix_commit
-    design = dataclasses.replace(refresh, raw=raw)
-    components, bridges, ledger, ledger_receipt = synthetic(design)
+    design = dataclasses.replace(corrected, raw=raw)
+    components, bridges, ledger, ledger_receipt = synthetic(design, transfers=True)
     inputs, base_outputs, amended = {}, {}, {}
     for key, rows in (("trc_components", components), ("bridges", bridges), ("ledger", ledger)):
         upstream = raw["inputs"][key]["upstream_path"]
@@ -967,7 +974,8 @@ def test_load_panel_reads_corrected_objects_bound_only_by_the_addendum(refresh, 
     inputs["ledger_receipt"] = _write_json_record(tmp_path, f"bundle/{Path(upstream).name}", ledger_receipt, upstream)
     for key, record in inputs.items():
         base_outputs[record["upstream_path"]] = {"sha256": "0" * 64, "bytes": record["bytes"]}  # superseded bytes
-        amended[record["upstream_path"]] = {"sha256": record["sha256"], "bytes": record["bytes"], "status": "regenerated"}
+        amended[record["upstream_path"]] = {"sha256": record["sha256"], "bytes": record["bytes"], "status": "regenerated",
+                                            "superseded_sha256": "0" * 64}
     base = {"vintage": raw["vintage"], "producers": {"tdcest_exports_and_acquisition": "d" * 40}, "outputs": base_outputs}
     inputs["refresh_receipt"] = _write_json_record(tmp_path, "bundle/RECEIPT.json", base, "RECEIPT.json")
     raw["inputs"] = dict(inputs)
@@ -979,7 +987,8 @@ def test_load_panel_reads_corrected_objects_bound_only_by_the_addendum(refresh, 
     check = panel.checks["refresh_receipt"]
     assert set(check["bindings"].values()) == {"refresh_receipt_addendum_output"}
     assert set(check["bindings"]) == {"trc_components", "bridges", "ledger", "ledger_receipt"}
-    assert check["addendum"]["path"] == "bundle/ADDENDUM.json" and panel.quarters[-1] == refresh.sample[-1]
+    assert check["addendum"]["path"] == "bundle/ADDENDUM.json" and panel.quarters[-1] == corrected.sample[-1]
+    assert "bridge_cash_plus_internal_transfers_is_c_h_minus_c_m" in panel.checks
 
 
 FACILITIES = "lending_and_facilities"

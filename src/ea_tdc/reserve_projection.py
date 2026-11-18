@@ -24,6 +24,7 @@ import numpy as np
 
 from ea_tdc.open01 import _quarter_ordinal, _residualize
 from ea_tdc.open16 import _scaled_rank, calendar_hac, numerical_tolerance
+from ea_tdc.vintage import refresh_addendum
 
 SCHEMA_VERSION = "ea_tdc_reserve_projection_v1"
 CONFIG_LOCATOR = "config/reserve_projection.json"
@@ -36,7 +37,6 @@ REFRESH_RECEIPT = "refresh_receipt"
 # A TDCest correction regenerates refresh outputs without rewriting the original
 # receipt; its addendum lists the new outputs and the commits that produced them.
 REFRESH_RECEIPT_ADDENDUM = "refresh_receipt_addendum"
-REFRESH_ADDENDUM_SCHEMA = "tdcest_refresh_receipt_addendum_v1"
 # TDCest nets Treasury-Fed internal transfers i out of the TRC cash leg c_m; their TGA
 # effect then enters the remainder as its own bridge, -i. A ledger receipt that declares
 # this bridge marks the corrected bridges schema; earlier bridges carry neither column.
@@ -96,12 +96,7 @@ def verify_refresh_receipt(root: Path, records: Mapping[str, Mapping[str, Any]],
     addendum_record, addendum_binding = records.get(REFRESH_RECEIPT_ADDENDUM), None
     if addendum_record is not None:
         addendum = json.loads(_pinned(Path(root), addendum_record).read_text(encoding="utf-8"))
-        step_commits = addendum.get("producers", {}).get("step_commits")
-        amended = addendum.get("outputs")
-        if (addendum.get("schema_version") != REFRESH_ADDENDUM_SCHEMA or addendum.get("vintage") != vintage
-                or not isinstance(step_commits, dict) or not step_commits
-                or not isinstance(amended, dict) or not amended):
-            raise ValueError("Refresh receipt addendum schema, vintage, step commits or outputs differ from the declared design")
+        amended, step_commits = refresh_addendum(receipt, addendum, vintage)
         producers |= set(step_commits.values())
         outputs |= {path: (item, "refresh_receipt_addendum_output") for path, item in amended.items()}
         addendum_binding = {"path": addendum_record["path"], "sha256": addendum_record["sha256"],

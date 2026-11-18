@@ -50,6 +50,7 @@ from ea_tdc.vintage import (  # noqa: E402
     Vintage,
     load_vintage,
     quarter_ordinal,
+    refresh_addendum,
     sha256_file,
 )
 
@@ -72,12 +73,13 @@ TDCEST_BUNDLE_SOURCES = {
     "corrections": "tdc_corrections.csv",
 }
 TDCEST_REFERENCE_COLUMNS = ("gdp_deflator", "nominal_gdp_saar_bil")
-TDCEST_ADDENDUM_SCHEMA = "tdcest_refresh_receipt_addendum_v1"
 ESTIMATE_TOLERANCE = 1e-7
 ACQUISITION_RECEIPT = "inputs/acquisition_receipt.json"
 OPEN02_AVAILABILITY = "inputs/open02_source_availability.json"
 # A reused acquisition must have been made for the same sample and construction tiers.
 REUSED_VINTAGE_FIELDS = ("sample", "observation_cutoff", "quarter_hash", "method_tier_counts")
+# Locators inside a producer root: relative POSIX segments only, no drive, no parent step.
+PLAIN_LOCATOR = re.compile(r"[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*")
 
 
 # --------------------------------------------------------------------------- utilities
@@ -458,12 +460,15 @@ def _reuse_file(root: Path, stage: Path, record: Mapping[str, Any], locator: str
     return dict(record)
 
 
-def reuse_fred(root: Path, stage: Path, receipt: Mapping[str, Any], series_ids: Sequence[str]) -> dict[str, Any]:
+def reuse_fred(root: Path, stage: Path, receipt: Mapping[str, Any], starts: Mapping[str, str]) -> dict[str, Any]:
+    """Reused FRED series must be the manifest's, each requested from the start the live lane would use."""
     records = receipt.get("fred_raw") or {}
-    if set(records) != set(series_ids):
+    if set(records) != set(starts):
         raise ValueError("Reused FRED series differ from the vintage series manifest")
-    return {series_id: _reuse_file(root, stage, records[series_id], f"inputs/fred/{series_id}.csv")
-            for series_id in series_ids}
+    moved = sorted(s for s, start in starts.items() if records[s].get("observation_start_requested") != start)
+    if moved:
+        raise ValueError(f"Reused FRED series start on another date than this vintage requests: {moved[:5]}")
+    return {series_id: _reuse_file(root, stage, records[series_id], f"inputs/fred/{series_id}.csv") for series_id in starts}
 
 
 def reuse_factor_seed(root: Path, stage: Path, receipt: Mapping[str, Any], raw_inventory: Mapping[str, str],
@@ -479,6 +484,23 @@ def reuse_factor_seed(root: Path, stage: Path, receipt: Mapping[str, Any], raw_i
     return {name: _reuse_file(root, stage, files[name], f"inputs/interpol_raw/{name}") for name in sorted(files)}
 
 
+def reuse_open02(root: Path, stage: Path, receipt: Mapping[str, Any], vintage: Vintage) -> dict[str, Any]:
+    """Reused OPEN-02 availability must have been checked against this release and admitted bundle."""
+    from ea_tdc.open_contract import OPEN02_CONTRACT
+
+    record = _reuse_file(root, stage, receipt.get("open02_source_availability") or {}, OPEN02_AVAILABILITY)
+    availability = _read_json(stage / OPEN02_AVAILABILITY)
+    admitted = vintage.payload["open02"]["admitted_source_bundle"]
+    if sha256_file(ROOT / admitted["path"]) != admitted["sha256"]:
+        raise ValueError("Admitted OPEN-02 source bundle changed")
+    bundle = {series["key"]: series for series in _read_json(ROOT / admitted["path"]).get("series", [])}
+    expected = {s.key: len(bundle.get(s.key, {}).get("observations", [])) for s in OPEN02_CONTRACT.series}
+    checked = {item.get("key"): item.get("admitted_observations") for item in availability.get("series", [])}
+    if availability.get("release") != vintage.payload["z1_release"] or checked != expected:
+        raise ValueError("Reused OPEN-02 availability was checked against another release or admitted bundle")
+    return record
+
+
 def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) -> Path:
     """Acquire every vintage input; with ``reuse_root``, FRED, factor-seed and OPEN-02
     availability inputs are copied byte for byte from that earlier acquisition."""
@@ -491,16 +513,16 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
             raise ValueError(f"{name} already acquired; no overwrite")
     reused = load_reused_acquisition(reuse_root, vintage) if reuse_root is not None else None
     key = ""
-    if reused is None:
-        key = os.environ.get(vintage.payload["fred"]["api_key_env"], "").strip()
-        if not key:
-            raise ValueError("FRED API key environment variable is not set")
-    stage = Path(tempfile.mkdtemp(prefix=".acquire-", dir=output))
     receipt: dict[str, Any] = {"lane": "acquire", "producer_commit": commit, "started_at_utc": _now(),
                                "vintage": vintage.record()}
     if reused is not None:
         receipt["reused_acquisition"] = {"root": Path(os.path.relpath(reuse_root.resolve(), ROOT.resolve())).as_posix(),
                                          "receipt_sha256": reused[1]}
+    else:
+        key = os.environ.get(vintage.payload["fred"]["api_key_env"], "").strip()
+        if not key:
+            raise ValueError("FRED API key environment variable is not set")
+    stage = Path(tempfile.mkdtemp(prefix=".acquire-", dir=output))
     try:
         inputs = stage / "inputs"
         # FRED raw series behind the design builder.
@@ -509,7 +531,10 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
         if sha256_file(ROOT / manifest["path"]) != manifest["sha256"]:
             raise ValueError("FRED series manifest changed")
         if reused is not None:
-            fred_records = reuse_fred(reuse_root, stage, reused[0], [row["series_id"] for row in manifest_rows])
+            starts = {row["series_id"]: admitted_start(ROOT / "data/raw/fred" / f"{row['series_id']}.csv",
+                                                       vintage.payload["fred"]["raw_observation_start"])
+                      for row in manifest_rows}
+            fred_records = reuse_fred(reuse_root, stage, reused[0], starts)
         else:
             fred_records = {}
             for row in manifest_rows:
@@ -574,15 +599,12 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
         addendum_pin = tdcest.get("receipt_addendum")
         if addendum_pin is not None:
             # A correction regenerates outputs and lists them in an addendum; the original receipt stays unchanged.
-            addendum_path = Path(addendum_pin["path"])
-            if addendum_path.is_absolute() or ".." in addendum_path.parts:
+            if not PLAIN_LOCATOR.fullmatch(str(addendum_pin["path"])) or ".." in addendum_pin["path"].split("/"):
                 raise ValueError("TDCest receipt addendum must lie inside the TDCest refresh root")
+            addendum_path = Path(addendum_pin["path"])
             _copy_verified(tdcest_root / addendum_path, stage / "tdcest" / addendum_path, addendum_pin["sha256"])
             addendum = _read_json(stage / "tdcest" / addendum_path)
-            amended = addendum.get("outputs")
-            if (addendum.get("schema_version") != TDCEST_ADDENDUM_SCHEMA or not isinstance(amended, dict) or not amended
-                    or addendum.get("vintage") != vintage.vintage_id):
-                raise ValueError("TDCest receipt addendum schema, vintage or outputs differ from the vintage")
+            amended, _ = refresh_addendum(tdcest_receipt, addendum, vintage.vintage_id)
             listed = {**listed, **amended}
         tdcest_records = {}
         for locator, digest in tdcest["files"].items():
@@ -626,8 +648,7 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
 
         # OPEN-02 source availability in the pinned Financial Accounts release.
         if reused is not None:
-            receipt["open02_source_availability"] = _reuse_file(
-                reuse_root, stage, reused[0].get("open02_source_availability") or {}, OPEN02_AVAILABILITY)
+            receipt["open02_source_availability"] = reuse_open02(reuse_root, stage, reused[0], vintage)
         else:
             release = vintage.payload["z1_release"]
             request = urllib.request.Request(release["archive_url"], headers={"User-Agent": "ea-tdc/0.1.0"})
