@@ -38,7 +38,8 @@ def small(design: rp.Design, *, replicates: int = 19, sims: int = 4, inner: int 
 
 
 def synthetic(design: rp.Design, *, seed: int = 7, scale: float = 1.0, offset: float = -0.3,
-              quiet: bool = False, foreign: float = 0.0, end: str | None = None) -> tuple[list, list, list, dict]:
+              quiet: bool = False, foreign: float = 0.0, end: str | None = None,
+              transfers: bool = False) -> tuple[list, list, list, dict]:
     """Pinned-input lookalikes obeying the TDCest identity, in USD million.
 
     Currency in circulation drains `offset` dollars per TRC dollar, so the
@@ -46,7 +47,10 @@ def synthetic(design: rp.Design, *, seed: int = 7, scale: float = 1.0, offset: f
     official RRP balances rise `foreign` dollars per TRC dollar; as an absorbing
     factor the ledger signs that as minus the level change. `quiet` removes
     every other factor, bridge and rounding term. The shell ends at the
-    design's sample end unless `end` truncates or extends it.
+    design's sample end unless `end` truncates or extends it. With `transfers`,
+    the bridges follow TDCest's corrected schema: Treasury-Fed transfers i move
+    the TGA inside c_h, the TRC cash leg nets them out (c_m + i), bridge_cash
+    keeps its value and the remainder gains bridge_internal_transfers = -i.
     """
     rng = np.random.default_rng(seed)
     quarters = rp.quarter_range("2002Q1", end or design.sample[-1])
@@ -79,6 +83,10 @@ def synthetic(design: rp.Design, *, seed: int = 7, scale: float = 1.0, offset: f
     y_z = y_h + bridge_outcome
     gammas = {"trc_core": np.zeros(n), "trc_preferred": routes["mmf_route_prop"],
               "trc_mmf_lower": routes["mmf_route_lb"], "trc_mmf_upper": routes["mmf_route_ub"]}
+    internal = np.zeros(n)
+    if transfers:  # a separate stream keeps every other draw identical to the uncorrected fixture
+        internal = np.asarray([q >= "2020Q2" for q in quarters]) * np.random.default_rng(seed + 1).normal(0, 9_000, n)
+    c_trc = c_m + internal if transfers else c_m
 
     def fmt(value: float, keep: bool = True) -> str:
         return repr(float(value) * scale) if keep else ""
@@ -86,9 +94,10 @@ def synthetic(design: rp.Design, *, seed: int = 7, scale: float = 1.0, offset: f
     components, ledger, bridges = [], [], []
     for i, q in enumerate(quarters):
         live = q in sample
-        components.append({"quarter": q, "trc_cash_leg": fmt(c_m[i], live), "trc_fed_bridge": fmt(b[i]),
+        components.append({"quarter": q, "trc_cash_leg": fmt(c_trc[i], live), "trc_fed_bridge": fmt(b[i]),
                            "delta_rb_z1": fmt(y_z[i]), **{k: fmt(v[i]) for k, v in routes.items()},
-                           **{v: fmt(c_m[i] + b[i] + g[i], live) for v, g in gammas.items()}})
+                           **{v: fmt(c_trc[i] + b[i] + g[i], live) for v, g in gammas.items()},
+                           **({rp.INTERNAL_CASH_SOURCE: fmt(internal[i])} if transfers else {})})
         ledger.append({"quarter": q, "delta_reserve_balances": fmt(y_h[i], live), "c_h": fmt(c_h[i], live),
                        "s_h": fmt(s_h[i], live), "rho": fmt(rho[i], live),
                        "f_treasury_general_account": fmt(c_h[i] - sfp[i], live),
@@ -98,16 +107,19 @@ def synthetic(design: rp.Design, *, seed: int = 7, scale: float = 1.0, offset: f
     for variant, gamma in gammas.items():
         for i, q in enumerate(quarters):
             live = q in sample
-            bridges.append({"quarter": q, "trc_variant": variant, "x": fmt(c_m[i] + b[i] + gamma[i], live),
+            bridges.append({"quarter": q, "trc_variant": variant, "x": fmt(c_trc[i] + b[i] + gamma[i], live),
                             "gamma": fmt(gamma[i]), "y_z": fmt(y_z[i]), "y_h": fmt(y_h[i], live),
-                            "c_h": fmt(c_h[i], live), "c_m": fmt(c_m[i], live), "s_h": fmt(s_h[i], live),
+                            "c_h": fmt(c_h[i], live), "c_m": fmt(c_trc[i], live), "s_h": fmt(s_h[i], live),
                             "b": fmt(b[i]), **{f"f_{k}": fmt(v[i], live) for k, v in factors.items()},
                             "bridge_outcome": fmt(bridge_outcome[i], live),
                             **{k: fmt(v[i], live) for k, v in parts.items()},
                             "bridge_cash": fmt(bridge_cash[i], live), "bridge_securities": fmt(bridge_securities[i], live),
                             "rho": fmt(rho[i], live), "n_rrp_others": fmt(factors["rrp_others"][i] - gamma[i], live),
+                            **({rp.INTERNAL_CASH: fmt(internal[i], live), rp.INTERNAL_TRANSFERS: fmt(-internal[i], live)}
+                               if transfers else {}),
                             "bridge_status": rp.RECONCILED_STATUS if live else "unavailable_no_opening_level"})
-    names = ["x", "gamma", "c_m", "b", "y_h", "y_z", "n_rrp_others", "bridge_cash", "bridge_securities", "rho", *parts]
+    names = ["x", "gamma", "c_m", "b", "y_h", "y_z", "n_rrp_others", "bridge_cash", "bridge_securities", "rho", *parts,
+             *((rp.INTERNAL_CASH, rp.INTERNAL_TRANSFERS) if transfers else ())]
     pins = design.raw["inputs"]
     receipt = {"schema_version": design.raw["upstream"]["receipt_schema_version"],
                "producer_commit": design.raw["upstream"]["producer_commit"], "units": design.raw["units"],
@@ -968,6 +980,108 @@ def test_load_panel_reads_corrected_objects_bound_only_by_the_addendum(refresh, 
     assert set(check["bindings"].values()) == {"refresh_receipt_addendum_output"}
     assert set(check["bindings"]) == {"trc_components", "bridges", "ledger", "ledger_receipt"}
     assert check["addendum"]["path"] == "bundle/ADDENDUM.json" and panel.quarters[-1] == refresh.sample[-1]
+
+
+FACILITIES = "lending_and_facilities"
+
+
+def with_internal_bridge(design: rp.Design, root: Path, group: str = FACILITIES) -> rp.Design:
+    """The refresh design with the internal-transfer bridge assigned to one group, through the loader."""
+    raw = copy.deepcopy(design.raw)
+    next(g for g in raw["component_groups"] if g["id"] == group)["components"].append(rp.INTERNAL_TRANSFERS)
+    (root / "config").mkdir(exist_ok=True)
+    (root / REFRESH_CONFIG).write_text(json.dumps(raw))
+    return rp.load_design(root, REFRESH_CONFIG)
+
+
+def test_corrected_bridges_carry_internal_transfers_beside_the_facility_factors(refresh, tmp_path):
+    # Treasury-Fed facility transfers move the TGA and the facility factors together and net
+    # to zero in reserves. Once TRC nets them out of its cash leg, their TGA effect is part of
+    # the remainder, and it sits in the facilities group, not in the Treasury-cash clock bridge.
+    d = with_internal_bridge(refresh, tmp_path)
+    panel = rp.build_panel(d, *synthetic(d, transfers=True))
+    assert {"internal_cash_equals_trc_internal_cash", "internal_transfers_is_minus_i",
+            "bridge_cash_plus_internal_transfers_is_c_h_minus_c_m"} <= set(panel.checks)
+    assert "bridge_cash_is_c_h_minus_c_m" not in panel.checks
+    s = np.asarray([q in set(d.sample) for q in panel.quarters])
+    i = panel.common[rp.INTERNAL_CASH]
+    assert np.count_nonzero(i[s]) > 10
+    groups = {g.id: g for g in d.groups}
+    assert groups["treasury_cash_clock_bridge"].components == ("bridge_cash",)
+    facility_factors = [c for c in groups[FACILITIES].components if c.startswith("f_")]
+    for outcome in d.outcomes:
+        for variant in d.variants:
+            remainder = panel.common[outcome] - panel.column(variant, "x")
+            by_group = {g.id: sum(panel.column(variant, c) for c in g.components) for g in d.groups_for(outcome)}
+            np.testing.assert_allclose(sum(by_group.values())[s], remainder[s], rtol=0, atol=1e-6)
+            np.testing.assert_allclose((by_group[FACILITIES] - sum(panel.common[c] for c in facility_factors))[s],
+                                       -i[s], rtol=0, atol=1e-9)
+    cell = rp.make_cell(panel, d, "y_h", d.primary_variant, "pooled", d.primary_spec, d.sample)
+    fit = rp.fit_cell(panel, d, cell)
+    lags = {k: v[cell.positions] for k, v in rp.cell_lags(panel, "y_h", d.primary_variant).items()}
+    z = rp.control_matrix(panel.qoy[cell.positions], d.specs[d.primary_spec], lags)
+    bridge = -i[cell.positions]
+    bridge_resid = bridge - z @ np.linalg.lstsq(z, bridge, rcond=None)[0]
+    xt = fit["resid"][:, 0]
+    k = d.components("y_h").index(rp.INTERNAL_TRANSFERS)
+    assert fit["contributions"][k] == pytest.approx(float(xt @ bridge_resid) / float(xt @ xt), rel=1e-9)
+    assert fit["contributions"].sum() == pytest.approx(fit["beta"] - 1, abs=1e-12)
+
+
+@pytest.mark.parametrize("column, check", [
+    (rp.INTERNAL_TRANSFERS, "internal_transfers_is_minus_i"),
+    (rp.INTERNAL_CASH, "internal_cash_equals_trc_internal_cash"),
+    ("bridge_cash", "bridge_cash_plus_internal_transfers_is_c_h_minus_c_m"),
+])
+def test_internal_transfer_identities_fail_closed(refresh, tmp_path, column, check):
+    d = with_internal_bridge(refresh, tmp_path)
+    components, bridges, ledger, receipt = synthetic(d, transfers=True)
+    for row in bridges:
+        if row["quarter"] == "2020Q2":
+            row[column] = repr(float(row[column]) + 250.0)
+    with pytest.raises(ValueError, match=check):
+        rp.build_panel(d, components, bridges, ledger, receipt)
+
+
+@pytest.mark.parametrize("case, message", [
+    ("receipt_declares_file_lacks", "disagree on the internal-transfer bridge"),
+    ("file_carries_receipt_silent", "disagree on the internal-transfer bridge"),
+    ("bridge_without_i", "only one of"),
+    ("i_without_bridge", "only one of"),
+    ("design_lacks_assignment", "exactly when the bridges declare it"),
+    ("old_file_design_assigns", "exactly when the bridges declare it"),
+    ("components_lack_i", "internal_cash_equals_trc_internal_cash"),
+])
+def test_corrected_schema_never_reads_a_missing_bridge_as_zero(refresh, tmp_path, case, message):
+    d = with_internal_bridge(refresh, tmp_path)
+    design = refresh if case == "design_lacks_assignment" else d
+    components, bridges, ledger, receipt = synthetic(design, transfers=case != "old_file_design_assigns")
+    dropped = {"receipt_declares_file_lacks": (rp.INTERNAL_CASH, rp.INTERNAL_TRANSFERS),
+               "bridge_without_i": (rp.INTERNAL_CASH,), "i_without_bridge": (rp.INTERNAL_TRANSFERS,)}.get(case, ())
+    for row in bridges:
+        for column in dropped:
+            del row[column]
+    if case == "file_carries_receipt_silent":
+        for name in (rp.INTERNAL_CASH, rp.INTERNAL_TRANSFERS):
+            del receipt["column_clocks"]["bridges"][name], receipt["definitions"][name]
+    if case == "components_lack_i":
+        for row in components:
+            del row[rp.INTERNAL_CASH_SOURCE]
+    with pytest.raises(ValueError, match=message):
+        rp.build_panel(design, components, bridges, ledger, receipt)
+
+
+def test_bridges_without_internal_transfers_load_on_the_original_identity(refresh):
+    components, bridges, ledger, receipt = synthetic(refresh)
+    panel = rp.build_panel(refresh, components, bridges, ledger, receipt)
+    assert "bridge_cash_is_c_h_minus_c_m" in panel.checks
+    assert not any("internal" in key for key in panel.checks)
+    assert rp.INTERNAL_TRANSFERS not in panel.common and rp.INTERNAL_CASH not in panel.common
+    for row in bridges:
+        if row["quarter"] == "2020Q2":
+            row["bridge_cash"] = repr(float(row["bridge_cash"]) + 250.0)
+    with pytest.raises(ValueError, match="bridge_cash_is_c_h_minus_c_m"):
+        rp.build_panel(refresh, components, bridges, ledger, receipt)
 
 
 def test_runner_writes_refresh_vintage_balance_tables_to_its_declared_directory(refresh_produced, tmp_path, monkeypatch):

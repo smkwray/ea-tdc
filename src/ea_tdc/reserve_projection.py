@@ -37,6 +37,12 @@ REFRESH_RECEIPT = "refresh_receipt"
 # receipt; its addendum lists the new outputs and the commits that produced them.
 REFRESH_RECEIPT_ADDENDUM = "refresh_receipt_addendum"
 REFRESH_ADDENDUM_SCHEMA = "tdcest_refresh_receipt_addendum_v1"
+# TDCest nets Treasury-Fed internal transfers i out of the TRC cash leg c_m; their TGA
+# effect then enters the remainder as its own bridge, -i. A ledger receipt that declares
+# this bridge marks the corrected bridges schema; earlier bridges carry neither column.
+INTERNAL_TRANSFERS = "bridge_internal_transfers"
+INTERNAL_CASH = "i"
+INTERNAL_CASH_SOURCE = "treasury_fed_internal_cash_tx"
 # Independent implementations (pure-Python normal equations versus column-scaled
 # QR) must agree to this absolute bound in every point cell.
 CROSS_CHECK_TOLERANCE = 1e-7
@@ -350,6 +356,14 @@ def build_panel(design: Design, components: Sequence[Mapping[str, str]], bridges
     declared = {c for o in design.outcomes for c in design.components(o)}
     if {c for c in declared if c.startswith("f_")} != set(factor_columns) - {"f_rrp_others"}:
         raise ValueError("Config groups must map every signed factor except gross RRP others exactly once")
+    internal = {c for c in (INTERNAL_TRANSFERS, INTERNAL_CASH) if c in fields}
+    corrected = INTERNAL_TRANSFERS in receipt.get("column_clocks", {}).get("bridges", {})
+    if internal not in (set(), {INTERNAL_TRANSFERS, INTERNAL_CASH}):
+        raise ValueError("Bridges carry only one of i and bridge_internal_transfers")
+    if corrected != bool(internal):
+        raise ValueError("Ledger receipt and bridges file disagree on the internal-transfer bridge")
+    if any((INTERNAL_TRANSFERS in design.components(o)) != corrected for o in design.outcomes):
+        raise ValueError("Every outcome must carry the internal-transfer bridge exactly when the bridges declare it")
     for balance in design.balances:
         group = next(g for g in design.groups if g.id == balance["group"])
         if {factor_map.get(c[2:], {}).get("side") for c in group.components} != {balance["side"]}:
@@ -361,7 +375,8 @@ def build_panel(design: Design, components: Sequence[Mapping[str, str]], bridges
     primary_rows = by_variant_rows[design.primary_variant]
     common_names = ["y_h", "y_z", "c_m", "b", "c_h", "s_h", *factor_columns, "bridge_outcome",
                     "bridge_cash", "bridge_securities", "rho",
-                    *sorted(c for c in declared if c.startswith("bridge_outcome_"))]
+                    *sorted(c for c in declared if c.startswith("bridge_outcome_")),
+                    *((INTERNAL_TRANSFERS, INTERNAL_CASH) if corrected else ())]
     common = {name: array(primary_rows, name) for name in common_names}
     by_variant = {v: {name: array(rows, name) for name in VARIANT_COLUMNS} for v, rows in by_variant_rows.items()}
     checks: dict[str, Any] = {}
@@ -376,7 +391,7 @@ def build_panel(design: Design, components: Sequence[Mapping[str, str]], bridges
     comp_by_q = {r["quarter"]: r for r in components}
     comp = {name: np.asarray([_float(comp_by_q.get(q, {}).get(name), name) for q in shell])
             for name in ("trc_cash_leg", "trc_fed_bridge", "delta_rb_z1", *design.variants,
-                         *(s for s in design.variants.values() if s))}
+                         *(s for s in design.variants.values() if s), *((INTERNAL_CASH_SOURCE,) if corrected else ()))}
     ledger_by_q = {r["quarter"]: r for r in ledger}
     if not set(design.sample) <= set(ledger_by_q):
         raise ValueError("Ledger does not cover the declared sample")
@@ -394,7 +409,13 @@ def build_panel(design: Design, components: Sequence[Mapping[str, str]], bridges
     _assert_close("rho_equals_ledger_rho", common["rho"][s], led["rho"][s], checks)
     for name in factor_columns:
         _assert_close("factors_equal_ledger", common[name][s], led[name][s], checks)
-    _assert_close("bridge_cash_is_c_h_minus_c_m", common["bridge_cash"][s], (common["c_h"] - common["c_m"])[s], checks)
+    if corrected:
+        _assert_close("internal_cash_equals_trc_internal_cash", common[INTERNAL_CASH][s], comp[INTERNAL_CASH_SOURCE][s], checks)
+        _assert_close("internal_transfers_is_minus_i", common[INTERNAL_TRANSFERS][s], -common[INTERNAL_CASH][s], checks)
+        _assert_close("bridge_cash_plus_internal_transfers_is_c_h_minus_c_m",
+                      (common["bridge_cash"] + common[INTERNAL_TRANSFERS])[s], (common["c_h"] - common["c_m"])[s], checks)
+    else:
+        _assert_close("bridge_cash_is_c_h_minus_c_m", common["bridge_cash"][s], (common["c_h"] - common["c_m"])[s], checks)
     _assert_close("bridge_securities_is_s_h_minus_b", common["bridge_securities"][s], (common["s_h"] - common["b"])[s], checks)
     _assert_close("bridge_outcome_is_y_z_minus_y_h", common["bridge_outcome"][s], (common["y_z"] - common["y_h"])[s], checks)
     parts = [c for c in common if c.startswith("bridge_outcome_")]

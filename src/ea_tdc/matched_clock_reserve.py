@@ -129,6 +129,10 @@ def build_panel(config: dict, admitted: rp.Panel, quarterly: list[dict], weekly:
             components["all_securities_premium_discount"] = sum(admitted.common[k][positions] for k in premiums)
             others = [k for k in admitted.common if k.startswith("f_") and k != "f_rrp_others" and k not in premiums]
             components["non_treasury_signed_factors"] = sum(admitted.common[k][positions] for k in others)
+            if rp.INTERNAL_TRANSFERS in admitted.common:
+                # A corrected cash leg nets out the Treasury-Fed transfers the weekly core
+                # carries as internal postings; their bridge is that same component.
+                components["internal_postings"] = admitted.common[rp.INTERNAL_TRANSFERS][positions]
         else:
             x = np.array([selected[q][spec["column"]] for q in expected])
             components = {c: np.array([selected[q]["components"][c] for q in expected]) for c in components}
@@ -151,6 +155,8 @@ def build_panel(config: dict, admitted: rp.Panel, quarterly: list[dict], weekly:
     close(sum(differences.values()), total, "Named exposure differences sum")
     close([number(selected[q]["source"], "admitted_quarterly_core") for q in expected], variants["admitted_core"]["x"], "Admitted core reference")
     close(differences["difference_treasury_deposit_clock"], admitted.common["bridge_cash"][positions], "Deposit clock difference")
+    internal = {v: variants[v]["components"]["internal_postings"] for v in ("admitted_core", "matched_core")}
+    close(differences["difference_internal_postings"], internal["admitted_core"] - internal["matched_core"], "Internal postings difference")
     return {"quarters": expected, "y": y, "variants": variants, "differences": differences,
             "difference_total": total, "excluded": excluded, "outside_sample": outside, "weekly_sums": sums}
 

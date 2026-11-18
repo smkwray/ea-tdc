@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import importlib.util
 import json
 import math
@@ -96,6 +97,51 @@ def fixture():
 
 def build(fixture):
     return mc.build_panel(*fixture)
+
+
+TRANSFERS = [0.0, 0.0, -1200.0, 0.0, 800.0, 0.0, 350.0, 0.0]
+
+
+def corrected(fixture, transfers):
+    """The admitted panel after TDCest nets Treasury-Fed transfers i out of the TRC cash leg.
+
+    x gains i, the remainder gains bridge_internal_transfers = -i, and TDCest's weekly
+    reconciliation moves its admitted core and internal-postings difference by the same i.
+    """
+    config, panel, quarterly, weekly, identity = copy.deepcopy(fixture)
+    t = np.asarray(transfers, dtype=float)
+    common = {**panel.common, rp.INTERNAL_TRANSFERS: -t, rp.INTERNAL_CASH: t}
+    by_variant = {v: {**cols, "x": cols["x"] + t} for v, cols in panel.by_variant.items()}
+    for row, value in zip(quarterly, t):
+        row["admitted_quarterly_core"] += value
+        row["difference_core"] -= value
+        row["difference_internal_postings"] -= value
+    return config, dataclasses.replace(panel, common=common, by_variant=by_variant), quarterly, weekly, identity
+
+
+def test_corrected_cash_leg_reconciles_its_bridge_as_internal_postings(fixture):
+    # The weekly core already nets these transfers out as internal postings. Once the
+    # quarterly cash leg does too, its bridge is that same component on both clocks.
+    before = build(fixture)["variants"]
+    after = build(corrected(fixture, TRANSFERS))
+    admitted, matched = after["variants"]["admitted_core"], after["variants"]["matched_core"]
+    np.testing.assert_array_equal(admitted["components"]["internal_postings"], -np.asarray(TRANSFERS))
+    np.testing.assert_array_equal(admitted["x"], before["admitted_core"]["x"] + TRANSFERS)
+    np.testing.assert_array_equal(admitted["components"]["treasury_deposit_clock"],
+                                  before["admitted_core"]["components"]["treasury_deposit_clock"])
+    for name, values in matched["components"].items():
+        np.testing.assert_array_equal(values, before["matched_core"]["components"][name])
+    for row in mc.produce(fixture[0], after)["projections"]:
+        assert row["contribution_sum"] == pytest.approx(row["beta"] - 1, abs=1e-12)
+
+
+def test_internal_transfer_bridge_must_reconcile_as_internal_postings(fixture):
+    config, panel, quarterly, weekly, identity = corrected(fixture, TRANSFERS)
+    for row, value in zip(quarterly, TRANSFERS):
+        row["difference_internal_postings"] += value  # the reconciliation books the transfers elsewhere
+        row["difference_primary_cash_price"] -= value
+    with pytest.raises(ValueError, match="Internal postings difference"):
+        mc.build_panel(config, panel, quarterly, weekly, identity)
 
 
 def test_all_variant_contributions_close_and_clock_zero(fixture):
