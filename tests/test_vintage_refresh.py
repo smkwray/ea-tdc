@@ -5,7 +5,9 @@ sample, change the 16 controls, reselect the factor features, or loosen gates.
 """
 from __future__ import annotations
 
+import contextlib
 import csv
+import hashlib
 import importlib.util
 import io
 import json
@@ -302,3 +304,268 @@ def test_retired_upstream_series_are_carried_without_overwriting_refreshed_value
     assert values[("tdcpass_strict_loan_core_min_qoq", "2025-12-31")] == "106.051"
     assert values[("tdcpass_domestic_nonbank_deposits_qoq", "2025-12-31")] == "12.0"
     assert ("tdcpass_domestic_nonbank_deposits_qoq", "2026-06-30") not in values
+
+
+# ------------------------------------------------- acquisition reuse and TDCest receipt addendum
+
+COMMIT = "c" * 40
+FRED_ROWS = [{"date": "2026-03-01", "value": "1.0"}, {"date": "2026-06-01", "value": "2.0"},
+             {"date": "2026-09-01", "value": "3.0"}]
+PROCESSED = {
+    "data/processed/tdc_estimates.csv": "date,tdc_base_bank_only_ru_flow\n2026-03-31,1.5\n2026-06-30,-2.25\n",
+    "data/processed/tdc_components.csv": "date,bank_depository_tsy_tx\n2026-03-31,10.0\n2026-06-30,-4.0\n",
+    "data/processed/tdc_corrections.csv": "date,c\n2026-03-31,0.0\n2026-06-30,0.0\n",
+    "data/processed/quarterly_inputs.csv": "date,gdp_deflator,nominal_gdp_saar_bil\n2026-06-30,131.5,31500.0\n",
+}
+# The correction changes the Treasury cash term, so estimates and components change; the rest do not.
+CORRECTED = {
+    "data/processed/tdc_estimates.csv": "date,tdc_base_bank_only_ru_flow\n2026-03-31,1.25\n2026-06-30,-2.5\n",
+    "data/processed/tdc_components.csv": "date,bank_depository_tsy_tx\n2026-03-31,9.75\n2026-06-30,-4.25\n",
+}
+ADDENDUM = "RECEIPT_ADDENDUM_correction.json"
+
+
+def _put(base: Path, locator: str, data: str | bytes) -> str:
+    path = base / locator
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data.encode() if isinstance(data, str) else data)
+    return sha256_file(path)
+
+
+def _z1_archive() -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as handle:
+        handle.writestr("data_dictionary/S122_1_t_tu.txt", "\n".join(
+            f"{s.board_series_id}\t{s.official_title}\tLine 1\tS\tunits" for s in OPEN02_CONTRACT.series))
+    return buffer.getvalue()
+
+
+class _AcquireTree:
+    """An EA-TDC root whose earlier acquisition ran on pre-correction TDCest objects.
+
+    TDCest then corrected two outputs in place, kept its original receipt and
+    listed the regenerated outputs in an addendum, as the 2026q2 correction did.
+    """
+
+    def __init__(self, base: Path, refresh, monkeypatch):
+        self.root, self.tdcest, self.refresh, self.monkeypatch = base / "ea", base / "tdcest", refresh, monkeypatch
+        root = self.root
+        self.payload = json.loads((ROOT / CONFIG).read_text())
+        seeds = {"FRED_DGS5_DGS5.csv": "date,value\n2026-03-01,4.0\n", "local_carried.csv": "date,value\n2025-12-01,7.0\n"}
+        raw = {name: _put(root, f"data/seed/interpol/raw/{name}", text) for name, text in seeds.items()}
+        pins = {"ordered_top100": ("pins/top100.json", json.dumps(["d__dgs5_dgs5__lag001"])),
+                "universe_columns": ("pins/universe.csv", "feature_id,source_file\nd__dgs5_dgs5__lag001,FRED_DGS5_DGS5.csv\n"),
+                "raw_inventory": ("pins/inventory.json", json.dumps({"raw_inventory_provenance_only_not_consumed": [
+                    {"path": f"data/seed/interpol/raw/{name}", "sha256": digest} for name, digest in raw.items()]}))}
+        audit = {"strict_source_channels": [{"channel": channel, "series_id": series_id, "end_quarter": "2026Q2"}
+                 for channel, series_id in self.payload["tdcpass"]["strict_loan_series"].items()]}
+        self.archive = _z1_archive()
+        self.payload.update({
+            "fred": {**self.payload["fred"], "series_manifest": {
+                "path": "config/fred_manifest.csv", "sha256": _put(root, "config/fred_manifest.csv", "series_id\nAAA\nGDP\n")}},
+            "factor_features": {**{k: {"path": p, "sha256": _put(root, p, text)} for k, (p, text) in pins.items()},
+                                "raw_seed_dir": "data/seed/interpol/raw"},
+            "carried_bundles": {"data/bundles/qrawatch/standardized_series.csv":
+                                _put(root, "data/bundles/qrawatch/standardized_series.csv", "series_id,period_end,value\n")},
+            "tdcpass": {**self.payload["tdcpass"], "root": "../tdcpass", "files": {
+                "output/models/proxy_unit_audit.json": _put(base / "tdcpass", "output/models/proxy_unit_audit.json", json.dumps(audit))},
+                "admitted_bundle": {"path": "data/bundles/tdcpass/standardized_series.csv",
+                                    "sha256": _put(root, "data/bundles/tdcpass/standardized_series.csv", "series_id\n")}},
+            "z1_release": {**self.payload["z1_release"], "archive_sha256": hashlib.sha256(self.archive).hexdigest()},
+            "open02": {"admitted_source_bundle": {"path": "data/bundles/open02/admitted.json",
+                                                  "sha256": _put(root, "data/bundles/open02/admitted.json", json.dumps({"series": []}))}},
+        })
+        self.original = {loc: _put(self.tdcest, loc, text) for loc, text in PROCESSED.items()}
+        listed = ("data/processed/tdc_estimates.csv", "data/processed/tdc_components.csv", "data/processed/quarterly_inputs.csv")
+        receipt = {"schema_version": "tdcest_refresh_receipt_v1", "vintage": "2026q2",
+                   "producers": {"tdcest_exports_and_acquisition": "a" * 40 + " (main)"},
+                   "outputs": {loc: {"sha256": self.original[loc], "bytes": len(PROCESSED[loc])} for loc in listed}}
+        self.receipt_sha256 = _put(self.tdcest, "RECEIPT.json", json.dumps(receipt))
+        monkeypatch.setattr(refresh, "ROOT", root)
+        monkeypatch.setattr(refresh, "_verify_clean_commit", lambda root, commit: commit)
+        monkeypatch.setenv(VINTAGE_ENV, CONFIG)
+
+        # The earlier acquisition: live lane on the pre-correction objects, with a recorded fake network.
+        self.network: list[str] = []
+        monkeypatch.setattr(refresh, "_fred_series", self._fake_series)
+        monkeypatch.setattr(refresh.urllib.request, "urlopen", self._fake_urlopen)
+        monkeypatch.setenv("FRED_API_KEY", "test-key")
+        self.main("config/vintage_old.json", "output/refresh_old", self.tdcest_pins(self.original))
+        self.old = root / "output/refresh_old"
+
+        # The correction: outputs regenerated in place, original receipt untouched, addendum alongside.
+        self.corrected = {**self.original, **{loc: _put(self.tdcest, loc, text) for loc, text in CORRECTED.items()}}
+        self.addendum_sha256 = self.write_addendum()
+
+    def _fake_series(self, series_id, key, start):
+        self.network.append(series_id)
+        return [dict(row) for row in FRED_ROWS], {"series_id": series_id, "last_updated": "2026-10-01 10:00:00-05",
+                                                  "realtime_start": "2026-10-14", "observation_end": "2026-09-01"}
+
+    def _fake_urlopen(self, request, timeout=None):
+        self.network.append(request.full_url)
+        return contextlib.nullcontext(io.BytesIO(self.archive))
+
+    def forbid_network(self) -> list[str]:
+        calls: list[str] = []
+
+        def forbidden(*args, **kwargs):
+            calls.append(repr(args[:1]))
+            raise AssertionError("network call during a reused acquisition")
+
+        for owner, name in ((self.refresh, "_fred_json"), (self.refresh, "_fred_series"),
+                            (self.refresh.urllib.request, "urlopen")):
+            self.monkeypatch.setattr(owner, name, forbidden)
+        self.monkeypatch.delenv("FRED_API_KEY", raising=False)
+        return calls
+
+    def write_addendum(self, **changes) -> str:
+        addendum = {"schema_version": "tdcest_refresh_receipt_addendum_v1", "vintage": "2026q2",
+                    "correction": "Treasury-Fed internal transfers removed from the Treasury cash term",
+                    "producers": {"step_commits": {"t03_estimate": "e" * 40}},
+                    "outputs": {loc: {"sha256": self.corrected[loc], "bytes": len(text), "status": "regenerated",
+                                      "superseded_sha256": self.original[loc]} for loc, text in CORRECTED.items()},
+                    **changes}
+        return _put(self.tdcest, ADDENDUM, json.dumps(addendum))
+
+    def tdcest_pins(self, files: dict[str, str], addendum: dict | None = None) -> dict:
+        tdcest = {**self.payload["tdcest"], "root": "../tdcest", "receipt_sha256": self.receipt_sha256, "files": dict(files)}
+        if addendum is not None:
+            tdcest["receipt_addendum"] = addendum
+        return tdcest
+
+    def corrected_pins(self, **addendum) -> dict:
+        return self.tdcest_pins(self.corrected, {"path": ADDENDUM, "sha256": self.addendum_sha256, **addendum})
+
+    def main(self, locator: str, output_root: str, tdcest: dict, *extra: str) -> Path:
+        payload = {**self.payload, "output_root": output_root, "tdcest": tdcest}
+        _put(self.root, locator, json.dumps(payload))
+        _put(self.root, f"{output_root}/protected_baseline.json", "{}")
+        self.monkeypatch.setenv(VINTAGE_ENV, locator)
+        self.refresh.main(["acquire", "--vintage", locator, "--producer-commit", COMMIT, *extra])
+        return self.root / output_root / "inputs/acquisition_receipt.json"
+
+    def reuse(self, tdcest: dict | None = None, output_root: str = "output/refresh_new") -> Path:
+        return self.main("config/vintage_new.json", output_root, tdcest or self.corrected_pins(),
+                         "--reuse-acquisition", "output/refresh_old")
+
+
+@pytest.fixture
+def tree(refresh, tmp_path, monkeypatch):
+    return _AcquireTree(tmp_path, refresh, monkeypatch)
+
+
+def _reused_files(receipt: dict) -> list[str]:
+    return [*(r["path"] for r in receipt["fred_raw"].values()), *(r["path"] for r in receipt["factor_seed"]["files"].values()),
+            receipt["open02_source_availability"]["path"]]
+
+
+def test_reused_acquisition_copies_every_input_byte_for_byte_with_its_records(tree):
+    old = json.loads((tree.old / "inputs/acquisition_receipt.json").read_text())
+    assert old["vintage"]["locator"] == "config/vintage_old.json"  # another config, same sample and tiers
+    receipt_path = tree.reuse()
+    new = json.loads(receipt_path.read_text())
+    output = receipt_path.parents[1]
+    assert new["vintage"]["locator"] == "config/vintage_new.json"
+    for key in ("fred_raw", "factor_seed", "open02_source_availability"):
+        assert new[key] == old[key], key
+    for locator in _reused_files(new):
+        assert (output / locator).read_bytes() == (tree.old / locator).read_bytes(), locator
+    assert new["reused_acquisition"] == {"root": "output/refresh_old",
+                                         "receipt_sha256": sha256_file(tree.old / "inputs/acquisition_receipt.json")}
+    # Only TDCest objects differ from the earlier acquisition.
+    assert new["tdcest"]["files"] != old["tdcest"]["files"] and new["carried_bundles"] == old["carried_bundles"]
+    vintage = load_vintage(tree.root, "config/vintage_new.json")
+    assert tree.refresh._verify_acquisition(vintage)["reused_acquisition"] == new["reused_acquisition"]
+
+
+def test_reused_acquisition_makes_no_network_call_and_needs_no_fred_key(tree):
+    calls = tree.forbid_network()
+    tree.monkeypatch.setenv("FRED_API_KEY", "test-key")
+    with pytest.raises(AssertionError, match="network call"):
+        # The live lane on the same configuration would fetch; the guard sees it.
+        tree.main("config/vintage_new.json", "output/refresh_new", tree.corrected_pins())
+    assert calls and not (tree.root / "output/refresh_new/inputs").exists()
+    calls.clear()
+    tree.monkeypatch.delenv("FRED_API_KEY")
+    assert tree.reuse().is_file()
+    assert calls == []
+
+
+@pytest.mark.parametrize("target", ["fred", "seed", "open02", "missing"])
+def test_tampered_or_missing_reused_input_raises_and_installs_nothing(tree, target):
+    tree.forbid_network()
+    locator = {"fred": "inputs/fred/AAA.csv", "seed": "inputs/interpol_raw/FRED_DGS5_DGS5.csv",
+               "open02": "inputs/open02_source_availability.json", "missing": "inputs/interpol_raw/local_carried.csv"}[target]
+    path = tree.old / locator
+    if target == "missing":
+        path.unlink()
+    else:
+        data = bytearray(path.read_bytes())
+        data[-2] = ord("9") if data[-2] != ord("9") else ord("8")  # same size, different bytes
+        path.write_bytes(bytes(data))
+    with pytest.raises((ValueError, FileNotFoundError), match="Pinned input changed|missing"):
+        tree.reuse()
+    assert not any((tree.root / "output/refresh_new" / name).exists() for name in ("inputs", "tdcest", "tdcpass"))
+
+
+@pytest.mark.parametrize("field, value", [
+    ("sample", {"start": "2002Q1", "end": "2026Q1", "n": 97}),
+    ("observation_cutoff", "2026-03-31"),
+    ("quarter_hash", "0" * 64),
+    ("method_tier_counts", {"pre_component_h15_scaled_backcast": 33, "component_pool_wamest_bucket_backcast": 46,
+                            "constrained_component": 19}),
+])
+def test_reuse_refuses_an_acquisition_for_another_sample_or_tier_split(tree, field, value):
+    tree.forbid_network()
+    path = tree.old / "inputs/acquisition_receipt.json"
+    receipt = json.loads(path.read_text())
+    receipt["vintage"][field] = value
+    path.write_text(json.dumps(receipt))
+    with pytest.raises(ValueError, match=rf"another sample or tier split: \['{field}'\]"):
+        tree.reuse()
+
+
+def test_addendum_binds_the_corrected_tdcest_objects(tree):
+    tree.forbid_network()
+    receipt = json.loads(tree.reuse().read_text())
+    bound = {loc: record["bound_by"] for loc, record in receipt["tdcest"]["files"].items()}
+    assert bound == {"data/processed/tdc_estimates.csv": "tdcest_receipt_addendum",
+                     "data/processed/tdc_components.csv": "tdcest_receipt_addendum",
+                     "data/processed/quarterly_inputs.csv": "tdcest_receipt",
+                     "data/processed/tdc_corrections.csv": "vintage_pin"}
+    assert receipt["tdcest"]["receipt_addendum"]["sha256"] == tree.addendum_sha256
+    copied = tree.root / "output/refresh_new/tdcest" / ADDENDUM
+    assert sha256_file(copied) == tree.addendum_sha256
+    # The reconstructed site bundle carries the corrected values, not the superseded ones.
+    bundle = json.loads((tree.root / "output/refresh_new/tdcest/site/data/bundle.json").read_text())
+    assert bundle["estimates"]["tdc_base_bank_only_ru_flow"] == [1.25, -2.5]
+
+
+def test_corrected_objects_need_the_addendum_because_the_original_receipt_binds_superseded_bytes(tree):
+    tree.forbid_network()
+    with pytest.raises(ValueError, match="receipt and vintage pin disagree: data/processed/tdc_estimates.csv"):
+        tree.reuse(tree.tdcest_pins(tree.corrected))
+
+
+@pytest.mark.parametrize("case", ["vintage", "schema", "addendum_hash", "stale_pin", "outside_root"])
+def test_addendum_fails_closed(tree, case):
+    tree.forbid_network()
+    tdcest = tree.corrected_pins()
+    message = "schema, vintage or outputs differ"
+    if case == "vintage":
+        tdcest["receipt_addendum"]["sha256"] = tree.write_addendum(vintage="2026q3")
+    elif case == "schema":
+        tdcest["receipt_addendum"]["sha256"] = tree.write_addendum(schema_version="tdcest_refresh_receipt_addendum_v2")
+    elif case == "addendum_hash":
+        tree.write_addendum(correction="edited after pinning")
+        message = "Pinned input changed"
+    elif case == "stale_pin":
+        tdcest["files"]["data/processed/tdc_components.csv"] = tree.original["data/processed/tdc_components.csv"]
+        message = "receipt and vintage pin disagree: data/processed/tdc_components.csv"
+    else:
+        tdcest["receipt_addendum"]["path"] = f"../tdcest/{ADDENDUM}"
+        message = "inside the TDCest refresh root"
+    with pytest.raises(ValueError, match=message):
+        tree.reuse(tdcest)
+    assert not (tree.root / "output/refresh_new/inputs").exists()

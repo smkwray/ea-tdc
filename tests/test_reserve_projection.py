@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import csv
 import dataclasses
 import hashlib
 import importlib.util
@@ -861,6 +862,112 @@ def test_refresh_receipt_binds_every_consumed_input(tmp_path):
     del records["refresh_receipt"]
     with pytest.raises(ValueError, match="requires a pinned"):
         rp.verify_refresh_receipt(tmp_path, records, commit, "2026q2")
+
+
+def _write_json_record(root: Path, locator: str, payload: dict, upstream_path: str) -> dict:
+    data = json.dumps(payload).encode()
+    (root / locator).parent.mkdir(parents=True, exist_ok=True)
+    (root / locator).write_bytes(data)
+    return {"path": locator, "upstream_path": upstream_path, "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}
+
+
+def _addendum(outputs: dict, *, vintage: str = "2026q2", step_commit: str = "8" * 40) -> dict:
+    return {"schema_version": rp.REFRESH_ADDENDUM_SCHEMA, "vintage": vintage,
+            "producers": {"step_commits": {"t07_trc": step_commit, "t08_ledger": step_commit}}, "outputs": outputs}
+
+
+def test_refresh_receipt_addendum_supersedes_the_outputs_it_lists(tmp_path):
+    # TDCest corrected "a" in place and added "n"; "b" is unchanged. The original receipt
+    # still lists the superseded bytes of "a" and cannot bind its corrected copy alone.
+    old_a, new_a, b, n = b"alpha-pre-correction", b"alpha-corrected", b"beta", b"new-output"
+    digest = {k: hashlib.sha256(v).hexdigest() for k, v in {"old_a": old_a, "a": new_a, "b": b, "n": n}.items()}
+    records = {}
+    for key, data in (("a", new_a), ("b", b), ("n", n)):
+        (tmp_path / key).write_bytes(data)
+        records[key] = {"path": key, "upstream_path": f"data/processed/{key}", "sha256": digest[key], "bytes": len(data)}
+    base_commit, fix_commit = "d" * 40, "8" * 40
+    base = {"vintage": "2026q2", "producers": {"tdcest_exports_and_acquisition": f"{base_commit} (main)"},
+            "outputs": {"data/processed/a": {"sha256": digest["old_a"], "bytes": len(old_a)},
+                        "data/processed/b": {"sha256": digest["b"], "bytes": len(b)}}}
+    amended = {"data/processed/a": {"sha256": digest["a"], "bytes": len(new_a), "status": "regenerated",
+                                    "superseded_sha256": digest["old_a"]},
+               "data/processed/n": {"sha256": digest["n"], "bytes": len(n), "status": "new"}}
+    records["refresh_receipt"] = _write_json_record(tmp_path, "RECEIPT.json", base, "RECEIPT.json")
+    without = dict(records)
+    with pytest.raises(ValueError, match="different object for a"):
+        rp.verify_refresh_receipt(tmp_path, without, base_commit, "2026q2")
+    records["refresh_receipt_addendum"] = _write_json_record(tmp_path, "ADDENDUM.json", _addendum(amended), "ADDENDUM.json")
+
+    bound = rp.verify_refresh_receipt(tmp_path, records, fix_commit, "2026q2")
+    assert bound["bindings"] == {"a": "refresh_receipt_addendum_output", "b": "refresh_receipt_output",
+                                 "n": "refresh_receipt_addendum_output"}
+    assert bound["addendum"]["sha256"] == records["refresh_receipt_addendum"]["sha256"]
+    assert bound["upstream_producer_commit"] == fix_commit
+    # The original exports producer still binds; any other commit does not.
+    assert rp.verify_refresh_receipt(tmp_path, records, base_commit, "2026q2")["bindings"]["n"] == "refresh_receipt_addendum_output"
+    with pytest.raises(ValueError, match="vintage or TDCest producer"):
+        rp.verify_refresh_receipt(tmp_path, records, "f" * 40, "2026q2")
+
+    # A stale copy of the superseded object fails, even though the original receipt lists it.
+    (tmp_path / "a_old").write_bytes(old_a)
+    stale = {**records, "a": {**records["a"], "path": "a_old", "sha256": digest["old_a"], "bytes": len(old_a)}}
+    with pytest.raises(ValueError, match="different object for a"):
+        rp.verify_refresh_receipt(tmp_path, stale, fix_commit, "2026q2")
+    # An input listed in neither receipt fails.
+    (tmp_path / "x").write_bytes(b"x")
+    unlisted = {**records, "x": {"path": "x", "upstream_path": "data/processed/x",
+                                 "sha256": hashlib.sha256(b"x").hexdigest(), "bytes": 1}}
+    with pytest.raises(ValueError, match="bound by neither"):
+        rp.verify_refresh_receipt(tmp_path, unlisted, fix_commit, "2026q2")
+    # The addendum must be the pinned bytes, of the declared vintage and schema.
+    for name, payload in (("vintage", _addendum(amended, vintage="2026q3")),
+                          ("schema", {**_addendum(amended), "schema_version": "tdcest_refresh_receipt_v1"}),
+                          ("commits", {**_addendum(amended), "producers": {}})):
+        other = {**records, "refresh_receipt_addendum": _write_json_record(tmp_path, f"{name}.json", payload, "A.json")}
+        with pytest.raises(ValueError, match="addendum schema, vintage, step commits or outputs differ"):
+            rp.verify_refresh_receipt(tmp_path, other, fix_commit, "2026q2")
+    (tmp_path / "ADDENDUM.json").write_bytes(json.dumps(_addendum(amended, step_commit="f" * 40)).encode())
+    with pytest.raises(ValueError, match="hash or size differs"):
+        rp.verify_refresh_receipt(tmp_path, records, fix_commit, "2026q2")
+
+
+def test_load_panel_reads_corrected_objects_bound_only_by_the_addendum(refresh, tmp_path):
+    fix_commit = "8" * 40
+    raw = copy.deepcopy(refresh.raw)
+    raw["upstream"]["producer_commit"] = fix_commit
+    design = dataclasses.replace(refresh, raw=raw)
+    components, bridges, ledger, ledger_receipt = synthetic(design)
+    inputs, base_outputs, amended = {}, {}, {}
+    for key, rows in (("trc_components", components), ("bridges", bridges), ("ledger", ledger)):
+        upstream = raw["inputs"][key]["upstream_path"]
+        path = tmp_path / "bundle" / Path(upstream).name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
+        inputs[key] = {"path": path.relative_to(tmp_path).as_posix(), "upstream_path": upstream,
+                       "sha256": rp._sha256(path), "bytes": path.stat().st_size}
+    ledger_receipt["outputs"]["quarterly"]["sha256"] = inputs["ledger"]["sha256"]
+    ledger_receipt["outputs"]["bridges"]["sha256"] = inputs["bridges"]["sha256"]
+    ledger_receipt["inputs"]["trc_quarterly_components_v1"]["sha256"] = inputs["trc_components"]["sha256"]
+    upstream = raw["inputs"]["ledger_receipt"]["upstream_path"]
+    inputs["ledger_receipt"] = _write_json_record(tmp_path, f"bundle/{Path(upstream).name}", ledger_receipt, upstream)
+    for key, record in inputs.items():
+        base_outputs[record["upstream_path"]] = {"sha256": "0" * 64, "bytes": record["bytes"]}  # superseded bytes
+        amended[record["upstream_path"]] = {"sha256": record["sha256"], "bytes": record["bytes"], "status": "regenerated"}
+    base = {"vintage": raw["vintage"], "producers": {"tdcest_exports_and_acquisition": "d" * 40}, "outputs": base_outputs}
+    inputs["refresh_receipt"] = _write_json_record(tmp_path, "bundle/RECEIPT.json", base, "RECEIPT.json")
+    raw["inputs"] = dict(inputs)
+    with pytest.raises(ValueError, match="vintage or TDCest producer"):
+        rp.load_panel(tmp_path, design)
+    raw["inputs"]["refresh_receipt_addendum"] = _write_json_record(
+        tmp_path, "bundle/ADDENDUM.json", _addendum(amended, step_commit=fix_commit), "ADDENDUM.json")
+    panel = rp.load_panel(tmp_path, design)
+    check = panel.checks["refresh_receipt"]
+    assert set(check["bindings"].values()) == {"refresh_receipt_addendum_output"}
+    assert set(check["bindings"]) == {"trc_components", "bridges", "ledger", "ledger_receipt"}
+    assert check["addendum"]["path"] == "bundle/ADDENDUM.json" and panel.quarters[-1] == refresh.sample[-1]
 
 
 def test_runner_writes_refresh_vintage_balance_tables_to_its_declared_directory(refresh_produced, tmp_path, monkeypatch):

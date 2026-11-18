@@ -7,7 +7,9 @@ root; admitted outputs are never written. Lanes:
   snapshot      hash the admitted output/data surface before any refresh work
   acquire       retrieve FRED observations with their vintages, copy the
                 hash-bound TDCest and TDCpass refresh objects, reconstruct the
-                TDCest site bundle, and record OPEN-02 source availability
+                TDCest site bundle, and record OPEN-02 source availability;
+                --reuse-acquisition ROOT copies the FRED, factor-seed and
+                OPEN-02 availability inputs of an earlier acquisition instead
   materialize   clone the producer commit and place the vintage inputs in it
   open01        run the unmodified OPEN-01 producer inside that clone and export
                 its 16-control projection panel
@@ -70,7 +72,12 @@ TDCEST_BUNDLE_SOURCES = {
     "corrections": "tdc_corrections.csv",
 }
 TDCEST_REFERENCE_COLUMNS = ("gdp_deflator", "nominal_gdp_saar_bil")
+TDCEST_ADDENDUM_SCHEMA = "tdcest_refresh_receipt_addendum_v1"
 ESTIMATE_TOLERANCE = 1e-7
+ACQUISITION_RECEIPT = "inputs/acquisition_receipt.json"
+OPEN02_AVAILABILITY = "inputs/open02_source_availability.json"
+# A reused acquisition must have been made for the same sample and construction tiers.
+REUSED_VINTAGE_FIELDS = ("sample", "observation_cutoff", "quarter_hash", "method_tier_counts")
 
 
 # --------------------------------------------------------------------------- utilities
@@ -424,7 +431,57 @@ def _overlap(admitted: Path, rows: Sequence[Mapping[str, str]]) -> dict[str, Any
             "identical_values": sum(gap == 0 for gap in gaps), "max_abs_revision": max(gaps, default=0.0)}
 
 
-def lane_acquire(vintage: Vintage, commit: str) -> Path:
+def load_reused_acquisition(root: Path, vintage: Vintage) -> tuple[dict[str, Any], str]:
+    """Read an earlier acquisition receipt; it must cover the same sample and construction tiers."""
+    path = root / ACQUISITION_RECEIPT
+    if not path.is_file():
+        raise FileNotFoundError(f"Reused acquisition receipt does not exist: {path}")
+    digest = sha256_file(path)
+    receipt = _read_json(path)
+    earlier, current = receipt.get("vintage") or {}, vintage.record()
+    differs = [name for name in REUSED_VINTAGE_FIELDS if earlier.get(name) != current[name]]
+    if receipt.get("lane") != "acquire" or differs:
+        raise ValueError(f"Reused acquisition was made for another sample or tier split: {differs}")
+    return receipt, digest
+
+
+def _reuse_file(root: Path, stage: Path, record: Mapping[str, Any], locator: str) -> dict[str, Any]:
+    """Copy one reused input byte for byte and carry its record forward unchanged."""
+    if record.get("path") != locator:
+        raise ValueError(f"Reused input record is not at {locator}: {record.get('path')}")
+    source = root / locator
+    if not source.is_file():
+        raise FileNotFoundError(f"Reused input is missing: {source}")
+    if source.stat().st_size != record.get("bytes"):
+        raise ValueError(f"Reused input size changed: {locator}")
+    _copy_verified(source, stage / locator, str(record.get("sha256")))
+    return dict(record)
+
+
+def reuse_fred(root: Path, stage: Path, receipt: Mapping[str, Any], series_ids: Sequence[str]) -> dict[str, Any]:
+    records = receipt.get("fred_raw") or {}
+    if set(records) != set(series_ids):
+        raise ValueError("Reused FRED series differ from the vintage series manifest")
+    return {series_id: _reuse_file(root, stage, records[series_id], f"inputs/fred/{series_id}.csv")
+            for series_id in series_ids}
+
+
+def reuse_factor_seed(root: Path, stage: Path, receipt: Mapping[str, Any], raw_inventory: Mapping[str, str],
+                      sources: Mapping[str, str]) -> dict[str, Any]:
+    seed = receipt.get("factor_seed") or {}
+    files = seed.get("files") or {}
+    if set(files) != set(raw_inventory) or seed.get("refreshed_files") != dict(sources):
+        raise ValueError("Reused factor seed differs from the pinned features or the admitted raw inventory")
+    for name, record in files.items():
+        status = "refreshed" if name in sources else "carried_admitted_bytes"
+        if record.get("status") != status or (status != "refreshed" and record.get("sha256") != raw_inventory[name]):
+            raise ValueError(f"Reused factor-seed record differs from the admitted raw inventory: {name}")
+    return {name: _reuse_file(root, stage, files[name], f"inputs/interpol_raw/{name}") for name in sorted(files)}
+
+
+def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) -> Path:
+    """Acquire every vintage input; with ``reuse_root``, FRED, factor-seed and OPEN-02
+    availability inputs are copied byte for byte from that earlier acquisition."""
     _verify_clean_commit(ROOT, commit)
     output = _output_root(vintage)
     if not (output / "protected_baseline.json").is_file():
@@ -432,12 +489,18 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
     for name in ("inputs", "tdcest", "tdcpass"):
         if (output / name).exists():
             raise ValueError(f"{name} already acquired; no overwrite")
-    key = os.environ.get(vintage.payload["fred"]["api_key_env"], "").strip()
-    if not key:
-        raise ValueError("FRED API key environment variable is not set")
+    reused = load_reused_acquisition(reuse_root, vintage) if reuse_root is not None else None
+    key = ""
+    if reused is None:
+        key = os.environ.get(vintage.payload["fred"]["api_key_env"], "").strip()
+        if not key:
+            raise ValueError("FRED API key environment variable is not set")
     stage = Path(tempfile.mkdtemp(prefix=".acquire-", dir=output))
     receipt: dict[str, Any] = {"lane": "acquire", "producer_commit": commit, "started_at_utc": _now(),
                                "vintage": vintage.record()}
+    if reused is not None:
+        receipt["reused_acquisition"] = {"root": Path(os.path.relpath(reuse_root.resolve(), ROOT.resolve())).as_posix(),
+                                         "receipt_sha256": reused[1]}
     try:
         inputs = stage / "inputs"
         # FRED raw series behind the design builder.
@@ -445,17 +508,20 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
         manifest_rows = _read_csv(ROOT / manifest["path"])
         if sha256_file(ROOT / manifest["path"]) != manifest["sha256"]:
             raise ValueError("FRED series manifest changed")
-        fred_records = {}
-        for row in manifest_rows:
-            series_id = row["series_id"]
-            admitted = ROOT / "data/raw/fred" / f"{series_id}.csv"
-            start = admitted_start(admitted, vintage.payload["fred"]["raw_observation_start"])
-            rows, record = _fred_series(series_id, key, start)
-            path = inputs / "fred" / f"{series_id}.csv"
-            _write_series_csv(path, rows, missing=".")
-            record["observation_start_requested"] = start
-            fred_records[series_id] = {**record, **_record(stage, path),
-                                       "admitted_overlap": _overlap(admitted, rows) if admitted.is_file() else None}
+        if reused is not None:
+            fred_records = reuse_fred(reuse_root, stage, reused[0], [row["series_id"] for row in manifest_rows])
+        else:
+            fred_records = {}
+            for row in manifest_rows:
+                series_id = row["series_id"]
+                admitted = ROOT / "data/raw/fred" / f"{series_id}.csv"
+                start = admitted_start(admitted, vintage.payload["fred"]["raw_observation_start"])
+                rows, record = _fred_series(series_id, key, start)
+                path = inputs / "fred" / f"{series_id}.csv"
+                _write_series_csv(path, rows, missing=".")
+                record["observation_start_requested"] = start
+                fred_records[series_id] = {**record, **_record(stage, path),
+                                           "admitted_overlap": _overlap(admitted, rows) if admitted.is_file() else None}
         receipt["fred_raw"] = fred_records
 
         # Raw seed series behind the pinned K=100 factor features.
@@ -468,21 +534,23 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
             Path(item["path"]).name: item["sha256"]
             for item in _read_json(ROOT / factor["raw_inventory"]["path"])["raw_inventory_provenance_only_not_consumed"]
         }
-        seed_dir = ROOT / factor["raw_seed_dir"]
-        seed_records = {}
-        for path in sorted(seed_dir.glob("*.csv")):
-            if path.name not in raw_inventory:
-                raise ValueError(f"Seed file is outside the admitted raw inventory: {path.name}")
-            target = inputs / "interpol_raw" / path.name
-            if path.name in sources:
-                rows, record = _fred_series(sources[path.name], key, None)
-                _write_series_csv(target, rows, missing="")
-                seed_records[path.name] = {"status": "refreshed", **record, **_record(stage, target),
-                                           "admitted_sha256": raw_inventory[path.name],
-                                           "admitted_overlap": _overlap(path, rows)}
-            else:
-                _copy_verified(path, target, raw_inventory[path.name])
-                seed_records[path.name] = {"status": "carried_admitted_bytes", **_record(stage, target)}
+        if reused is not None:
+            seed_records = reuse_factor_seed(reuse_root, stage, reused[0], raw_inventory, sources)
+        else:
+            seed_records = {}
+            for path in sorted((ROOT / factor["raw_seed_dir"]).glob("*.csv")):
+                if path.name not in raw_inventory:
+                    raise ValueError(f"Seed file is outside the admitted raw inventory: {path.name}")
+                target = inputs / "interpol_raw" / path.name
+                if path.name in sources:
+                    rows, record = _fred_series(sources[path.name], key, None)
+                    _write_series_csv(target, rows, missing="")
+                    seed_records[path.name] = {"status": "refreshed", **record, **_record(stage, target),
+                                               "admitted_sha256": raw_inventory[path.name],
+                                               "admitted_overlap": _overlap(path, rows)}
+                else:
+                    _copy_verified(path, target, raw_inventory[path.name])
+                    seed_records[path.name] = {"status": "carried_admitted_bytes", **_record(stage, target)}
         if set(seed_records) != set(raw_inventory) or not set(sources) <= set(seed_records):
             raise ValueError("Seed inventory differs from the admitted raw inventory")
         receipt["factor_seed"] = {"refreshed_files": sources, "files": seed_records,
@@ -502,12 +570,28 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
         tdcest_receipt = _read_json(tdcest_root / "RECEIPT.json")
         _copy_verified(tdcest_root / "RECEIPT.json", stage / "tdcest" / "RECEIPT.json", tdcest["receipt_sha256"])
         listed = tdcest_receipt.get("outputs", {})
+        amended: dict[str, Any] = {}
+        addendum_pin = tdcest.get("receipt_addendum")
+        if addendum_pin is not None:
+            # A correction regenerates outputs and lists them in an addendum; the original receipt stays unchanged.
+            addendum_path = Path(addendum_pin["path"])
+            if addendum_path.is_absolute() or ".." in addendum_path.parts:
+                raise ValueError("TDCest receipt addendum must lie inside the TDCest refresh root")
+            _copy_verified(tdcest_root / addendum_path, stage / "tdcest" / addendum_path, addendum_pin["sha256"])
+            addendum = _read_json(stage / "tdcest" / addendum_path)
+            amended = addendum.get("outputs")
+            if (addendum.get("schema_version") != TDCEST_ADDENDUM_SCHEMA or not isinstance(amended, dict) or not amended
+                    or addendum.get("vintage") != vintage.vintage_id):
+                raise ValueError("TDCest receipt addendum schema, vintage or outputs differ from the vintage")
+            listed = {**listed, **amended}
         tdcest_records = {}
         for locator, digest in tdcest["files"].items():
             if locator in listed and listed[locator]["sha256"] != digest:
                 raise ValueError(f"TDCest receipt and vintage pin disagree: {locator}")
             _copy_verified(tdcest_root / locator, stage / "tdcest" / locator, digest)
-            tdcest_records[locator] = {"sha256": digest, "bound_by": "tdcest_receipt" if locator in listed else "vintage_pin"}
+            bound_by = ("tdcest_receipt_addendum" if locator in amended else
+                        "tdcest_receipt" if locator in listed else "vintage_pin")
+            tdcest_records[locator] = {"sha256": digest, "bound_by": bound_by}
         processed = stage / "tdcest" / "data" / "processed"
         bundle = reconstruct_site_bundle(
             processed,
@@ -520,6 +604,9 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
         receipt["tdcest"] = {"receipt_sha256": tdcest["receipt_sha256"], "files": tdcest_records,
                              "z1_vintage": tdcest_receipt.get("z1_vintage"), "producers": tdcest_receipt.get("producers"),
                              "site_bundle": _record(stage, bundle_path), "dates": [bundle["dates"][0], bundle["dates"][-1]]}
+        if addendum_pin is not None:
+            receipt["tdcest"]["receipt_addendum"] = {"path": addendum_path.as_posix(), "sha256": addendum_pin["sha256"],
+                                                     "producers": addendum.get("producers")}
 
         # TDCpass refreshed strict-loan constructions.
         tdcpass = vintage.payload["tdcpass"]
@@ -538,28 +625,32 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
                               "strict_loan_series": {c: resolved[c] for c in tdcpass["strict_loan_series"]}}
 
         # OPEN-02 source availability in the pinned Financial Accounts release.
-        release = vintage.payload["z1_release"]
-        request = urllib.request.Request(release["archive_url"], headers={"User-Agent": "ea-tdc/0.1.0"})
-        with urllib.request.urlopen(request, timeout=180) as response:
-            archive = response.read()
-        if hashlib.sha256(archive).hexdigest() != release["archive_sha256"]:
-            raise ValueError("Financial Accounts archive differs from the pinned release")
-        admitted = vintage.payload["open02"]["admitted_source_bundle"]
-        if sha256_file(ROOT / admitted["path"]) != admitted["sha256"]:
-            raise ValueError("Admitted OPEN-02 source bundle changed")
-        availability = open02_availability(archive, _read_json(ROOT / admitted["path"]))
-        from ea_tdc.open_contract import OPEN02_CONTRACT as contract
+        if reused is not None:
+            receipt["open02_source_availability"] = _reuse_file(
+                reuse_root, stage, reused[0].get("open02_source_availability") or {}, OPEN02_AVAILABILITY)
+        else:
+            release = vintage.payload["z1_release"]
+            request = urllib.request.Request(release["archive_url"], headers={"User-Agent": "ea-tdc/0.1.0"})
+            with urllib.request.urlopen(request, timeout=180) as response:
+                archive = response.read()
+            if hashlib.sha256(archive).hexdigest() != release["archive_sha256"]:
+                raise ValueError("Financial Accounts archive differs from the pinned release")
+            admitted = vintage.payload["open02"]["admitted_source_bundle"]
+            if sha256_file(ROOT / admitted["path"]) != admitted["sha256"]:
+                raise ValueError("Admitted OPEN-02 source bundle changed")
+            availability = open02_availability(archive, _read_json(ROOT / admitted["path"]))
+            from ea_tdc.open_contract import OPEN02_CONTRACT as contract
 
-        fred_ids = {series.board_series_id: series.fred_id for series in contract.series}
-        availability["fred_status_for_absent"] = {
-            series_id: _fred_json("series", {"series_id": fred_ids[series_id]}, key)[0]["seriess"][0]
-            for series_id in availability["absent_series_ids"]
-        }
-        availability.update({"release": release, "archive_bytes": len(archive), "checked_at_utc": _now()})
-        _write_json(inputs / "open02_source_availability.json", availability)
-        receipt["open02_source_availability"] = {**_record(stage, inputs / "open02_source_availability.json"),
-                                                 "disposition": availability["disposition"],
-                                                 "absent_series_ids": availability["absent_series_ids"]}
+            fred_ids = {series.board_series_id: series.fred_id for series in contract.series}
+            availability["fred_status_for_absent"] = {
+                series_id: _fred_json("series", {"series_id": fred_ids[series_id]}, key)[0]["seriess"][0]
+                for series_id in availability["absent_series_ids"]
+            }
+            availability.update({"release": release, "archive_bytes": len(archive), "checked_at_utc": _now()})
+            _write_json(inputs / "open02_source_availability.json", availability)
+            receipt["open02_source_availability"] = {**_record(stage, inputs / "open02_source_availability.json"),
+                                                     "disposition": availability["disposition"],
+                                                     "absent_series_ids": availability["absent_series_ids"]}
 
         receipt["completed_at_utc"] = _now()
         _write_json(inputs / "acquisition_receipt.json", receipt)
@@ -595,6 +686,9 @@ def _verify_acquisition(vintage: Vintage) -> dict[str, Any]:
     bundle = receipt["tdcest"]["site_bundle"]
     if sha256_file(output / "tdcest" / "site/data/bundle.json") != bundle["sha256"]:
         raise ValueError("Reconstructed site bundle changed")
+    addendum = vintage.payload["tdcest"].get("receipt_addendum")
+    if addendum is not None and sha256_file(output / "tdcest" / addendum["path"]) != addendum["sha256"]:
+        raise ValueError("Acquired TDCest receipt addendum changed")
     return receipt
 
 
@@ -1041,6 +1135,7 @@ def lane_seal(vintage: Vintage, commit: str) -> Path:
         "authority": vintage.payload["authority"],
         "inputs": {
             "tdcest_receipt_sha256": vintage.payload["tdcest"]["receipt_sha256"],
+            "tdcest_receipt_addendum": acquisition["tdcest"].get("receipt_addendum"),
             "tdcest_files": vintage.payload["tdcest"]["files"],
             "tdcest_site_bundle": acquisition["tdcest"]["site_bundle"],
             "tdcpass": acquisition["tdcpass"],
@@ -1050,6 +1145,7 @@ def lane_seal(vintage: Vintage, commit: str) -> Path:
             "factor_seed_refreshed": {k: {f: v[f] for f in ("last_updated", "realtime_start", "sha256")}
                                       for k, v in acquisition["factor_seed"]["files"].items() if v["status"] == "refreshed"},
             "carried_bundles": acquisition["carried_bundles"],
+            "reused_acquisition": acquisition.get("reused_acquisition"),
             "tdcpass_retired_series_carried": materialized["tdcpass_retired_series_carried"],
             "observation_cutoff": materialized["observation_cutoff"],
         },
@@ -1092,7 +1188,12 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--factors", type=Path)
     parser.add_argument("--policy", type=Path)
     parser.add_argument("--destination", type=Path)
+    parser.add_argument("--reuse-acquisition", type=Path, metavar="ROOT",
+                        help="acquire lane: copy FRED, factor-seed and OPEN-02 availability inputs byte for byte "
+                             "from this earlier vintage output root instead of fetching them")
     args = parser.parse_args(argv)
+    if args.reuse_acquisition is not None and args.lane != "acquire":
+        parser.error("--reuse-acquisition applies only to the acquire lane")
     if args.lane == "export-panel":
         print(export_panel())
         return
@@ -1107,7 +1208,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     if args.lane == "snapshot":
         result = lane_snapshot(vintage, args.producer_commit)
     elif args.lane == "acquire":
-        result = lane_acquire(vintage, args.producer_commit)
+        reuse = args.reuse_acquisition
+        result = lane_acquire(vintage, args.producer_commit,
+                              None if reuse is None else (reuse if reuse.is_absolute() else ROOT / reuse))
     elif args.lane == "materialize":
         result = lane_materialize(vintage, args.producer_commit)
     elif args.lane == "open01":

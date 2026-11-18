@@ -33,6 +33,10 @@ RECONCILED_STATUS = "reconciled_mixed_clock"
 # so a balance's own change is this sign times the sum of its signed factors.
 SIDE_SIGN = {"supplying": 1.0, "absorbing": -1.0}
 REFRESH_RECEIPT = "refresh_receipt"
+# A TDCest correction regenerates refresh outputs without rewriting the original
+# receipt; its addendum lists the new outputs and the commits that produced them.
+REFRESH_RECEIPT_ADDENDUM = "refresh_receipt_addendum"
+REFRESH_ADDENDUM_SCHEMA = "tdcest_refresh_receipt_addendum_v1"
 # Independent implementations (pure-Python normal equations versus column-scaled
 # QR) must agree to this absolute bound in every point cell.
 CROSS_CHECK_TOLERANCE = 1e-7
@@ -73,32 +77,48 @@ def verify_refresh_receipt(root: Path, records: Mapping[str, Mapping[str, Any]],
     """A refresh vintage consumes only objects its TDCest run receipt binds.
 
     Each pinned copy must equal a receipt output (path, hash and size), or be a
-    tracked TDCest file declared at the same producer commit. Anything else raises.
+    tracked TDCest file declared at the same producer commit. An optional pinned
+    addendum of the same vintage supersedes the outputs it lists and admits the
+    commits of its steps as producers. Anything else raises.
     """
     if REFRESH_RECEIPT not in records:
         raise ValueError("Refresh vintage requires a pinned TDCest refresh receipt")
     record = records[REFRESH_RECEIPT]
     receipt = json.loads(_pinned(Path(root), record).read_text(encoding="utf-8"))
-    producer = str(receipt.get("producers", {}).get("tdcest_exports_and_acquisition", ""))
-    if receipt.get("vintage") != vintage or producer.split(" ")[0] != upstream_commit:
+    producers = {str(receipt.get("producers", {}).get("tdcest_exports_and_acquisition", "")).split(" ")[0]}
+    outputs = {path: (item, "refresh_receipt_output") for path, item in receipt.get("outputs", {}).items()}
+    addendum_record, addendum_binding = records.get(REFRESH_RECEIPT_ADDENDUM), None
+    if addendum_record is not None:
+        addendum = json.loads(_pinned(Path(root), addendum_record).read_text(encoding="utf-8"))
+        step_commits = addendum.get("producers", {}).get("step_commits")
+        amended = addendum.get("outputs")
+        if (addendum.get("schema_version") != REFRESH_ADDENDUM_SCHEMA or addendum.get("vintage") != vintage
+                or not isinstance(step_commits, dict) or not step_commits
+                or not isinstance(amended, dict) or not amended):
+            raise ValueError("Refresh receipt addendum schema, vintage, step commits or outputs differ from the declared design")
+        producers |= set(step_commits.values())
+        outputs |= {path: (item, "refresh_receipt_addendum_output") for path, item in amended.items()}
+        addendum_binding = {"path": addendum_record["path"], "sha256": addendum_record["sha256"],
+                            "step_commits": step_commits}
+    if receipt.get("vintage") != vintage or upstream_commit not in producers - {""}:
         raise ValueError("Refresh receipt vintage or TDCest producer differs from the declared design")
-    outputs = receipt.get("outputs", {})
     bindings = {}
     for key, item in records.items():
-        if key == REFRESH_RECEIPT:
+        if key in (REFRESH_RECEIPT, REFRESH_RECEIPT_ADDENDUM):
             continue
-        bound = outputs.get(item.get("upstream_path"))
+        bound, source = outputs.get(item.get("upstream_path"), (None, None))
         if bound is not None:
             if bound.get("sha256") != item["sha256"] or bound.get("bytes") != item["bytes"]:
                 raise ValueError(f"Refresh receipt binds a different object for {key}")
-            bindings[key] = "refresh_receipt_output"
+            bindings[key] = source
         elif item.get("upstream_commit") == upstream_commit:
             bindings[key] = "tracked_file_at_upstream_commit"
         else:
             raise ValueError(f"Refresh input {key} is bound by neither the refresh receipt nor the producer commit")
     return {"path": record["path"], "sha256": record["sha256"], "vintage": vintage,
             "upstream_producer_commit": upstream_commit, "endpoints": receipt.get("endpoints"),
-            "z1_vintage": receipt.get("z1_vintage", {}).get("release"), "bindings": bindings}
+            "z1_vintage": receipt.get("z1_vintage", {}).get("release"), "addendum": addendum_binding,
+            "bindings": bindings}
 
 
 def _float(value: Any, label: str) -> float:
@@ -237,7 +257,7 @@ def load_design(root: Path, locator: str = CONFIG_LOCATOR) -> Design:
             raise ValueError(f"Balance coefficient {balance.get('id')} must name a signed-factor group")
     if len({b["id"] for b in balances}) != len(balances):
         raise ValueError("Balance coefficient ids must be unique")
-    if REFRESH_RECEIPT in raw["inputs"] and not raw.get("vintage"):
+    if {REFRESH_RECEIPT, REFRESH_RECEIPT_ADDENDUM} & set(raw["inputs"]) and not raw.get("vintage"):
         raise ValueError("A refresh receipt input requires a declared vintage")
     return Design(raw=raw, sha256=_sha256(path), sample=sample, eras=eras, transitions=transitions,
                   outcomes=tuple(outcomes), variants={k: v["gamma_source"] for k, v in variants.items()},
