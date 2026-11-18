@@ -885,3 +885,188 @@ def test_source_manifest_commit_must_contain_the_producer(
     monkeypatch.setattr(runner, "_git_text", git_text)
     with pytest.raises(ValueError, match="required producer files"):
         runner._verify_committed_source_producer(tmp_path, commit)
+
+
+# ----------------------------------------------- corrected-input variant (v1 TDC correction)
+
+VARIANT_COMMIT = "c" * 40
+VARIANT_BUNDLE_HASH = "b" * 64
+VARIANT_GENERATED = "2026-11-18T02:21:54Z"
+VARIANT_CONFIG = "config/open02_variant.json"
+
+
+def _load_variant_runner():
+    path = Path(__file__).resolve().parents[1] / "scripts" / "run_open02_variant.py"
+    spec = importlib.util.spec_from_file_location("run_open02_variant", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _variant_tree(wrapper, root: Path, monkeypatch, *, receipt: dict | None = None, **changes) -> Path:
+    """An admitted source bundle, a corrected OPEN-01 run, and a variant config that pins them."""
+    producer = wrapper.producer
+    parsed = _parsed_archive(producer)
+    parsed["metadata"]["observation_vintage_cutoff"] = producer.OPEN02_CONTRACT.sample.observation_vintage_cutoff
+    admitted = root / producer.SOURCE_BUNDLE_LOCATOR
+    admitted.parent.mkdir(parents=True, exist_ok=True)
+    admitted.write_bytes(producer._json_bytes(producer._pipeline_source_bundle(parsed)))
+    receipt_path = _write_json(root, producer.OPEN01_RECEIPT_LOCATOR, receipt or {
+        "open_id": "OPEN-01", "status": "passed", "producer_commit": VARIANT_COMMIT, "run_id": "open01-corrected",
+        "tdcest": {"bundle_hash": VARIANT_BUNDLE_HASH},
+        "contract": {"treatment_id": producer.OPEN_CONTRACT.canonical_treatment_id}, "sample": {},
+        "acceptance": {"status": "passed", "scientific_status": "unstable",
+                       "sample": {"start": "2002Q1", "end": "2025Q4", "n": 96}}})
+    design = _write_csv(root, producer.ACCEPTED_DESIGN_LOCATOR, [{"quarter": "2002Q1", "fixture": "2"}])
+    standardized = _write_csv(root, producer.ACCEPTED_STANDARDIZED_LOCATOR,
+                              [{"series_id": "fixture", "period_end": "2002-03-31", "value": "2"}])
+    config = {
+        "schema_version": wrapper.SCHEMA,
+        "variant": "corrected_fixture",
+        "tdcest_bundle": {"sha256": VARIANT_BUNDLE_HASH, "generated_at": VARIANT_GENERATED},
+        "observation_vintage_cutoff": VARIANT_GENERATED,
+        "open01_producer_commit": VARIANT_COMMIT,
+        "accepted_inputs": {producer.OPEN01_RECEIPT_LOCATOR: _sha256(receipt_path),
+                            producer.ACCEPTED_DESIGN_LOCATOR: _sha256(design),
+                            producer.ACCEPTED_STANDARDIZED_LOCATOR: _sha256(standardized)},
+        "source": {"bundle": "data/bundles/open02/variant_source.json",
+                   "manifest": "output/manifests/open02_variant_source_manifest.json",
+                   "derived_from": {"bundle": {"path": producer.SOURCE_BUNDLE_LOCATOR, "sha256": _sha256(admitted),
+                                               "bytes": admitted.stat().st_size}}},
+        **changes,
+    }
+    _write_json(root, VARIANT_CONFIG, config)
+    monkeypatch.setattr(producer, "_verify_producer_commit", lambda root, producer_commit: "e" * 40)
+    monkeypatch.setattr(producer, "_git_text", lambda root, *args: "e" * 40)
+    monkeypatch.setattr(producer, "_verify_committed_source_producer", lambda root, producer_commit: producer_commit)
+
+    def no_fetch():
+        raise AssertionError("a corrected-input variant must not refetch the Board archive")
+
+    monkeypatch.setattr(producer, "fetch_open02_board_archive", no_fetch)
+    return admitted
+
+
+def _strip_stamps(wrapper, bundle: dict) -> dict:
+    bundle = json.loads(json.dumps(bundle))
+    for field in wrapper.STAMP_FIELDS:
+        bundle.pop(field)
+    bundle["official_release"].pop("observation_vintage_cutoff")
+    return bundle
+
+
+def test_variant_changes_only_the_tdcest_pairing(tmp_path: Path, monkeypatch) -> None:
+    wrapper = _load_variant_runner()
+    _variant_tree(wrapper, tmp_path, monkeypatch)
+    variant = wrapper.load_variant(tmp_path, VARIANT_CONFIG)
+    admitted = wrapper.producer.OPEN02_CONTRACT
+    assert (variant.contract.sample.accepted_tdcest_bundle_generated_at,
+            variant.contract.sample.observation_vintage_cutoff) == (VARIANT_GENERATED, VARIANT_GENERATED)
+    assert (admitted.sample.accepted_tdcest_bundle_generated_at,
+            admitted.sample.observation_vintage_cutoff) == ("2026-05-22T16:56:46Z", "2026-05-22T16:56:46Z")
+    # The series, sample, systems, covariance, Holm and influence terms are the admitted ones.
+    assert wrapper.replace(variant.contract, sample=admitted.sample) == admitted
+    # The frozen producer keeps its admitted pins.
+    assert wrapper.producer.EXPECTED_OPEN01_PRODUCER_COMMIT == "2e35658c055f7686f621618af14f9d5a9d8b35c3"
+    assert set(variant.accepted_input_sha256) == set(wrapper.producer.EXPECTED_ACCEPTED_INPUT_SHA256)
+    assert variant.config["sha256"] == _sha256(tmp_path / VARIANT_CONFIG)
+
+
+@pytest.mark.parametrize("change, message", [
+    ({"source": {"bundle": "data/bundles/open02/financial_accounts_2026-03-19.json", "manifest": "x.json",
+                 "derived_from": {"bundle": {"path": "data/bundles/open02/financial_accounts_2026-03-19.json",
+                                             "sha256": "a" * 64, "bytes": 1}}}}, "overwrite the admitted source"),
+    ({"observation_vintage_cutoff": "2026-05-22T16:56:46Z"}, "precedes its TDCest bundle"),
+    ({"accepted_inputs": {}}, "malformed"),
+    ({"open01_producer_commit": "2e35658"}, "full 40-character commit"),
+])
+def test_malformed_variant_fails_closed(tmp_path: Path, monkeypatch, change, message) -> None:
+    wrapper = _load_variant_runner()
+    _variant_tree(wrapper, tmp_path, monkeypatch, **change)
+    with pytest.raises(ValueError, match=message):
+        wrapper.load_variant(tmp_path, VARIANT_CONFIG)
+
+
+def test_variant_source_is_derived_from_the_admitted_bundle_without_refetching(tmp_path: Path, monkeypatch) -> None:
+    wrapper = _load_variant_runner()
+    admitted = _variant_tree(wrapper, tmp_path, monkeypatch)
+    variant = wrapper.load_variant(tmp_path, VARIANT_CONFIG)
+    manifest_path = wrapper.derive_source(producer_commit="e" * 40, run_id="derive-fixture", variant=variant,
+                                          root=tmp_path)
+    manifest = json.loads(manifest_path.read_text())
+    variant_path = tmp_path / variant.source_bundle_locator
+    assert _strip_stamps(wrapper, json.loads(admitted.read_text())) == _strip_stamps(wrapper, json.loads(variant_path.read_text()))
+    assert json.loads(variant_path.read_text())["accepted_tdcest_bundle_generated_at"] == VARIANT_GENERATED
+    assert manifest["derived_from"] == {"bundle": dict(variant.derived_from)}
+    assert manifest["source_bundle"]["sha256"] == _sha256(variant_path)
+    with pytest.raises(ValueError, match="no overwrite"):
+        wrapper.derive_source(producer_commit="e" * 40, run_id="again", variant=variant, root=tmp_path)
+    # The admitted pins refuse the variant pair: its stamps are not the admitted ones.
+    with pytest.raises(wrapper.producer.Open02ValidationError):
+        wrapper.producer._load_source_bundle(root=tmp_path, bundle_locator=variant.source_bundle_locator,
+                                             manifest_locator=variant.source_manifest_locator)
+
+
+def test_variant_run_rebinds_the_producer_once_and_restores_it(tmp_path: Path, monkeypatch) -> None:
+    wrapper = _load_variant_runner()
+    _variant_tree(wrapper, tmp_path, monkeypatch)
+    variant = wrapper.load_variant(tmp_path, VARIANT_CONFIG)
+    wrapper.derive_source(producer_commit="e" * 40, run_id="derive-fixture", variant=variant, root=tmp_path)
+    calls = []
+
+    def fake_pipeline(bundle, design, standardized, *, contract):
+        calls.append((bundle["accepted_tdcest_bundle_generated_at"], contract))
+        return _passing_result(wrapper.producer)
+
+    monkeypatch.setattr(wrapper.producer, "run_open02_pipeline", fake_pipeline)
+    receipt = json.loads(wrapper.run_variant(producer_commit="e" * 40, run_id="open02-variant", variant=variant,
+                                             root=tmp_path).read_text())
+    assert calls == [(VARIANT_GENERATED, variant.contract)]
+    assert wrapper.producer.OPEN02_CONTRACT is wrapper.OPEN02_CONTRACT
+    assert wrapper.producer.EXPECTED_OPEN01_PRODUCER_COMMIT == "2e35658c055f7686f621618af14f9d5a9d8b35c3"
+    producer_receipt = json.loads((tmp_path / wrapper.producer.RECEIPT_LOCATOR).read_text())
+    assert producer_receipt["status"] == "passed"
+    assert producer_receipt["source"]["bundle"]["path"] == variant.source_bundle_locator
+    assert receipt["producer_receipt"]["sha256"] == _sha256(tmp_path / wrapper.producer.RECEIPT_LOCATOR)
+    assert (receipt["variant"], receipt["open01_producer_commit"], receipt["tdcest_bundle_sha256"],
+            receipt["observation_vintage_cutoff"]) == ("corrected_fixture", VARIANT_COMMIT, VARIANT_BUNDLE_HASH,
+                                                       VARIANT_GENERATED)
+    assert not (tmp_path / wrapper.producer.SOURCE_MANIFEST_LOCATOR).exists()
+
+
+@pytest.mark.parametrize("case", ["financial_accounts_edited", "other_tdcest_bundle", "admitted_open01_run"])
+def test_variant_run_fails_closed(tmp_path: Path, monkeypatch, case) -> None:
+    wrapper = _load_variant_runner()
+    receipt = None
+    if case != "financial_accounts_edited":
+        receipt = {"open_id": "OPEN-01", "status": "passed", "producer_commit": VARIANT_COMMIT,
+                   "tdcest": {"bundle_hash": VARIANT_BUNDLE_HASH},
+                   "contract": {"treatment_id": wrapper.producer.OPEN_CONTRACT.canonical_treatment_id}, "sample": {},
+                   "acceptance": {"status": "passed", "sample": {"start": "2002Q1", "end": "2025Q4", "n": 96}}}
+        if case == "other_tdcest_bundle":
+            receipt["tdcest"] = {"bundle_hash": "a" * 64}
+        else:
+            receipt["producer_commit"] = "2e35658c055f7686f621618af14f9d5a9d8b35c3"
+    _variant_tree(wrapper, tmp_path, monkeypatch, receipt=receipt)
+    variant = wrapper.load_variant(tmp_path, VARIANT_CONFIG)
+    manifest_path = wrapper.derive_source(producer_commit="e" * 40, run_id="derive-fixture", variant=variant,
+                                          root=tmp_path)
+    monkeypatch.setattr(wrapper.producer, "run_open02_pipeline",
+                        lambda *a, **k: _passing_result(wrapper.producer))
+    if case == "financial_accounts_edited":
+        path = tmp_path / variant.source_bundle_locator
+        bundle = json.loads(path.read_text())
+        bundle["series"][0]["observations"][40]["value"] += 1.0
+        path.write_bytes(wrapper.producer._json_bytes(bundle))
+        manifest = json.loads(manifest_path.read_text())
+        manifest["source_bundle"].update(sha256=_sha256(path), bytes=path.stat().st_size)
+        manifest_path.write_text(json.dumps(manifest))
+        error, message = ValueError, "admitted Financial Accounts content"
+    elif case == "other_tdcest_bundle":
+        error, message = ValueError, "consumed another TDCest bundle"
+    else:
+        error, message = wrapper.producer.Open02ValidationError, "accepted_open01_input_validation failed"
+    with pytest.raises(error, match=message):
+        wrapper.run_variant(producer_commit="e" * 40, run_id="open02-variant", variant=variant, root=tmp_path)
+    assert not (tmp_path / wrapper.RECEIPT_LOCATOR).exists()
+    assert wrapper.producer.OPEN02_CONTRACT is wrapper.OPEN02_CONTRACT
