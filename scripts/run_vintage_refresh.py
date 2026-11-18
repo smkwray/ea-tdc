@@ -8,8 +8,9 @@ root; admitted outputs are never written. Lanes:
   acquire       retrieve FRED observations with their vintages, copy the
                 hash-bound TDCest and TDCpass refresh objects, reconstruct the
                 TDCest site bundle, and record OPEN-02 source availability;
-                --reuse-acquisition ROOT copies the FRED, factor-seed and
-                OPEN-02 availability inputs of an earlier acquisition instead
+                a vintage that declares reuse_acquisition copies the FRED,
+                factor-seed and OPEN-02 availability inputs of that pinned
+                earlier acquisition instead
   materialize   clone the producer commit and place the vintage inputs in it
   open01        run the unmodified OPEN-01 producer inside that clone and export
                 its 16-control projection panel
@@ -76,8 +77,10 @@ TDCEST_REFERENCE_COLUMNS = ("gdp_deflator", "nominal_gdp_saar_bil")
 ESTIMATE_TOLERANCE = 1e-7
 ACQUISITION_RECEIPT = "inputs/acquisition_receipt.json"
 OPEN02_AVAILABILITY = "inputs/open02_source_availability.json"
-# A reused acquisition must have been made for the same sample and construction tiers.
-REUSED_VINTAGE_FIELDS = ("sample", "observation_cutoff", "quarter_hash", "method_tier_counts")
+# A reused acquisition stands in for a live one only under the configuration that made it;
+# a correction may differ from that configuration in these fields alone.
+REUSE_ALLOWED_DIFFERENCES = ("output_root", "authority", "tdcest", "reuse_acquisition")
+REUSE_ALLOWED_TDCEST_DIFFERENCES = ("files", "receipt_addendum", "generated_at")
 # Locators inside a producer root: relative POSIX segments only, no drive, no parent step.
 PLAIN_LOCATOR = re.compile(r"[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*")
 
@@ -433,18 +436,42 @@ def _overlap(admitted: Path, rows: Sequence[Mapping[str, str]]) -> dict[str, Any
             "identical_values": sum(gap == 0 for gap in gaps), "max_abs_revision": max(gaps, default=0.0)}
 
 
-def load_reused_acquisition(root: Path, vintage: Vintage) -> tuple[dict[str, Any], str]:
-    """Read an earlier acquisition receipt; it must cover the same sample and construction tiers."""
+def _plain(locator: Any, what: str) -> str:
+    if not PLAIN_LOCATOR.fullmatch(str(locator)) or ".." in str(locator).split("/"):
+        raise ValueError(f"{what} must be a plain relative locator: {locator!r}")
+    return str(locator)
+
+
+def load_reused_acquisition(vintage: Vintage) -> tuple[Path, dict[str, Any], dict[str, Any]]:
+    """The declared earlier acquisition, authenticated before anything is copied.
+
+    Its receipt must have the pinned hash, and the vintage configuration that receipt
+    records must hash to the recorded value and equal this configuration in every
+    field a correction may not change.
+    """
+    declared = vintage.payload["reuse_acquisition"]
+    root = ROOT / _plain(declared.get("root"), "Reused acquisition root")
     path = root / ACQUISITION_RECEIPT
     if not path.is_file():
         raise FileNotFoundError(f"Reused acquisition receipt does not exist: {path}")
     digest = sha256_file(path)
+    if digest != declared.get("receipt_sha256"):
+        raise ValueError("Reused acquisition receipt differs from the pinned receipt")
     receipt = _read_json(path)
-    earlier, current = receipt.get("vintage") or {}, vintage.record()
-    differs = [name for name in REUSED_VINTAGE_FIELDS if earlier.get(name) != current[name]]
-    if receipt.get("lane") != "acquire" or differs:
-        raise ValueError(f"Reused acquisition was made for another sample or tier split: {differs}")
-    return receipt, digest
+    recorded = (receipt.get("vintage") or {}).get("sha256")
+    config = ROOT / _plain(declared.get("vintage_config"), "Reused acquisition configuration")
+    if receipt.get("lane") != "acquire" or not config.is_file() or sha256_file(config) != recorded:
+        raise ValueError("The reused acquisition's own vintage configuration cannot be authenticated")
+    earlier, current = _read_json(config), dict(vintage.payload)
+    differs = [k for k in sorted(set(earlier) | set(current))
+               if k not in REUSE_ALLOWED_DIFFERENCES and earlier.get(k) != current.get(k)]
+    before, after = earlier.get("tdcest", {}), current.get("tdcest", {})
+    differs += [f"tdcest.{k}" for k in sorted(set(before) | set(after))
+                if k not in REUSE_ALLOWED_TDCEST_DIFFERENCES and before.get(k) != after.get(k)]
+    if differs:
+        raise ValueError(f"Configuration differs from the reused acquisition's beyond the correction: {differs}")
+    return root, receipt, {"root": declared["root"], "receipt_sha256": digest,
+                           "vintage_config": {"path": declared["vintage_config"], "sha256": recorded}}
 
 
 def _reuse_file(root: Path, stage: Path, record: Mapping[str, Any], locator: str) -> dict[str, Any]:
@@ -460,15 +487,12 @@ def _reuse_file(root: Path, stage: Path, record: Mapping[str, Any], locator: str
     return dict(record)
 
 
-def reuse_fred(root: Path, stage: Path, receipt: Mapping[str, Any], starts: Mapping[str, str]) -> dict[str, Any]:
-    """Reused FRED series must be the manifest's, each requested from the start the live lane would use."""
+def reuse_fred(root: Path, stage: Path, receipt: Mapping[str, Any], series_ids: Sequence[str]) -> dict[str, Any]:
     records = receipt.get("fred_raw") or {}
-    if set(records) != set(starts):
+    if set(records) != set(series_ids):
         raise ValueError("Reused FRED series differ from the vintage series manifest")
-    moved = sorted(s for s, start in starts.items() if records[s].get("observation_start_requested") != start)
-    if moved:
-        raise ValueError(f"Reused FRED series start on another date than this vintage requests: {moved[:5]}")
-    return {series_id: _reuse_file(root, stage, records[series_id], f"inputs/fred/{series_id}.csv") for series_id in starts}
+    return {series_id: _reuse_file(root, stage, records[series_id], f"inputs/fred/{series_id}.csv")
+            for series_id in series_ids}
 
 
 def reuse_factor_seed(root: Path, stage: Path, receipt: Mapping[str, Any], raw_inventory: Mapping[str, str],
@@ -484,26 +508,10 @@ def reuse_factor_seed(root: Path, stage: Path, receipt: Mapping[str, Any], raw_i
     return {name: _reuse_file(root, stage, files[name], f"inputs/interpol_raw/{name}") for name in sorted(files)}
 
 
-def reuse_open02(root: Path, stage: Path, receipt: Mapping[str, Any], vintage: Vintage) -> dict[str, Any]:
-    """Reused OPEN-02 availability must have been checked against this release and admitted bundle."""
-    from ea_tdc.open_contract import OPEN02_CONTRACT
-
-    record = _reuse_file(root, stage, receipt.get("open02_source_availability") or {}, OPEN02_AVAILABILITY)
-    availability = _read_json(stage / OPEN02_AVAILABILITY)
-    admitted = vintage.payload["open02"]["admitted_source_bundle"]
-    if sha256_file(ROOT / admitted["path"]) != admitted["sha256"]:
-        raise ValueError("Admitted OPEN-02 source bundle changed")
-    bundle = {series["key"]: series for series in _read_json(ROOT / admitted["path"]).get("series", [])}
-    expected = {s.key: len(bundle.get(s.key, {}).get("observations", [])) for s in OPEN02_CONTRACT.series}
-    checked = {item.get("key"): item.get("admitted_observations") for item in availability.get("series", [])}
-    if availability.get("release") != vintage.payload["z1_release"] or checked != expected:
-        raise ValueError("Reused OPEN-02 availability was checked against another release or admitted bundle")
-    return record
-
-
-def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) -> Path:
-    """Acquire every vintage input; with ``reuse_root``, FRED, factor-seed and OPEN-02
-    availability inputs are copied byte for byte from that earlier acquisition."""
+def lane_acquire(vintage: Vintage, commit: str) -> Path:
+    """Acquire every vintage input. A vintage that declares ``reuse_acquisition`` copies the
+    FRED, factor-seed and OPEN-02 availability inputs byte for byte from that pinned
+    earlier acquisition instead of fetching them."""
     _verify_clean_commit(ROOT, commit)
     output = _output_root(vintage)
     if not (output / "protected_baseline.json").is_file():
@@ -511,13 +519,13 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
     for name in ("inputs", "tdcest", "tdcpass"):
         if (output / name).exists():
             raise ValueError(f"{name} already acquired; no overwrite")
-    reused = load_reused_acquisition(reuse_root, vintage) if reuse_root is not None else None
+    reused = load_reused_acquisition(vintage) if "reuse_acquisition" in vintage.payload else None
     key = ""
     receipt: dict[str, Any] = {"lane": "acquire", "producer_commit": commit, "started_at_utc": _now(),
                                "vintage": vintage.record()}
     if reused is not None:
-        receipt["reused_acquisition"] = {"root": Path(os.path.relpath(reuse_root.resolve(), ROOT.resolve())).as_posix(),
-                                         "receipt_sha256": reused[1]}
+        reuse_root = reused[0]
+        receipt["reused_acquisition"] = reused[2]
     else:
         key = os.environ.get(vintage.payload["fred"]["api_key_env"], "").strip()
         if not key:
@@ -531,10 +539,7 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
         if sha256_file(ROOT / manifest["path"]) != manifest["sha256"]:
             raise ValueError("FRED series manifest changed")
         if reused is not None:
-            starts = {row["series_id"]: admitted_start(ROOT / "data/raw/fred" / f"{row['series_id']}.csv",
-                                                       vintage.payload["fred"]["raw_observation_start"])
-                      for row in manifest_rows}
-            fred_records = reuse_fred(reuse_root, stage, reused[0], starts)
+            fred_records = reuse_fred(reuse_root, stage, reused[1], [row["series_id"] for row in manifest_rows])
         else:
             fred_records = {}
             for row in manifest_rows:
@@ -560,7 +565,7 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
             for item in _read_json(ROOT / factor["raw_inventory"]["path"])["raw_inventory_provenance_only_not_consumed"]
         }
         if reused is not None:
-            seed_records = reuse_factor_seed(reuse_root, stage, reused[0], raw_inventory, sources)
+            seed_records = reuse_factor_seed(reuse_root, stage, reused[1], raw_inventory, sources)
         else:
             seed_records = {}
             for path in sorted((ROOT / factor["raw_seed_dir"]).glob("*.csv")):
@@ -593,15 +598,15 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
         if sha256_file(tdcest_root / "RECEIPT.json") != tdcest["receipt_sha256"]:
             raise ValueError("TDCest refresh receipt changed")
         tdcest_receipt = _read_json(tdcest_root / "RECEIPT.json")
+        if tdcest_receipt.get("vintage") != vintage.vintage_id:
+            raise ValueError("TDCest refresh receipt was made for another vintage")
         _copy_verified(tdcest_root / "RECEIPT.json", stage / "tdcest" / "RECEIPT.json", tdcest["receipt_sha256"])
         listed = tdcest_receipt.get("outputs", {})
         amended: dict[str, Any] = {}
         addendum_pin = tdcest.get("receipt_addendum")
         if addendum_pin is not None:
             # A correction regenerates outputs and lists them in an addendum; the original receipt stays unchanged.
-            if not PLAIN_LOCATOR.fullmatch(str(addendum_pin["path"])) or ".." in addendum_pin["path"].split("/"):
-                raise ValueError("TDCest receipt addendum must lie inside the TDCest refresh root")
-            addendum_path = Path(addendum_pin["path"])
+            addendum_path = Path(_plain(addendum_pin["path"], "TDCest receipt addendum"))
             _copy_verified(tdcest_root / addendum_path, stage / "tdcest" / addendum_path, addendum_pin["sha256"])
             addendum = _read_json(stage / "tdcest" / addendum_path)
             amended, _ = refresh_addendum(tdcest_receipt, addendum, vintage.vintage_id)
@@ -648,7 +653,8 @@ def lane_acquire(vintage: Vintage, commit: str, reuse_root: Path | None = None) 
 
         # OPEN-02 source availability in the pinned Financial Accounts release.
         if reused is not None:
-            receipt["open02_source_availability"] = reuse_open02(reuse_root, stage, reused[0], vintage)
+            receipt["open02_source_availability"] = _reuse_file(
+                reuse_root, stage, reused[1].get("open02_source_availability") or {}, OPEN02_AVAILABILITY)
         else:
             release = vintage.payload["z1_release"]
             request = urllib.request.Request(release["archive_url"], headers={"User-Agent": "ea-tdc/0.1.0"})
@@ -1209,12 +1215,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--factors", type=Path)
     parser.add_argument("--policy", type=Path)
     parser.add_argument("--destination", type=Path)
-    parser.add_argument("--reuse-acquisition", type=Path, metavar="ROOT",
-                        help="acquire lane: copy FRED, factor-seed and OPEN-02 availability inputs byte for byte "
-                             "from this earlier vintage output root instead of fetching them")
     args = parser.parse_args(argv)
-    if args.reuse_acquisition is not None and args.lane != "acquire":
-        parser.error("--reuse-acquisition applies only to the acquire lane")
     if args.lane == "export-panel":
         print(export_panel())
         return
@@ -1229,9 +1230,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     if args.lane == "snapshot":
         result = lane_snapshot(vintage, args.producer_commit)
     elif args.lane == "acquire":
-        reuse = args.reuse_acquisition
-        result = lane_acquire(vintage, args.producer_commit,
-                              None if reuse is None else (reuse if reuse.is_absolute() else ROOT / reuse))
+        result = lane_acquire(vintage, args.producer_commit)
     elif args.lane == "materialize":
         result = lane_materialize(vintage, args.producer_commit)
     elif args.lane == "open01":

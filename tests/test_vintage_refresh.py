@@ -11,6 +11,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import shutil
 import zipfile
 from datetime import date
 from pathlib import Path
@@ -392,6 +393,7 @@ class _AcquireTree:
         monkeypatch.setenv("FRED_API_KEY", "test-key")
         self.main("config/vintage_old.json", "output/refresh_old", self.tdcest_pins(self.original))
         self.old = root / "output/refresh_old"
+        self.old_receipt_sha256 = sha256_file(self.old / "inputs/acquisition_receipt.json")
 
         # The correction: outputs regenerated in place, original receipt untouched, addendum alongside.
         self.corrected = {**self.original, **{loc: _put(self.tdcest, loc, text) for loc, text in CORRECTED.items()}}
@@ -437,17 +439,19 @@ class _AcquireTree:
     def corrected_pins(self, **addendum) -> dict:
         return self.tdcest_pins(self.corrected, {"path": ADDENDUM, "sha256": self.addendum_sha256, **addendum})
 
-    def main(self, locator: str, output_root: str, tdcest: dict, *extra: str) -> Path:
-        payload = {**self.payload, "output_root": output_root, "tdcest": tdcest}
+    def main(self, locator: str, output_root: str, tdcest: dict, **extra) -> Path:
+        payload = {**self.payload, "output_root": output_root, "tdcest": tdcest, **extra}
         _put(self.root, locator, json.dumps(payload))
         _put(self.root, f"{output_root}/protected_baseline.json", "{}")
         self.monkeypatch.setenv(VINTAGE_ENV, locator)
-        self.refresh.main(["acquire", "--vintage", locator, "--producer-commit", COMMIT, *extra])
+        self.refresh.main(["acquire", "--vintage", locator, "--producer-commit", COMMIT])
         return self.root / output_root / "inputs/acquisition_receipt.json"
 
-    def reuse(self, tdcest: dict | None = None, output_root: str = "output/refresh_new") -> Path:
+    def reuse(self, tdcest: dict | None = None, output_root: str = "output/refresh_new", **pin) -> Path:
+        declared = {"root": "output/refresh_old", "receipt_sha256": self.old_receipt_sha256,
+                    "vintage_config": "config/vintage_old.json", **pin}
         return self.main("config/vintage_new.json", output_root, tdcest or self.corrected_pins(),
-                         "--reuse-acquisition", "output/refresh_old")
+                         reuse_acquisition=declared)
 
 
 @pytest.fixture
@@ -471,8 +475,9 @@ def test_reused_acquisition_copies_every_input_byte_for_byte_with_its_records(tr
         assert new[key] == old[key], key
     for locator in _reused_files(new):
         assert (output / locator).read_bytes() == (tree.old / locator).read_bytes(), locator
-    assert new["reused_acquisition"] == {"root": "output/refresh_old",
-                                         "receipt_sha256": sha256_file(tree.old / "inputs/acquisition_receipt.json")}
+    assert new["reused_acquisition"] == {
+        "root": "output/refresh_old", "receipt_sha256": sha256_file(tree.old / "inputs/acquisition_receipt.json"),
+        "vintage_config": {"path": "config/vintage_old.json", "sha256": old["vintage"]["sha256"]}}
     # Only TDCest objects differ from the earlier acquisition.
     assert new["tdcest"]["files"] != old["tdcest"]["files"] and new["carried_bundles"] == old["carried_bundles"]
     vintage = load_vintage(tree.root, "config/vintage_new.json")
@@ -509,42 +514,86 @@ def test_tampered_or_missing_reused_input_raises_and_installs_nothing(tree, targ
     assert not any((tree.root / "output/refresh_new" / name).exists() for name in ("inputs", "tdcest", "tdcpass"))
 
 
-@pytest.mark.parametrize("field, value", [
-    ("sample", {"start": "2002Q1", "end": "2026Q1", "n": 97}),
-    ("observation_cutoff", "2026-03-31"),
-    ("quarter_hash", "0" * 64),
-    ("method_tier_counts", {"pre_component_h15_scaled_backcast": 33, "component_pool_wamest_bucket_backcast": 46,
-                            "constrained_component": 19}),
-])
-def test_reuse_refuses_an_acquisition_for_another_sample_or_tier_split(tree, field, value):
-    tree.forbid_network()
-    path = tree.old / "inputs/acquisition_receipt.json"
-    receipt = json.loads(path.read_text())
-    receipt["vintage"][field] = value
-    path.write_text(json.dumps(receipt))
-    with pytest.raises(ValueError, match=rf"another sample or tier split: \['{field}'\]"):
-        tree.reuse()
-
-
-@pytest.mark.parametrize("pin", ["fred_start", "z1_release", "open02_bundle"])
-def test_reuse_refuses_inputs_acquired_under_other_fred_or_open02_pins(tree, pin):
-    # Reuse stands in for the live fetch only if the live lane would have asked for the same thing.
-    tree.forbid_network()
-    if pin == "fred_start":
-        tree.payload["fred"] = {**tree.payload["fred"], "raw_observation_start": "1990-01-01"}
-        message = "start on another date"
-    elif pin == "z1_release":
-        tree.payload["z1_release"] = {**tree.payload["z1_release"], "release_date": "2026-12-11"}
-        message = "another release or admitted bundle"
+@pytest.mark.parametrize("case", ["substituted", "joint_edit", "unauthenticated_config"])
+def test_reuse_takes_only_the_pinned_acquisition_under_its_own_configuration(tree, case):
+    # The correction config pins the earlier acquisition by hash; nothing else may stand in for it.
+    pin, message = {}, "differs from the pinned receipt"
+    if case == "substituted":
+        # Another acquisition of the same sample, made the same way, is still not the pinned one.
+        alt = tree.main("config/vintage_alt.json", "output/refresh_alt", tree.corrected_pins())
+        assert json.loads(alt.read_text())["vintage"]["sample"] == json.loads(
+            (tree.old / "inputs/acquisition_receipt.json").read_text())["vintage"]["sample"]
+        assert sha256_file(alt) != tree.old_receipt_sha256
+        pin = {"root": "output/refresh_alt"}
+    elif case == "joint_edit":
+        # FRED bytes changed together with their receipt record are a different acquisition.
+        path = tree.old / "inputs/fred/AAA.csv"
+        path.write_text(path.read_text().replace("2.0", "2.5"))
+        receipt = json.loads((tree.old / "inputs/acquisition_receipt.json").read_text())
+        receipt["fred_raw"]["AAA"].update(sha256=sha256_file(path), bytes=path.stat().st_size)
+        (tree.old / "inputs/acquisition_receipt.json").write_text(json.dumps(receipt))
     else:
-        other = {"series": [{"key": OPEN02_CONTRACT.series[0].key, "observations": [{"date": "2025-12-31"}]}]}
-        tree.payload["open02"] = {"admitted_source_bundle": {
-            "path": "data/bundles/open02/other.json", "sha256": _put(tree.root, "data/bundles/open02/other.json", json.dumps(other))}}
-        message = "another release or admitted bundle"
+        old = tree.root / "config/vintage_old.json"
+        old.write_text(old.read_text().replace('"output/refresh_old"', '"output/refresh_moved"'))
+        message = "own vintage configuration cannot be authenticated"
+    tree.forbid_network()
     with pytest.raises(ValueError, match=message):
-        tree.reuse()
+        tree.reuse(**pin)
+    assert not any((tree.root / "output/refresh_new" / name).exists() for name in ("inputs", "tdcest", "tdcpass"))
+
+
+def _write_pin(tree, locator: str, text: str) -> dict:
+    return {"path": locator, "sha256": _put(tree.root, locator, text)}
+
+
+@pytest.mark.parametrize("case, field", [
+    ("sample", "method_tier_counts', 'observation_cutoff', 'sample"),
+    ("feature_lags", "factor_features"),
+    ("z1_release", "z1_release"),
+    ("fred_start", "fred"),
+    ("open02_bundle", "open02"),
+    ("tdcest_root", "tdcest.root"),
+])
+def test_reuse_refuses_a_configuration_that_differs_beyond_the_correction(tree, case, field):
+    # Reused FRED, factor-seed and OPEN-02 inputs are valid only for the configuration that
+    # acquired them; a correction may change TDCest objects and nothing analytical.
+    tree.forbid_network()
+    tdcest = tree.corrected_pins()
+    if case == "sample":
+        tree.payload.update(sample={"start": "2002Q1", "end": "2026Q1", "n": 97}, observation_cutoff="2026-03-31",
+                            method_tier_counts={**tree.payload["method_tier_counts"], "constrained_component": 17})
+    elif case == "feature_lags":
+        # Another lag of the same raw series: the raw-source mapping is identical, the features are not.
+        factor = dict(tree.payload["factor_features"])
+        factor["ordered_top100"] = _write_pin(tree, "pins/top100_lag2.json", json.dumps(["d__dgs5_dgs5__lag002"]))
+        factor["universe_columns"] = _write_pin(tree, "pins/universe_lag2.csv",
+                                                "feature_id,source_file\nd__dgs5_dgs5__lag002,FRED_DGS5_DGS5.csv\n")
+        old_sources = tree.refresh.factor_source_files(["d__dgs5_dgs5__lag001"], [{"feature_id": "d__dgs5_dgs5__lag001", "source_file": "FRED_DGS5_DGS5.csv"}])
+        new_sources = tree.refresh.factor_source_files(["d__dgs5_dgs5__lag002"], [{"feature_id": "d__dgs5_dgs5__lag002", "source_file": "FRED_DGS5_DGS5.csv"}])
+        assert old_sources == new_sources
+        tree.payload["factor_features"] = factor
+    elif case == "z1_release":
+        tree.payload["z1_release"] = {**tree.payload["z1_release"], "release_date": "2026-12-11"}
+    elif case == "fred_start":
+        tree.payload["fred"] = {**tree.payload["fred"], "raw_observation_start": "1990-01-01"}
+    elif case == "open02_bundle":
+        other = {"series": [{"key": OPEN02_CONTRACT.series[0].key, "observations": [{"date": "2025-12-31"}]}]}
+        tree.payload["open02"] = {"admitted_source_bundle": _write_pin(tree, "data/bundles/open02/other.json", json.dumps(other))}
+    else:
+        shutil.copytree(tree.tdcest, tree.root.parent / "tdcest_copy")
+        tdcest["root"] = "../tdcest_copy"
+    with pytest.raises(ValueError, match=rf"beyond the correction: \['{field}'\]"):
+        tree.reuse(tdcest)
     assert not any((tree.root / "output/refresh_new" / name).exists() for name in ("inputs", "tdcest", "tdcpass"))
     assert not list((tree.root / "output/refresh_new").glob(".acquire-*"))
+
+
+def test_a_tdcest_receipt_of_another_vintage_is_refused(tree):
+    receipt = json.loads((tree.tdcest / "RECEIPT.json").read_text())
+    tree.receipt_sha256 = _put(tree.tdcest, "RECEIPT.json", json.dumps({**receipt, "vintage": "2026q1"}))
+    with pytest.raises(ValueError, match="refresh receipt was made for another vintage"):
+        tree.main("config/vintage_live.json", "output/refresh_live", tree.corrected_pins())
+    assert not (tree.root / "output/refresh_live/inputs").exists()
 
 
 def test_addendum_binds_the_corrected_tdcest_objects(tree):
@@ -595,7 +644,7 @@ def test_addendum_fails_closed(tree, case):
         message = "receipt and vintage pin disagree: data/processed/tdc_components.csv"
     else:
         tdcest["receipt_addendum"]["path"] = f"../tdcest/{ADDENDUM}" if case == "outside_root" else f"C:{ADDENDUM}"
-        message = "inside the TDCest refresh root"
+        message = "addendum must be a plain relative locator"
     with pytest.raises(ValueError, match=message):
         tree.reuse(tdcest)
     assert not (tree.root / "output/refresh_new/inputs").exists()
@@ -606,8 +655,13 @@ def test_corrected_vintage_changes_only_tdcest_objects_and_can_reuse_the_acquisi
     # the FRED and factor-seed acquisition it reuses, must be the 2026q2 vintage's.
     corrected = load_vintage(ROOT, "config/vintage_2026q2_tfx.json")
     old, new = vintage.payload, corrected.payload
-    assert set(new) == set(old) and {k for k in old if old[k] != new[k]} == {"authority", "output_root", "tdcest"}
-    assert {f: corrected.record()[f] for f in refresh.REUSED_VINTAGE_FIELDS} == {f: vintage.record()[f] for f in refresh.REUSED_VINTAGE_FIELDS}
+    differs = {k for k in set(old) | set(new) if old.get(k) != new.get(k)}
+    assert differs == {"authority", "output_root", "tdcest", "reuse_acquisition"} <= set(refresh.REUSE_ALLOWED_DIFFERENCES) | {"authority"}
+    assert {k for k in old["tdcest"] if old["tdcest"][k] != new["tdcest"].get(k)} | (set(new["tdcest"]) - set(old["tdcest"])) \
+        <= set(refresh.REUSE_ALLOWED_TDCEST_DIFFERENCES)
+    reuse = new["reuse_acquisition"]
+    assert set(reuse) == {"root", "receipt_sha256", "vintage_config"} and len(reuse["receipt_sha256"]) == 64
+    assert reuse["root"] == old["output_root"] and reuse["vintage_config"].startswith(f"{reuse['root']}/")
     assert corrected.vintage_id == vintage.vintage_id and new["output_root"] != old["output_root"]
     tdcest = new["tdcest"]
     assert (tdcest["root"], tdcest["receipt_sha256"]) == (old["tdcest"]["root"], old["tdcest"]["receipt_sha256"])

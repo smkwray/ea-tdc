@@ -6,6 +6,11 @@
     "proposal": "Rerun the 2026q2 quarterly chains on TDCest refresh objects corrected to remove Treasury-Fed internal transfers from the Treasury cash term, reusing the 2026-10-14 FRED and factor-seed inputs byte for byte; specifications unchanged"
   },
   "output_root": "output/refresh_2026q2_tfx",
+  "reuse_acquisition": {
+    "root": "output/refresh_2026q2",
+    "receipt_sha256": "3c4c9e904294b2dbb736a580409304818f1205d05da9cb3c0d2ae29720fff1ea",
+    "vintage_config": "output/refresh_2026q2/run/config/vintage_2026q2.json"
+  },
   "admitted_sample": {
     "start": "2002Q1",
     "end": "2025Q4",
