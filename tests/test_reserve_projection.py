@@ -992,12 +992,16 @@ def test_load_panel_reads_corrected_objects_bound_only_by_the_addendum(tmp_path)
 
 
 FACILITIES = "lending_and_facilities"
+TREASURY_CONTRIBUTIONS = "f_treasury_contributions_to_credit_facilities"
 
 
-def with_internal_bridge(design: rp.Design, root: Path, group: str = FACILITIES) -> rp.Design:
-    """The refresh design with the internal-transfer bridge assigned to one group, through the loader."""
+def with_internal_bridge(design: rp.Design, root: Path) -> rp.Design:
+    """The refresh design with the corrected grouping, through the loader: the internal-transfer
+    bridge and the Treasury contributions to credit facilities join the facility LLC holdings."""
     raw = copy.deepcopy(design.raw)
-    next(g for g in raw["component_groups"] if g["id"] == group)["components"].append(rp.INTERNAL_TRANSFERS)
+    groups = {g["id"]: g for g in raw["component_groups"]}
+    groups["all_other_factors"]["components"].remove(TREASURY_CONTRIBUTIONS)
+    groups[FACILITIES]["components"] += [rp.INTERNAL_TRANSFERS, TREASURY_CONTRIBUTIONS]
     (root / "config").mkdir(exist_ok=True)
     (root / REFRESH_CONFIG).write_text(json.dumps(raw))
     return rp.load_design(root, REFRESH_CONFIG)
@@ -1017,6 +1021,9 @@ def test_corrected_bridges_carry_internal_transfers_beside_the_facility_factors(
     assert np.count_nonzero(i[s]) > 10
     groups = {g.id: g for g in d.groups}
     assert groups["treasury_cash_clock_bridge"].components == ("bridge_cash",)
+    # The TGA leg, the Treasury-contributions liability and the LLC holdings sit in one group.
+    assert {rp.INTERNAL_TRANSFERS, TREASURY_CONTRIBUTIONS} <= set(groups[FACILITIES].components)
+    assert TREASURY_CONTRIBUTIONS not in groups["all_other_factors"].components
     facility_factors = [c for c in groups[FACILITIES].components if c.startswith("f_")]
     for outcome in d.outcomes:
         for variant in d.variants:
@@ -1025,6 +1032,7 @@ def test_corrected_bridges_carry_internal_transfers_beside_the_facility_factors(
             np.testing.assert_allclose(sum(by_group.values())[s], remainder[s], rtol=0, atol=1e-6)
             np.testing.assert_allclose((by_group[FACILITIES] - sum(panel.common[c] for c in facility_factors))[s],
                                        -i[s], rtol=0, atol=1e-9)
+            assert np.any(panel.common[TREASURY_CONTRIBUTIONS][s] != 0)
     cell = rp.make_cell(panel, d, "y_h", d.primary_variant, "pooled", d.primary_spec, d.sample)
     fit = rp.fit_cell(panel, d, cell)
     lags = {k: v[cell.positions] for k, v in rp.cell_lags(panel, "y_h", d.primary_variant).items()}
@@ -1032,9 +1040,15 @@ def test_corrected_bridges_carry_internal_transfers_beside_the_facility_factors(
     bridge = -i[cell.positions]
     bridge_resid = bridge - z @ np.linalg.lstsq(z, bridge, rcond=None)[0]
     xt = fit["resid"][:, 0]
-    k = d.components("y_h").index(rp.INTERNAL_TRANSFERS)
+    components = d.components("y_h")
+    k = components.index(rp.INTERNAL_TRANSFERS)
     assert fit["contributions"][k] == pytest.approx(float(xt @ bridge_resid) / float(xt @ xt), rel=1e-9)
     assert fit["contributions"].sum() == pytest.approx(fit["beta"] - 1, abs=1e-12)
+    # The group's contribution is its members' contributions, Treasury contributions included.
+    members = [components.index(c) for c in groups[FACILITIES].components]
+    assert components.index(TREASURY_CONTRIBUTIONS) in members
+    group = fit["resid"][:, [2 + m for m in members]].sum(axis=1)
+    assert float(fit["contributions"][members].sum()) == pytest.approx(float(xt @ group) / float(xt @ xt), rel=1e-9)
 
 
 @pytest.mark.parametrize("column, check", [
@@ -1104,7 +1118,7 @@ def test_corrected_refresh_moves_only_the_facility_round_trip_into_one_group(ref
     assert set(new["inputs"]) == set(old["inputs"]) | {rp.REFRESH_RECEIPT_ADDENDUM}
     before = {g["id"]: g for g in old["component_groups"]}
     after = {g["id"]: g for g in new["component_groups"]}
-    moved = {rp.INTERNAL_TRANSFERS, "f_treasury_contributions_to_credit_facilities"}
+    moved = {rp.INTERNAL_TRANSFERS, TREASURY_CONTRIBUTIONS}
     assert list(after) == list(before)
     assert set(after[FACILITIES]["components"]) == set(before[FACILITIES]["components"]) | moved
     assert set(after["all_other_factors"]["components"]) == set(before["all_other_factors"]["components"]) - moved
