@@ -35,6 +35,12 @@ from ea_tdc.open_contract import OPEN02_CONTRACT  # noqa: E402
 
 SCHEMA = "ea_tdc_open02_inputs_v1"
 RECEIPT_LOCATOR = "output/manifests/open02_variant_receipt.json"
+# The admitted Financial Accounts source bundle (2026-03-19 release) every variant derives from.
+ADMITTED_SOURCE_BUNDLE = {
+    "path": "data/bundles/open02/financial_accounts_2026-03-19.json",
+    "sha256": "15a872b9f1803bb0b07be323cd1a89a8100767e0e850bd136238ac8f5926e798",
+    "bytes": 181566,
+}
 # The only source-bundle fields a variant rewrites; the Financial Accounts content is the admitted bytes.
 STAMP_FIELDS = ("accepted_tdcest_bundle_generated_at", "observation_vintage_cutoff")
 
@@ -58,6 +64,10 @@ def load_variant(root: Path, locator: str) -> Variant:
     never overwritten, and its cutoff may not precede its TDCest bundle or the
     Board release.
     """
+    try:
+        producer._git_text(root, "ls-files", "--error-unmatch", "--", locator)
+    except Exception as exc:  # noqa: BLE001 - any git failure means the file is not committed here
+        raise ValueError(f"Variant configuration is not a committed file: {locator}") from exc
     record = producer._file_record(root, locator)
     payload = producer._load_json_object(producer._project_path(root, locator))
     source = payload.get("source") or {}
@@ -69,12 +79,14 @@ def load_variant(root: Path, locator: str) -> Variant:
         payload.get("schema_version") != SCHEMA
         or not str(payload.get("variant", "")).strip()
         or set(accepted) != set(producer.EXPECTED_ACCEPTED_INPUT_SHA256)
-        or derived.get("path") != producer.SOURCE_BUNDLE_LOCATOR
+        or derived != ADMITTED_SOURCE_BUNDLE
         or not all(isinstance(item, str) and item for item in locators)
-        or set(locators) & {producer.SOURCE_BUNDLE_LOCATOR, producer.SOURCE_MANIFEST_LOCATOR}
-        or type(derived.get("bytes")) is not int
+        or len(set(locators)) != 2
+        or set(locators) & {producer.SOURCE_BUNDLE_LOCATOR, producer.SOURCE_MANIFEST_LOCATOR,
+                            RECEIPT_LOCATOR, *producer.OUTPUT_LOCATORS}
     ):
-        raise ValueError("OPEN-02 input variant is malformed or would overwrite the admitted source")
+        raise ValueError("OPEN-02 input variant is malformed, derives from another bundle, "
+                         "or would overwrite the admitted source or an output")
     generated = producer._validate_utc_timestamp(tdcest.get("generated_at"), label="Variant TDCest generated_at")
     cutoff = producer._validate_utc_timestamp(payload.get("observation_vintage_cutoff"), label="Variant cutoff")
     release = producer._validate_utc_timestamp(f"{producer.OPEN02_BOARD_ARCHIVE_RELEASE_DATE}T00:00:00Z",
@@ -84,7 +96,6 @@ def load_variant(root: Path, locator: str) -> Variant:
     commit = str(payload.get("open01_producer_commit", "")).strip().lower()
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ValueError("Variant OPEN-01 producer must be a full 40-character commit")
-    derived["sha256"] = producer._validate_sha256(derived.get("sha256"), label="Admitted source bundle hash")
     contract = replace(OPEN02_CONTRACT, sample=replace(
         OPEN02_CONTRACT.sample,
         accepted_tdcest_bundle_generated_at=str(tdcest["generated_at"]),
@@ -189,9 +200,9 @@ def _rebound(variant: Variant) -> Iterator[None]:
               "EXPECTED_ACCEPTED_INPUT_SHA256": dict(variant.accepted_input_sha256),
               "OPEN02_CONTRACT": variant.contract}
     previous = {name: getattr(producer, name) for name in values}
-    for name, value in values.items():
-        setattr(producer, name, value)
     try:
+        for name, value in values.items():
+            setattr(producer, name, value)
         yield
     finally:
         for name, value in previous.items():
@@ -199,9 +210,24 @@ def _rebound(variant: Variant) -> Iterator[None]:
 
 
 def _check_variant_inputs(root: Path, variant: Variant) -> None:
+    present = [locator for locator in producer.OUTPUT_LOCATORS if producer._project_path(root, locator).exists()]
+    if present:
+        # The producer clears its fixed output locators before it runs; a variant never replaces outputs.
+        raise ValueError(f"OPEN-02 outputs already exist in this root; run the variant in its own root: {present}")
     receipt = producer._load_json_object(producer._project_path(root, producer.OPEN01_RECEIPT_LOCATOR))
-    if (receipt.get("tdcest") or {}).get("bundle_hash") != variant.tdcest_bundle_sha256:
-        raise ValueError("Accepted OPEN-01 run consumed another TDCest bundle")
+    tdcest = receipt.get("tdcest") or {}
+    if (tdcest.get("bundle_hash") != variant.tdcest_bundle_sha256
+            or (tdcest.get("standardized") or {}).get("sha256")
+            != variant.accepted_input_sha256[producer.ACCEPTED_STANDARDIZED_LOCATOR]):
+        raise ValueError("Accepted OPEN-01 run consumed another TDCest bundle or wrote another standardized series")
+    bundle_path = Path(str(tdcest.get("resolved_source_bundle", "")))
+    if not bundle_path.is_file() or producer._sha256_file(bundle_path) != variant.tdcest_bundle_sha256:
+        raise ValueError("The TDCest bundle the OPEN-01 run consumed is not available with the declared hash")
+    generated = producer._load_json_object(bundle_path).get("generated_at_utc")
+    if producer._validate_utc_timestamp(generated, label="TDCest bundle generated_at_utc") != (
+            producer._validate_utc_timestamp(variant.contract.sample.accepted_tdcest_bundle_generated_at,
+                                             label="Variant TDCest generated_at")):
+        raise ValueError("The consumed TDCest bundle was generated at another time than the variant declares")
     manifest = producer._load_json_object(producer._project_path(root, variant.source_manifest_locator))
     if manifest.get("derived_from") != {"bundle": dict(variant.derived_from)}:
         raise ValueError("Variant source manifest does not record the declared derivation")
@@ -249,15 +275,16 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--derive-source", action="store_true")
     args = parser.parse_args(argv)
-    variant = load_variant(ROOT, args.inputs)
+    root = ROOT
+    variant = load_variant(root, args.inputs)
     invocation = list(sys.argv if argv is None else ["scripts/run_open02_variant.py", *argv])
     if args.derive_source:
         result = derive_source(producer_commit=args.producer_commit, run_id=args.run_id, variant=variant,
-                               invocation_argv=invocation)
+                               root=root, invocation_argv=invocation)
     else:
         result = run_variant(producer_commit=args.producer_commit, run_id=args.run_id, variant=variant,
-                             invocation_argv=invocation)
-    print(json.dumps({"receipt": result.relative_to(ROOT).as_posix(), "sha256": producer._sha256_file(result)}))
+                             root=root, invocation_argv=invocation)
+    print(json.dumps({"receipt": result.relative_to(root.resolve()).as_posix(), "sha256": producer._sha256_file(result)}))
 
 
 if __name__ == "__main__":
