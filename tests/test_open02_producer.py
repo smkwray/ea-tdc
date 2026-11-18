@@ -973,6 +973,16 @@ def _derived(wrapper, root: Path, monkeypatch, **kwargs):
     return variant, manifest
 
 
+def test_committed_v1_variant_pins_the_admitted_source_and_a_later_tdcest_pairing() -> None:
+    wrapper = _load_variant_runner()
+    root = Path(__file__).resolve().parents[1]
+    config = json.loads((root / "config/open02_v1_tfx.json").read_text())
+    assert config["source"]["derived_from"]["bundle"] == wrapper.ADMITTED_SOURCE_BUNDLE
+    assert config["observation_vintage_cutoff"] == config["tdcest_bundle"]["generated_at"] > "2026-05-22T16:56:46Z"
+    assert set(config["accepted_inputs"]) == set(wrapper.producer.EXPECTED_ACCEPTED_INPUT_SHA256)
+    assert config["open01_producer_commit"] != wrapper.producer.EXPECTED_OPEN01_PRODUCER_COMMIT
+
+
 def test_variant_changes_only_the_tdcest_pairing(tmp_path: Path, monkeypatch) -> None:
     wrapper = _load_variant_runner()
     _variant_tree(wrapper, tmp_path, monkeypatch)

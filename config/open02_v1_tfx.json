@@ -1,0 +1,27 @@
+{
+  "schema_version": "ea_tdc_open02_inputs_v1",
+  "variant": "v1_tfx",
+  "description": "OPEN-02 on the v1 TDCest bundle corrected to remove Treasury-Fed internal transfers from the Treasury cash term; the Financial Accounts, FRED and other inputs are the admitted bytes",
+  "tdcest_bundle": {
+    "sha256": "5bb3a85a0ae6442c74e0021051dfca804c649f6f20c1db4eabd8663db6aa63e8",
+    "generated_at": "2026-11-18T02:21:54Z"
+  },
+  "observation_vintage_cutoff": "2026-11-18T02:21:54Z",
+  "open01_producer_commit": "73df9c4fbc1cd852021cdad012adbd81af515f00",
+  "accepted_inputs": {
+    "output/manifests/open01_producer_run_receipt.json": "0d53492272ae65d491cb1c8936ef4ce0c5075911738f9586a7b399a5c88ad7fa",
+    "data/bundles/designs/tdc_tier2_mmf_rrp_canonical_full_panel__quarterly_bundle.csv": "b7f03c7e24f0c2d3fd809b06203fcf714b63790124c8caaca31ca280669ecbeb",
+    "data/bundles/tdcest/standardized_series.csv": "52e40c75c43827598d256b85ea467613b73e9b93ce8925cd62dc98b543bc8ef2"
+  },
+  "source": {
+    "bundle": "data/bundles/open02/financial_accounts_2026-03-19_v1_tfx.json",
+    "manifest": "output/manifests/open02_source_manifest_v1_tfx.json",
+    "derived_from": {
+      "bundle": {
+        "path": "data/bundles/open02/financial_accounts_2026-03-19.json",
+        "sha256": "15a872b9f1803bb0b07be323cd1a89a8100767e0e850bd136238ac8f5926e798",
+        "bytes": 181566
+      }
+    }
+  }
+}
