@@ -241,8 +241,10 @@ def declared_treatment(vintage: Vintage | None) -> Mapping[str, Any] | None:
     """The vintage's declared treatment source, or None for the admitted one.
 
     A declared treatment keeps the canonical treatment id and replaces only the TDCest
-    regression-series column behind it; it names the admitted column it replaces and the
-    TDCest treatment whose legs and receipts produced the new one.
+    regression-series column behind it, and the columns behind the lower and upper MMF/ON RRP
+    route treatments, so all three share one institutional grouping. It names the admitted
+    column it replaces, the TDCest treatment whose legs and receipts produced the new ones, a
+    label for the contract outputs, and its perimeter.
     """
     if vintage is None or "treatment" not in vintage.payload:
         return None
@@ -250,17 +252,37 @@ def declared_treatment(vintage: Vintage | None) -> Mapping[str, Any] | None:
     from ea_tdc.open_contract import CANONICAL_TREATMENT_ID, CANONICAL_TREATMENT_SOURCE_SERIES
 
     source = declared.get("source_series") if isinstance(declared, Mapping) else None
+    bounds = declared.get("route_bound_source_series") if isinstance(declared, Mapping) else None
+    column = re.compile(r"tdc_[a-z0-9_]+")
     if (
         declared.get("treatment_id") != CANONICAL_TREATMENT_ID
         or declared.get("admitted_source_series") != CANONICAL_TREATMENT_SOURCE_SERIES
-        or not isinstance(source, str) or not re.fullmatch(r"tdc_[a-z0-9_]+", source)
+        or not isinstance(source, str) or not column.fullmatch(source)
         or source == CANONICAL_TREATMENT_SOURCE_SERIES
+        or not isinstance(bounds, Mapping) or set(bounds) != {"lower", "upper"}
+        or not all(isinstance(v, str) and column.fullmatch(v) for v in bounds.values())
+        or len({source, *bounds.values()}) != 3
         or not re.fullmatch(r"[a-z0-9_]+", str(declared.get("tdcest_treatment", "")))
+        or not re.fullmatch(r"[a-z0-9_]+", str(declared.get("label", "")))
         or not str(declared.get("perimeter", "")).strip()
     ):
         raise ValueError("Declared treatment must keep the canonical id, name the admitted source column it "
-                         "replaces, a different tdc_ source column, its TDCest treatment and its perimeter")
+                         "replaces, a different tdc_ source column, distinct lower and upper route columns, its "
+                         "TDCest treatment, a label and its perimeter")
     return declared
+
+
+def treatment_series_overrides(vintage: Vintage | None) -> dict[str, str]:
+    """Design series ids whose TDCest column a declared treatment replaces, and their new columns."""
+    declared = declared_treatment(vintage)
+    if declared is None:
+        return {}
+    from ea_tdc.open_contract import CANONICAL_TREATMENT_ID, OPEN_CONTRACT
+
+    bounds = declared["route_bound_source_series"]
+    return {CANONICAL_TREATMENT_ID: str(declared["source_series"]),
+            OPEN_CONTRACT.mmf_lower_treatment_id: str(bounds["lower"]),
+            OPEN_CONTRACT.mmf_upper_treatment_id: str(bounds["upper"])}
 
 
 def treatment_source_series(vintage: Vintage | None) -> str:
@@ -273,29 +295,38 @@ def treatment_source_series(vintage: Vintage | None) -> str:
 
 @contextlib.contextmanager
 def open01_treatment(vintage: Vintage | None) -> Iterator[str]:
-    """Record a declared treatment's source column in the OPEN-01 outputs; estimator code is unchanged."""
-    from ea_tdc import open01
-    from ea_tdc.open_contract import CANONICAL_TREATMENT_SOURCE_SERIES
+    """Record a declared treatment's source column and label in the OPEN-01 outputs; estimator code is unchanged."""
+    import dataclasses
 
-    source = treatment_source_series(vintage)
-    if source == CANONICAL_TREATMENT_SOURCE_SERIES:
-        yield source
+    from ea_tdc import open01
+    from ea_tdc.open_contract import CANONICAL_TREATMENT_SOURCE_SERIES, OPEN_CONTRACT
+
+    declared = declared_treatment(vintage)
+    if declared is None:
+        yield CANONICAL_TREATMENT_SOURCE_SERIES
         return
-    with _rebound(open01, "CANONICAL_TREATMENT_SOURCE_SERIES", CANONICAL_TREATMENT_SOURCE_SERIES, source):
+    source = str(declared["source_series"])
+    contract = dataclasses.replace(OPEN_CONTRACT, treatment_label=str(declared["label"]))
+    with _rebound(open01, "CANONICAL_TREATMENT_SOURCE_SERIES", CANONICAL_TREATMENT_SOURCE_SERIES, source), \
+            _rebound(open01, "OPEN_CONTRACT", OPEN_CONTRACT, contract):
         yield source
 
 
 @contextlib.contextmanager
 def open16_disclosures(vintage: Vintage) -> Iterator[dict[str, str]]:
-    """State a declared deposit outcome's perimeter in the OPEN-16 output disclosures."""
+    """State a declared deposit outcome's and treatment's perimeter in the OPEN-16 output disclosures."""
     from ea_tdc import open16
 
     declared = deposit_outcome(vintage)
+    treatment = declared_treatment(vintage)
     admitted = dict(open16.DISCLOSURES)
-    if declared is None:
+    if declared is None and treatment is None:
         yield admitted
         return
-    disclosures = {**admitted, "perimeter": str(declared["perimeter"])}
+    perimeter = str(declared["perimeter"]) if declared is not None else admitted["perimeter"]
+    if treatment is not None:
+        perimeter += f" Treatment ({treatment['source_series']}): {treatment['perimeter']}"
+    disclosures = {**admitted, "perimeter": perimeter}
     with _rebound(open16, "DISCLOSURES", admitted, disclosures):
         yield disclosures
 

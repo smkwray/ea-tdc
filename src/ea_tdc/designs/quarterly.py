@@ -19,7 +19,7 @@ from ea_tdc.open_contract import (
 )
 from ea_tdc.paths import ProjectPaths
 from ea_tdc.utils import utc_now_iso, write_json
-from ea_tdc.vintage import active_vintage, deposit_outcome, deposit_outcome_terms, treatment_source_series
+from ea_tdc.vintage import active_vintage, deposit_outcome, deposit_outcome_terms, treatment_series_overrides
 
 
 BASELINE_SERIES_MAP = {
@@ -1913,8 +1913,8 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
                 requested_series.add(value)
 
     # A vintage may declare another TDCest column behind the canonical treatment.
-    series_map = {**BASELINE_SERIES_MAP,
-                  CANONICAL_TREATMENT_ID: ("tdcest", treatment_source_series(active_vintage(paths.root)))}
+    series_map = {**BASELINE_SERIES_MAP, **{series_id: ("tdcest", column) for series_id, column
+                                            in treatment_series_overrides(active_vintage(paths.root)).items()}}
     bundle_rows: list[dict[str, str]] = []
     for quarter in sorted(quarter_pool):
         row: dict[str, str] = {"quarter": quarter}

@@ -3,9 +3,9 @@
   "vintage": "2026q2",
   "authority": {
     "date": "2026-11-21",
-    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of their interest; specifications otherwise unchanged"
+    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings; specifications otherwise unchanged"
   },
-  "output_root": "output/refresh_2026q2_canonical",
+  "output_root": "output/refresh_2026q2_canonical_v2",
   "reuse_acquisition": {
     "root": "output/refresh_2026q2",
     "receipt_sha256": "3c4c9e904294b2dbb736a580409304818f1205d05da9cb3c0d2ae29720fff1ea",
@@ -43,8 +43,13 @@
     "treatment_id": "tdc_tier2_regression_mmf_rrp_prop_bank_only_qoq",
     "admitted_source_series": "tdc_tier2_regression_mmf_rrp_prop_bank_only_ru_flow",
     "source_series": "tdc_tier2_regression_mmf_rrp_prop_depository_institution_np_corp_cu_ru_flow",
+    "route_bound_source_series": {
+      "lower": "tdc_tier2_regression_mmf_rrp_lb_depository_institution_np_corp_cu_ru_flow",
+      "upper": "tdc_tier2_regression_mmf_rrp_ub_depository_institution_np_corp_cu_ru_flow"
+    },
     "tdcest_treatment": "depository_cu",
-    "perimeter": "Federal Reserve, US-chartered, foreign-office, affiliated-area-bank and natural-person and corporate credit-union Treasury purchases net of allocated interest, the whole rest-of-world leg, Treasury cash and the proportional MMF/ON RRP route; the NCUA capitalization deposit is excluded"
+    "label": "regression_mmf_rrp_depository_cu_long",
+    "perimeter": "Federal Reserve, US-chartered, foreign-office, affiliated-area-bank and natural-person and corporate credit-union Treasury purchases net of interest allocated on the same institutions' holdings, the whole rest-of-world leg, Treasury cash and the MMF/ON RRP route; the NCUA capitalization deposit is excluded"
   },
   "admitted_sample": {
     "start": "2002Q1",
@@ -91,19 +96,19 @@
     "raw_seed_dir": "data/seed/interpol/raw"
   },
   "tdcest": {
-    "root": "../tdcest/data/refresh_2026q2_cu",
-    "receipt_sha256": "046e14bdc416ac2755fe9396f0cbb57e5cd216ac0c0bc1b5bda5e43bdd70773d",
-    "generated_at": "2026-11-18T00:21:44Z",
+    "root": "../tdcest/data/refresh_2026q2_cu_v2",
+    "receipt_sha256": "e853ced4addd5228bcc81ea6f023b385fd9d5f4d1a58d4268c6a4764c4a7a648",
+    "generated_at": "2026-11-21T15:51:50Z",
     "files": {
-      "data/processed/tdc_tier2_regression_series.csv": "a9901b1c249adda932eb54d035da62a856495ad94f00cdda80bdd3c48d0dcb64",
-      "data/processed/tdc_estimates.csv": "c95655b2db3e1dfca0caced473297d1fc7a34cc0076015b79d1837ea5cc9fe8f",
-      "data/processed/tdc_components.csv": "982a87b9206b05cb2cd9276d278bda40a73191881c4cb369f664a913d630babe",
-      "data/processed/tdc_corrections.csv": "05eab910e89d076c2b66db4eb17bb02b23648eb8596bc4697ab76c435c8c09f1",
-      "data/processed/quarterly_inputs.csv": "0f1e83fa7697027ba0c47347becd95f1a98edb7ee9cf80edca666a64f0072073",
-      "data/processed/tier2_regression_interest_backcast.csv": "f9eba605dc118cfd5c5cb8ca7d0fde3a81baa801e389a271b4caee1f88775734",
-      "data/processed/tdc_regression_legs_v1.csv": "4ad7b1e14b7d0042c0199d161a8894afe648e1d714624d3b66ffbfc2254eca5a",
-      "data/processed/tdc_regression_legs_v1_receipt.json": "cb94de3cddc51013ccc885502e66be110b8e44637c24f89db12f1cd616b15b3a",
-      "data/processed/tdc_downstream_handoff_bundle.json": "80bda73f08074fb21ea2108e6abb30d0bdf78d22176aa23b9c22148a0f70fa58"
+      "data/processed/tdc_tier2_regression_series.csv": "056ce0826c67190876660ff780c0d5984432b602f37e58f93782fe9f3ce0f79d",
+      "data/processed/tdc_estimates.csv": "b301388bd6e256f65a364ef777cbff395c662d10100085b186ce507fd77c0ff8",
+      "data/processed/tdc_components.csv": "dd41a9e41a980fdbe25f77b4e0237e9634d1274d802b6cd3d8623da83fc683de",
+      "data/processed/tdc_corrections.csv": "1607e955f9471b1804db2060e71597778a8e3c914e8413413c1cb2e81d0044d1",
+      "data/processed/quarterly_inputs.csv": "71ca49466cc8b1460b334b3218e68358ec2fe750ef126e157540b31167e095ac",
+      "data/processed/tier2_regression_interest_backcast.csv": "128117cf8790f710c866b02611303ff8d98a24d5e0a1a16eb8b8d1523b3a226b",
+      "data/processed/tdc_regression_legs_v1.csv": "d4123978b8cdd4c4cdf6aa7f2213694cfb5c20c70c4d6c16a1aebd44ff5ed2fe",
+      "data/processed/tdc_regression_legs_v1_receipt.json": "256c10be5e218f4c520bb515c940f5593acf891f9912566800910f6234098ecd",
+      "data/processed/tdc_downstream_handoff_bundle.json": "3f7fa39985d85be07122e441214cb73ff9bcb73be0fbee177421a7341cadd229"
     }
   },
   "tdcpass": {

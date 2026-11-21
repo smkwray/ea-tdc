@@ -660,6 +660,30 @@ def acquire_deposit_outcome(vintage: Vintage, stage: Path, admitted_fred: Mappin
             "files": records, "admitted_refetch_consistency": consistency}
 
 
+def bind_tdcest_files(pins: Mapping[str, str], listed: Mapping[str, Any], amended: Mapping[str, Any],
+                      carried_inputs: Any) -> dict[str, dict[str, Any]]:
+    """What binds each pinned TDCest file: the addendum, the receipt's outputs, its carried inputs, or the pin alone.
+
+    Every receipt entry naming a pinned file must carry the pinned hash; a carried input keeps the
+    upstream receipt's own record of what binds it.
+    """
+    carried = {locator: entry for locator, entry in (carried_inputs or {}).items()
+               if isinstance(entry, Mapping) and "sha256" in entry}
+    records: dict[str, dict[str, Any]] = {}
+    for locator, digest in pins.items():
+        if locator in listed and listed[locator]["sha256"] != digest:
+            raise ValueError(f"TDCest receipt and vintage pin disagree: {locator}")
+        if locator in carried and carried[locator]["sha256"] != digest:
+            raise ValueError(f"TDCest receipt's carried input and vintage pin disagree: {locator}")
+        bound_by = ("tdcest_receipt_addendum" if locator in amended else
+                    "tdcest_receipt" if locator in listed else
+                    "tdcest_receipt_carried_input" if locator in carried else "vintage_pin")
+        records[locator] = {"sha256": digest, "bound_by": bound_by}
+        if bound_by == "tdcest_receipt_carried_input":
+            records[locator]["upstream_binding"] = {k: v for k, v in carried[locator].items() if k != "sha256"}
+    return records
+
+
 def lane_acquire(vintage: Vintage, commit: str) -> Path:
     """Acquire every vintage input. A vintage that declares ``reuse_acquisition`` copies the
     FRED, factor-seed and OPEN-02 availability inputs byte for byte from that pinned
@@ -765,14 +789,9 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
             addendum = _read_json(stage / "tdcest" / addendum_path)
             amended, _ = refresh_addendum(tdcest_receipt, addendum, vintage.vintage_id)
             listed = {**listed, **amended}
-        tdcest_records = {}
+        tdcest_records = bind_tdcest_files(tdcest["files"], listed, amended, tdcest_receipt.get("inputs"))
         for locator, digest in tdcest["files"].items():
-            if locator in listed and listed[locator]["sha256"] != digest:
-                raise ValueError(f"TDCest receipt and vintage pin disagree: {locator}")
             _copy_verified(tdcest_root / locator, stage / "tdcest" / locator, digest)
-            bound_by = ("tdcest_receipt_addendum" if locator in amended else
-                        "tdcest_receipt" if locator in listed else "vintage_pin")
-            tdcest_records[locator] = {"sha256": digest, "bound_by": bound_by}
         processed = stage / "tdcest" / "data" / "processed"
         bundle = reconstruct_site_bundle(
             processed,
@@ -782,6 +801,12 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
         )
         bundle_path = stage / "tdcest" / "site" / "data" / "bundle.json"
         _write_json(bundle_path, bundle)
+        treatment = declared_treatment(vintage)
+        if treatment is not None:
+            legs_receipt = _read_json(stage / "tdcest" / "data/processed/tdc_regression_legs_v1_receipt.json")
+            if legs_receipt.get("treatment", {}).get("C") != treatment["source_series"]:
+                raise ValueError("TDCest legs were made for another treatment than the declared one")
+            receipt["treatment"] = {**dict(treatment), "tdcest_legs_treatment": legs_receipt["treatment"]}
         receipt["tdcest"] = {"receipt_sha256": tdcest["receipt_sha256"], "files": tdcest_records,
                              "z1_vintage": tdcest_receipt.get("z1_vintage"), "producers": tdcest_receipt.get("producers"),
                              "site_bundle": _record(stage, bundle_path), "dates": [bundle["dates"][0], bundle["dates"][-1]]}
@@ -1334,6 +1359,7 @@ def lane_seal(vintage: Vintage, commit: str) -> Path:
             "carried_bundles": acquisition["carried_bundles"],
             "reused_acquisition": acquisition.get("reused_acquisition"),
             "deposit_outcome": acquisition.get("deposit_outcome"),
+            "treatment": acquisition.get("treatment"),
             "tdcpass_retired_series_carried": materialized["tdcpass_retired_series_carried"],
             "observation_cutoff": materialized["observation_cutoff"],
         },

@@ -42,6 +42,7 @@ from ea_tdc.vintage import (
     load_vintage,
     open01_tier_counts,
     open01_treatment,
+    treatment_series_overrides,
     open16_disclosures,
     open16_sample,
     pinned_factor_features,
@@ -620,6 +621,25 @@ def test_addendum_binds_the_corrected_tdcest_objects(tree):
     assert bundle["estimates"]["tdc_base_bank_only_ru_flow"] == [1.25, -2.5]
 
 
+def test_carried_inputs_of_the_tdcest_receipt_are_checked_and_keep_their_upstream_binding(refresh):
+    # A variant root copies some objects unchanged and lists them as carried inputs with the record
+    # that binds them upstream; the pin must match that entry, and the binding travels with the file.
+    pins = {"data/processed/series.csv": "a" * 64, "data/processed/tdc_corrections.csv": "b" * 64,
+            "data/processed/other.csv": "c" * 64}
+    listed = {"data/processed/series.csv": {"sha256": "a" * 64}}
+    carried = {"data/processed/tdc_corrections.csv": {"sha256": "b" * 64, "source": "refresh_2026q2/x",
+                                                      "bound_by": "downstream vintage pin"},
+               "copied_tree": {"path": "logs/copied_tree.json", "sha256": "d" * 64}}
+    records = refresh.bind_tdcest_files(pins, listed, {}, carried)
+    assert {k: v["bound_by"] for k, v in records.items()} == {
+        "data/processed/series.csv": "tdcest_receipt", "data/processed/tdc_corrections.csv": "tdcest_receipt_carried_input",
+        "data/processed/other.csv": "vintage_pin"}
+    assert records["data/processed/tdc_corrections.csv"]["upstream_binding"] == {
+        "source": "refresh_2026q2/x", "bound_by": "downstream vintage pin"}
+    with pytest.raises(ValueError, match="carried input and vintage pin disagree: data/processed/tdc_corrections.csv"):
+        refresh.bind_tdcest_files({**pins, "data/processed/tdc_corrections.csv": "e" * 64}, listed, {}, carried)
+
+
 def test_corrected_objects_need_the_addendum_because_the_original_receipt_binds_superseded_bytes(tree):
     tree.forbid_network()
     with pytest.raises(ValueError, match="receipt and vintage pin disagree: data/processed/tdc_estimates.csv"):
@@ -784,6 +804,7 @@ def test_a_quarter_missing_one_bank_group_raises_instead_of_breaking_the_level(t
 
 CANONICAL = "config/vintage_2026q2_canonical.json"
 CU_TREATMENT = "tdc_tier2_regression_mmf_rrp_prop_depository_institution_np_corp_cu_ru_flow"
+OPEN02_CONTRACT_MMF = ("tdc_tier2_regression_mmf_rrp_lb_bank_only_qoq", "tdc_tier2_regression_mmf_rrp_ub_bank_only_qoq")
 CANONICAL_TERMS = [("BOGZ1FL703127005Q", 1), ("BOGZ1FL703130005Q", 1), ("BOGZ1FL763123005Q", -1),
                    ("BOGZ1FL313030003Q", -1)]
 
@@ -804,13 +825,17 @@ def test_canonical_vintage_changes_only_the_outcome_and_the_treatment_column_of_
     treatment = declared_treatment(canonical)
     assert treatment["source_series"] == CU_TREATMENT and treatment["tdcest_treatment"] == "depository_cu"
     assert treatment["treatment_id"] == CANONICAL_TREATMENT_ID
-    # Only the TDCest root, its receipt and the three re-exported objects change.
+    # The TDCest root, its receipt and generation time change, and the same nine objects are pinned:
+    # the credit-union interest fix regenerates the estimate chain behind all of them.
     before, after = corrected["tdcest"], payload["tdcest"]
     assert {k for k in set(before) | set(after) if before.get(k) != after.get(k)} == {
-        "root", "receipt_sha256", "files", "receipt_addendum"}
-    assert {k for k in before["files"] if before["files"][k] != after["files"][k]} == {
-        "data/processed/tdc_tier2_regression_series.csv", "data/processed/tdc_regression_legs_v1.csv",
-        "data/processed/tdc_regression_legs_v1_receipt.json"}
+        "root", "receipt_sha256", "files", "receipt_addendum", "generated_at"}
+    assert set(before["files"]) == set(after["files"])
+    # The route bounds use the same institutional grouping as the central treatment.
+    overrides = treatment_series_overrides(canonical)
+    assert overrides == {CANONICAL_TREATMENT_ID: CU_TREATMENT,
+                         OPEN02_CONTRACT_MMF[0]: CU_TREATMENT.replace("_prop_", "_lb_"),
+                         OPEN02_CONTRACT_MMF[1]: CU_TREATMENT.replace("_prop_", "_ub_")}
 
 
 @pytest.mark.parametrize("change, value", [
@@ -820,6 +845,9 @@ def test_canonical_vintage_changes_only_the_outcome_and_the_treatment_column_of_
     ("source_series", "BOGZ1FL703127005Q"),
     ("tdcest_treatment", ""),
     ("perimeter", " "),
+    ("label", "Bank Long"),
+    ("route_bound_source_series", {"lower": CU_TREATMENT, "upper": CU_TREATMENT.replace("_prop_", "_ub_")}),
+    ("route_bound_source_series", {"lower": CU_TREATMENT.replace("_prop_", "_lb_")}),
 ])
 def test_a_treatment_declaration_that_drifts_from_the_canonical_treatment_is_refused(tmp_path, change, value):
     payload = json.loads((ROOT / CANONICAL).read_text())
@@ -850,7 +878,11 @@ def test_canonical_outcome_nets_federal_government_deposits_and_uses_the_credit_
         "BOGZ1FL703130005Q": [("2023-10-01", "2000"), ("2024-01-01", "2300")],
         "BOGZ1FL763123005Q": [("2023-10-01", "5"), ("2024-01-01", "25")],
         "BOGZ1FL313030003Q": [("2023-10-01", "2"), ("2024-01-01", "3")],
-    }, config=CANONICAL, tdcest_rows=(f"{CANONICAL_TREATMENT_SOURCE_SERIES}=60", f"{CU_TREATMENT}=61.5"))
+    }, config=CANONICAL, tdcest_rows=(f"{CANONICAL_TREATMENT_SOURCE_SERIES}=60", f"{CU_TREATMENT}=61.5",
+                                      "tdc_tier2_regression_mmf_rrp_lb_bank_only_ru_flow=55",
+                                      f"{CU_TREATMENT.replace('_prop_', '_lb_')}=56.5",
+                                      "tdc_tier2_regression_mmf_rrp_ub_bank_only_ru_flow=65",
+                                      f"{CU_TREATMENT.replace('_prop_', '_ub_')}=66.5"))
     paths = project_paths(root)
     ensure_repo_dirs(paths)
     admitted = {r["quarter"]: r for r in csv.DictReader(build_quarterly_design(paths, job_id="baseline_tdc_lp_deposits")
@@ -862,13 +894,22 @@ def test_canonical_outcome_nets_federal_government_deposits_and_uses_the_credit_
                                                           .bundle_path.open())}
     assert canonical["2024Q1"]["matched_total_deposits"] == "379.0"  # (100 + 300) less Treasury's +20 and +1
     assert canonical["2024Q1"][CANONICAL_TREATMENT_ID] == "61.5"
+    # The money-fund route bounds follow the same grouping as the central treatment.
+    assert admitted["2024Q1"][OPEN02_CONTRACT_MMF[0]] == "55" and canonical["2024Q1"][OPEN02_CONTRACT_MMF[0]] == "56.5"
+    assert admitted["2024Q1"][OPEN02_CONTRACT_MMF[1]] == "65" and canonical["2024Q1"][OPEN02_CONTRACT_MMF[1]] == "66.5"
     assert canonical["2024Q1"]["tdc_bank_only_qoq"] == admitted["2024Q1"]["tdc_bank_only_qoq"] == "100"
 
 
 def test_open01_records_the_declared_treatment_column_only_inside_the_canonical_run():
+    admitted_contract = open01.OPEN_CONTRACT
     with open01_treatment(load_vintage(ROOT, CANONICAL)) as source:
         assert open01.CANONICAL_TREATMENT_SOURCE_SERIES == source == CU_TREATMENT
+        assert open01.OPEN_CONTRACT.treatment_label == "regression_mmf_rrp_depository_cu_long"
+        assert open01.OPEN_CONTRACT.mmf_lower_treatment_id == admitted_contract.mmf_lower_treatment_id
     assert open01.CANONICAL_TREATMENT_SOURCE_SERIES == CANONICAL_TREATMENT_SOURCE_SERIES
+    assert open01.OPEN_CONTRACT is admitted_contract
+    with open16_disclosures(load_vintage(ROOT, CANONICAL)) as disclosures:
+        assert CU_TREATMENT in disclosures["perimeter"] and "corporate credit-union" in disclosures["perimeter"]
     with open01_treatment(load_vintage(ROOT, ALIGNED)) as source:
         assert source == CANONICAL_TREATMENT_SOURCE_SERIES
 

@@ -99,8 +99,11 @@ def identical_design(baseline: Path, variant: Path, treatment_declared: bool = F
     left, right = _rows(baseline / PANEL_LOCATOR), _rows(variant / PANEL_LOCATOR)
     if [r["quarter"] for r in left] != [r["quarter"] for r in right] or set(left[0]) != set(right[0]):
         raise ValueError("Projection panels differ in quarters or columns")
-    shared = [*([] if treatment_declared else [CANONICAL_TREATMENT_ID]), *CANONICAL_CONTROL_IDS]
-    allowed = {CANONICAL_OUTCOME_ID, *([CANONICAL_TREATMENT_ID] if treatment_declared else [])}
+    from ea_tdc.open_contract import OPEN_CONTRACT
+
+    treatment_ids = [CANONICAL_TREATMENT_ID, OPEN_CONTRACT.mmf_lower_treatment_id, OPEN_CONTRACT.mmf_upper_treatment_id]
+    shared = [*([] if treatment_declared else treatment_ids), *CANONICAL_CONTROL_IDS]
+    allowed = {CANONICAL_OUTCOME_ID, *(treatment_ids if treatment_declared else [])}
     differing = sorted({k for a, b in zip(left, right, strict=True) for k in a if a[k] != b[k]})
     if set(differing) & set(shared) or set(differing) - allowed:
         raise ValueError(f"Variant changes more than the deposit outcome: {differing}")
