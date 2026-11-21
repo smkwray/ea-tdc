@@ -3,9 +3,9 @@
   "vintage": "2026q2",
   "authority": {
     "date": "2026-11-21",
-    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; bank FRNs inside the FFIEC level); specifications otherwise unchanged"
+    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; FRN weights summing to FRNs outstanding and held inside FRN-inclusive holder levels); specifications otherwise unchanged"
   },
-  "output_root": "output/refresh_2026q2_canonical_v3",
+  "output_root": "output/refresh_2026q2_canonical_v4",
   "reuse_acquisition": {
     "root": "output/refresh_2026q2",
     "receipt_sha256": "3c4c9e904294b2dbb736a580409304818f1205d05da9cb3c0d2ae29720fff1ea",
@@ -96,19 +96,19 @@
     "raw_seed_dir": "data/seed/interpol/raw"
   },
   "tdcest": {
-    "root": "../tdcest/data/refresh_2026q2_cu_v3",
-    "receipt_sha256": "ae3c996f680224702c7dfc5535e4626c47f794c1357532639931d91d67673807",
-    "generated_at": "2026-11-21T16:06:15Z",
+    "root": "../tdcest/data/refresh_2026q2_cu_v4",
+    "receipt_sha256": "46a6c4fab222d8d4f288c916d6cba69f7df85dafc29e4cef7d1875b127424fea",
+    "generated_at": "2026-11-21T16:22:45Z",
     "files": {
-      "data/processed/tdc_tier2_regression_series.csv": "e9fbd786f87fba1009f2ff30fcef21a87125447b3edc04cffae8e9348e518bd9",
-      "data/processed/tdc_estimates.csv": "db67a24d769890f29916f7955f4ef5929984b2ea473cf37e51b1e0c83ebe243b",
-      "data/processed/tdc_components.csv": "a1d44fef5a4d3d09d8931ef499d8f482b9a6b64fa612b47420880eac0359c6da",
-      "data/processed/tdc_corrections.csv": "aa698b8efdbda9a591de89ff0d7eea124334c4baf9b02206c2f44b994e26a5c1",
-      "data/processed/quarterly_inputs.csv": "18bc9f104d6993221e980f2273ca9228d4df4cf114d0f929cbe3a60772d3b56a",
-      "data/processed/tier2_regression_interest_backcast.csv": "c671c472403cefc754a7a0eebc0a9d1da5950c92c61d1516cf25447d17e3385d",
-      "data/processed/tdc_regression_legs_v1.csv": "0ca33a9545956ca48668bf52b04bdba4f1569eacb9d22869e7ce00a3cb417488",
-      "data/processed/tdc_regression_legs_v1_receipt.json": "445a02ed617d4c6e008e6134da17aa51fb685f4acd86c88e0e737620cddbb0fb",
-      "data/processed/tdc_downstream_handoff_bundle.json": "6918c7026a4402c04b2bd90642acb71701a20763576c0b3aaa2fccd4985cea1d"
+      "data/processed/tdc_tier2_regression_series.csv": "69c3ecf70e6fe940b8dee7ad16258e54aaaaab4059f9288c8d203cb6d5099fbf",
+      "data/processed/tdc_estimates.csv": "3cce7e0b907c7c0a65836a19ddc11a00ba222564d85299edc985c77f30580daa",
+      "data/processed/tdc_components.csv": "3d9178f46660d003fddecb67b968a88a3d282fa49d9de70dda19e8a662a4b7f3",
+      "data/processed/tdc_corrections.csv": "7b1dd31275234f4d9b60455a8671244aa2c5fadb18b15bbe2d7a3137931fe381",
+      "data/processed/quarterly_inputs.csv": "fa09a54f1893c79de992aa2bd912229ec0d1821d601e6255247bc437edee2982",
+      "data/processed/tier2_regression_interest_backcast.csv": "fe467ca29ff8e7406edc87922398e36d11fdcadbc3cfcc4313a6357a1d5e85ba",
+      "data/processed/tdc_regression_legs_v1.csv": "db819f327aec65b41ec7aa098c29a53cae48d28a8b69d3fc15434d4860eec159",
+      "data/processed/tdc_regression_legs_v1_receipt.json": "72b9032c15486f007dc83295559651545a3e0886248a8841566b3fabbe267abf",
+      "data/processed/tdc_downstream_handoff_bundle.json": "65768f1c8ba3a7524ff629a8eb7457b4c4b6995465858f3d027e16df7ce06ea2"
     }
   },
   "tdcpass": {
