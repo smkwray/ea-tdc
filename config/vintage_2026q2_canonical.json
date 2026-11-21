@@ -3,9 +3,9 @@
   "vintage": "2026q2",
   "authority": {
     "date": "2026-11-21",
-    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; FRN weights summing to FRNs outstanding and held inside FRN-inclusive holder levels); specifications otherwise unchanged"
+    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; observed money-fund and foreign FRN and bill holdings; remaining FRNs shared by other holders; Fed FRN interest estimated where unobserved); specifications otherwise unchanged"
   },
-  "output_root": "output/refresh_2026q2_canonical_v4",
+  "output_root": "output/refresh_2026q2_canonical_v5",
   "reuse_acquisition": {
     "root": "output/refresh_2026q2",
     "receipt_sha256": "3c4c9e904294b2dbb736a580409304818f1205d05da9cb3c0d2ae29720fff1ea",
@@ -96,19 +96,19 @@
     "raw_seed_dir": "data/seed/interpol/raw"
   },
   "tdcest": {
-    "root": "../tdcest/data/refresh_2026q2_cu_v4",
-    "receipt_sha256": "46a6c4fab222d8d4f288c916d6cba69f7df85dafc29e4cef7d1875b127424fea",
-    "generated_at": "2026-11-21T16:22:45Z",
+    "root": "../tdcest/data/refresh_2026q2_cu_v5",
+    "receipt_sha256": "0879c7f3fb0014dd998009221d3bb32cf56064f1ca21eb04da65c60f3127c2dd",
+    "generated_at": "2026-11-21T16:56:49Z",
     "files": {
-      "data/processed/tdc_tier2_regression_series.csv": "69c3ecf70e6fe940b8dee7ad16258e54aaaaab4059f9288c8d203cb6d5099fbf",
-      "data/processed/tdc_estimates.csv": "3cce7e0b907c7c0a65836a19ddc11a00ba222564d85299edc985c77f30580daa",
-      "data/processed/tdc_components.csv": "3d9178f46660d003fddecb67b968a88a3d282fa49d9de70dda19e8a662a4b7f3",
-      "data/processed/tdc_corrections.csv": "7b1dd31275234f4d9b60455a8671244aa2c5fadb18b15bbe2d7a3137931fe381",
-      "data/processed/quarterly_inputs.csv": "fa09a54f1893c79de992aa2bd912229ec0d1821d601e6255247bc437edee2982",
-      "data/processed/tier2_regression_interest_backcast.csv": "fe467ca29ff8e7406edc87922398e36d11fdcadbc3cfcc4313a6357a1d5e85ba",
-      "data/processed/tdc_regression_legs_v1.csv": "db819f327aec65b41ec7aa098c29a53cae48d28a8b69d3fc15434d4860eec159",
-      "data/processed/tdc_regression_legs_v1_receipt.json": "72b9032c15486f007dc83295559651545a3e0886248a8841566b3fabbe267abf",
-      "data/processed/tdc_downstream_handoff_bundle.json": "65768f1c8ba3a7524ff629a8eb7457b4c4b6995465858f3d027e16df7ce06ea2"
+      "data/processed/tdc_tier2_regression_series.csv": "848a1b7d9e84a4ec318281f50988e911cbebe71d367d5dd9b84289ca9bd70d53",
+      "data/processed/tdc_estimates.csv": "759588e6789e6628b94a3c492188352d39043ff53c5511c21014432c78801a3a",
+      "data/processed/tdc_components.csv": "3109abc9a30520a3a937b3ac8dbd9368a4d802d2a01d0246eb858244d6b5897b",
+      "data/processed/tdc_corrections.csv": "48bc2c64fbde8fada10d666d2093e6751d03594f361a66c72be5bb07666c7bb5",
+      "data/processed/quarterly_inputs.csv": "a4e44baa23a4a00c04e40a74d17c8fc9ccfb895b153194dbb1988ad89521d144",
+      "data/processed/tier2_regression_interest_backcast.csv": "0ecd41feff183131b534e25cfe215fb79aa4f8bfaef05a51f88b232756dc1f58",
+      "data/processed/tdc_regression_legs_v1.csv": "92afeabdd3853577f8dc721f28f7d0a29542d4ba6a5d73332d794c5eeaecd7c5",
+      "data/processed/tdc_regression_legs_v1_receipt.json": "a8f63d514ca97570c790b12f113fe2b4072f0dc325ea50465260ee4777d44c82",
+      "data/processed/tdc_downstream_handoff_bundle.json": "d16efc90bac4a9c72a272888ea9bca8ddbda4146f9bd3ef2c7ed14a49172f8da"
     }
   },
   "tdcpass": {
