@@ -17,6 +17,14 @@ root; admitted outputs are never written. Lanes:
   open16        validate that panel in both pinned numerical runtimes and run
                 the bounded OPEN-16 covariance and calendar-deletion diagnostics
   seal          bind inputs, outputs and the unchanged admitted surface
+
+A vintage that declares ``deposit_outcome`` sums several Financial Accounts
+deposit levels into the outcome. Its series are fetched once, before the
+configuration pins them:
+
+  fetch-deposit-outcome  retrieve the declared series from FRED with their
+                vintages and prove each equals the pinned Financial Accounts
+                release in every sample quarter
 """
 from __future__ import annotations
 
@@ -49,7 +57,13 @@ for _path in (ROOT / "src", ROOT / "scripts"):
 from ea_tdc.vintage import (  # noqa: E402
     VINTAGE_ENV,
     Vintage,
+    declared_treatment,
+    deposit_outcome,
+    deposit_outcome_fetch,
+    deposit_outcome_terms,
     load_vintage,
+    open16_disclosures,
+    quarter_label,
     quarter_ordinal,
     refresh_addendum,
     sha256_file,
@@ -77,10 +91,13 @@ TDCEST_REFERENCE_COLUMNS = ("gdp_deflator", "nominal_gdp_saar_bil")
 ESTIMATE_TOLERANCE = 1e-7
 ACQUISITION_RECEIPT = "inputs/acquisition_receipt.json"
 OPEN02_AVAILABILITY = "inputs/open02_source_availability.json"
+DEPOSIT_OUTCOME_RECEIPT = "fetch_receipt.json"
 # A reused acquisition stands in for a live one only under the configuration that made it;
 # a correction may differ from that configuration in these fields alone.
-REUSE_ALLOWED_DIFFERENCES = ("output_root", "authority", "tdcest", "reuse_acquisition")
+REUSE_ALLOWED_DIFFERENCES = ("output_root", "authority", "tdcest", "reuse_acquisition", "deposit_outcome", "treatment")
 REUSE_ALLOWED_TDCEST_DIFFERENCES = ("files", "receipt_addendum", "generated_at")
+# A declared treatment is produced in its own TDCest root under its own receipt.
+TREATMENT_ALLOWED_TDCEST_DIFFERENCES = ("root", "receipt_sha256")
 # Locators inside a producer root: relative POSIX segments only, no drive, no parent step.
 PLAIN_LOCATOR = re.compile(r"[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*")
 
@@ -466,8 +483,10 @@ def load_reused_acquisition(vintage: Vintage) -> tuple[Path, dict[str, Any], dic
     differs = [k for k in sorted(set(earlier) | set(current))
                if k not in REUSE_ALLOWED_DIFFERENCES and earlier.get(k) != current.get(k)]
     before, after = earlier.get("tdcest", {}), current.get("tdcest", {})
+    allowed = (*REUSE_ALLOWED_TDCEST_DIFFERENCES,
+               *(TREATMENT_ALLOWED_TDCEST_DIFFERENCES if declared_treatment(vintage) is not None else ()))
     differs += [f"tdcest.{k}" for k in sorted(set(before) | set(after))
-                if k not in REUSE_ALLOWED_TDCEST_DIFFERENCES and before.get(k) != after.get(k)]
+                if k not in allowed and before.get(k) != after.get(k)]
     if differs:
         raise ValueError(f"Configuration differs from the reused acquisition's beyond the correction: {differs}")
     return root, receipt, {"root": declared["root"], "receipt_sha256": digest,
@@ -506,6 +525,163 @@ def reuse_factor_seed(root: Path, stage: Path, receipt: Mapping[str, Any], raw_i
         if record.get("status") != status or (status != "refreshed" and record.get("sha256") != raw_inventory[name]):
             raise ValueError(f"Reused factor-seed record differs from the admitted raw inventory: {name}")
     return {name: _reuse_file(root, stage, files[name], f"inputs/interpol_raw/{name}") for name in sorted(files)}
+
+
+def _used_quarters(vintage: Vintage) -> list[str]:
+    """Sample quarters plus the quarter before the first: every level a quarterly change reads."""
+    return [quarter_label(quarter_ordinal(vintage.sample_start) - 1), *vintage.quarters]
+
+
+def _quarterly_levels(rows: Sequence[Mapping[str, str]]) -> dict[str, float]:
+    levels = {}
+    for row in rows:
+        if row["value"] in ("", "."):
+            continue
+        year, month = int(row["date"][:4]), int(row["date"][5:7])
+        levels[f"{year}Q{(month - 1) // 3 + 1}"] = float(row["value"])
+    return levels
+
+
+def _compare_levels(left: Mapping[str, float], right: Mapping[str, float], quarters: Sequence[str]) -> dict[str, Any]:
+    missing = [q for q in quarters if q not in left or q not in right]
+    gaps = [abs(left[q] - right[q]) for q in quarters if q in left and q in right]
+    return {"quarters": len(quarters), "first": quarters[0], "last": quarters[-1], "missing": missing,
+            "identical": sum(gap == 0 for gap in gaps), "max_abs_difference": max(gaps, default=0.0)}
+
+
+def z1_levels(archive: bytes, series_id: str) -> dict[str, float]:
+    """Quarterly levels of one FRED-coded Financial Accounts series in a Board CSV archive."""
+    column = f"{series_id.removeprefix('BOGZ1').removesuffix('Q')}.Q"
+    found: dict[str, float] = {}
+    with zipfile.ZipFile(io.BytesIO(archive)) as handle:
+        for name in sorted(handle.namelist()):
+            if not name.endswith(".csv"):
+                continue
+            rows = list(csv.DictReader(io.StringIO(handle.read(name).decode("utf-8"))))
+            if not rows or column not in rows[0]:
+                continue
+            levels = {row["date"].replace(":", ""): float(row[column]) for row in rows
+                      if re.fullmatch(r"\d{4}:Q[1-4]", row["date"]) and row[column] not in ("", "ND")}
+            if found and any(found.get(q, v) != v for q, v in levels.items()):
+                raise ValueError(f"Financial Accounts tables disagree on {column}")
+            found.update(levels)
+    if not found:
+        raise ValueError(f"{column} is not in the Financial Accounts archive")
+    return found
+
+
+def lane_fetch_deposit_outcome(vintage: Vintage, commit: str) -> Path:
+    """Fetch the declared deposit-outcome series once, into the root the configuration will pin.
+
+    Each series must equal the pinned Financial Accounts release in every quarter the
+    outcome reads; the receipt records FRED's vintage fields and that comparison.
+    """
+    _verify_clean_commit(ROOT, commit)
+    declared = deposit_outcome(vintage)
+    if declared is None:
+        raise ValueError("Vintage declares no deposit outcome")
+    target = ROOT / _plain(declared["source"]["root"], "Deposit-outcome source root")
+    if target.exists():
+        raise ValueError("Deposit-outcome source root already exists; no overwrite")
+    key = os.environ.get(vintage.payload["fred"]["api_key_env"], "").strip()
+    if not key:
+        raise ValueError("FRED API key environment variable is not set")
+    release = vintage.payload["z1_release"]
+    request = urllib.request.Request(release["archive_url"], headers={"User-Agent": "ea-tdc/0.1.0"})
+    with urllib.request.urlopen(request, timeout=180) as response:
+        archive = response.read()
+    if hashlib.sha256(archive).hexdigest() != release["archive_sha256"]:
+        raise ValueError("Financial Accounts archive differs from the pinned release")
+    quarters = _used_quarters(vintage)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    stage = Path(tempfile.mkdtemp(prefix=".deposit-outcome-", dir=target.parent))
+    try:
+        records = {}
+        for series_id in deposit_outcome_fetch(declared):
+            rows, record = _fred_series(series_id, key, vintage.payload["fred"]["raw_observation_start"])
+            path = stage / "fred" / f"{series_id}.csv"
+            _write_series_csv(path, rows, missing=".")
+            comparison = _compare_levels(_quarterly_levels(rows), z1_levels(archive, series_id), quarters)
+            if comparison["missing"] or comparison["identical"] != len(quarters):
+                raise ValueError(f"{series_id} differs from the pinned Financial Accounts release: {comparison}")
+            records[series_id] = {**record, **_record(stage, path), "z1_release_comparison": comparison}
+        receipt = {"lane": "fetch-deposit-outcome", "producer_commit": commit, "completed_at_utc": _now(),
+                   "vintage": vintage.record(), "z1_release": release, "archive_bytes": len(archive),
+                   "series": records}
+        _write_json(stage / DEPOSIT_OUTCOME_RECEIPT, receipt)
+        _verify_clean_commit(ROOT, commit)
+        os.replace(stage, target)
+    finally:
+        if stage.exists():
+            shutil.rmtree(stage)
+    return target / DEPOSIT_OUTCOME_RECEIPT
+
+
+def acquire_deposit_outcome(vintage: Vintage, stage: Path, admitted_fred: Mapping[str, Any]) -> dict[str, Any]:
+    """Place the pinned deposit-outcome series beside the acquired FRED inputs.
+
+    The admitted series stays the acquired bytes; its refetch must equal them in every
+    quarter the outcome reads, which proves the added series share its release.
+    """
+    declared = deposit_outcome(vintage)
+    source = declared["source"]
+    root = ROOT / _plain(source["root"], "Deposit-outcome source root")
+    _copy_verified(root / DEPOSIT_OUTCOME_RECEIPT, stage / "inputs/deposit_outcome" / DEPOSIT_OUTCOME_RECEIPT,
+                   source["receipt_sha256"])
+    fetched = _read_json(stage / "inputs/deposit_outcome" / DEPOSIT_OUTCOME_RECEIPT)
+    fetch = deposit_outcome_fetch(declared)
+    if set(source["files"]) != set(fetch) or set(fetched["series"]) != set(fetch):
+        raise ValueError("Deposit-outcome pins differ from the declared series")
+    admitted = declared["admitted_series"]
+    if admitted not in admitted_fred:
+        raise ValueError("The admitted deposit series is not among the acquired FRED inputs")
+    records = {}
+    for series_id in fetch:
+        digest = source["files"][series_id]
+        if fetched["series"][series_id]["sha256"] != digest:
+            raise ValueError(f"Deposit-outcome fetch receipt and pin disagree: {series_id}")
+        locator = (f"inputs/deposit_outcome/fred/{series_id}.csv" if series_id == admitted
+                   else f"inputs/fred/{series_id}.csv")
+        _copy_verified(root / "fred" / f"{series_id}.csv", stage / locator, digest)
+        role = ("refetch_of_admitted" if series_id == admitted and series_id in declared["series"] else
+                "release_anchor" if series_id == admitted else "added")
+        records[series_id] = {**_record(stage, stage / locator), "role": role,
+                              **{k: fetched["series"][series_id][k] for k in ("last_updated", "realtime_start", "observation_end",
+                                                                              "z1_release_comparison")}}
+    quarters = _used_quarters(vintage)
+    consistency = _compare_levels(_quarterly_levels(_read_csv(stage / admitted_fred[admitted]["path"])),
+                                  _quarterly_levels(_read_csv(stage / records[admitted]["path"])), quarters)
+    if consistency["missing"] or consistency["identical"] != len(quarters):
+        raise ValueError(f"Refetched {admitted} differs from the acquired series: {consistency}")
+    return {"series": list(declared["series"]), "terms": [[s, sign] for s, sign in deposit_outcome_terms(declared)],
+            "admitted_series": admitted,
+            "fetch_receipt": {**_record(stage, stage / "inputs/deposit_outcome" / DEPOSIT_OUTCOME_RECEIPT),
+                              "producer_commit": fetched["producer_commit"]},
+            "files": records, "admitted_refetch_consistency": consistency}
+
+
+def bind_tdcest_files(pins: Mapping[str, str], listed: Mapping[str, Any], amended: Mapping[str, Any],
+                      carried_inputs: Any) -> dict[str, dict[str, Any]]:
+    """What binds each pinned TDCest file: the addendum, the receipt's outputs, its carried inputs, or the pin alone.
+
+    Every receipt entry naming a pinned file must carry the pinned hash; a carried input keeps the
+    upstream receipt's own record of what binds it.
+    """
+    carried = {locator: entry for locator, entry in (carried_inputs or {}).items()
+               if isinstance(entry, Mapping) and "sha256" in entry}
+    records: dict[str, dict[str, Any]] = {}
+    for locator, digest in pins.items():
+        if locator in listed and listed[locator]["sha256"] != digest:
+            raise ValueError(f"TDCest receipt and vintage pin disagree: {locator}")
+        if locator in carried and carried[locator]["sha256"] != digest:
+            raise ValueError(f"TDCest receipt's carried input and vintage pin disagree: {locator}")
+        bound_by = ("tdcest_receipt_addendum" if locator in amended else
+                    "tdcest_receipt" if locator in listed else
+                    "tdcest_receipt_carried_input" if locator in carried else "vintage_pin")
+        records[locator] = {"sha256": digest, "bound_by": bound_by}
+        if bound_by == "tdcest_receipt_carried_input":
+            records[locator]["upstream_binding"] = {k: v for k, v in carried[locator].items() if k != "sha256"}
+    return records
 
 
 def lane_acquire(vintage: Vintage, commit: str) -> Path:
@@ -553,6 +729,8 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
                 fred_records[series_id] = {**record, **_record(stage, path),
                                            "admitted_overlap": _overlap(admitted, rows) if admitted.is_file() else None}
         receipt["fred_raw"] = fred_records
+        if deposit_outcome(vintage) is not None:
+            receipt["deposit_outcome"] = acquire_deposit_outcome(vintage, stage, fred_records)
 
         # Raw seed series behind the pinned K=100 factor features.
         factor = vintage.payload["factor_features"]
@@ -611,14 +789,9 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
             addendum = _read_json(stage / "tdcest" / addendum_path)
             amended, _ = refresh_addendum(tdcest_receipt, addendum, vintage.vintage_id)
             listed = {**listed, **amended}
-        tdcest_records = {}
+        tdcest_records = bind_tdcest_files(tdcest["files"], listed, amended, tdcest_receipt.get("inputs"))
         for locator, digest in tdcest["files"].items():
-            if locator in listed and listed[locator]["sha256"] != digest:
-                raise ValueError(f"TDCest receipt and vintage pin disagree: {locator}")
             _copy_verified(tdcest_root / locator, stage / "tdcest" / locator, digest)
-            bound_by = ("tdcest_receipt_addendum" if locator in amended else
-                        "tdcest_receipt" if locator in listed else "vintage_pin")
-            tdcest_records[locator] = {"sha256": digest, "bound_by": bound_by}
         processed = stage / "tdcest" / "data" / "processed"
         bundle = reconstruct_site_bundle(
             processed,
@@ -628,6 +801,12 @@ def lane_acquire(vintage: Vintage, commit: str) -> Path:
         )
         bundle_path = stage / "tdcest" / "site" / "data" / "bundle.json"
         _write_json(bundle_path, bundle)
+        treatment = declared_treatment(vintage)
+        if treatment is not None:
+            legs_receipt = _read_json(stage / "tdcest" / "data/processed/tdc_regression_legs_v1_receipt.json")
+            if legs_receipt.get("treatment", {}).get("C") != treatment["source_series"]:
+                raise ValueError("TDCest legs were made for another treatment than the declared one")
+            receipt["treatment"] = {**dict(treatment), "tdcest_legs_treatment": legs_receipt["treatment"]}
         receipt["tdcest"] = {"receipt_sha256": tdcest["receipt_sha256"], "files": tdcest_records,
                              "z1_vintage": tdcest_receipt.get("z1_vintage"), "producers": tdcest_receipt.get("producers"),
                              "site_bundle": _record(stage, bundle_path), "dates": [bundle["dates"][0], bundle["dates"][-1]]}
@@ -703,6 +882,8 @@ def _verify_acquisition(vintage: Vintage) -> dict[str, Any]:
         checks.append(record)
     for record in receipt["factor_seed"]["files"].values():
         checks.append(record)
+    if deposit_outcome(vintage) is not None:
+        checks.extend([*receipt["deposit_outcome"]["files"].values(), receipt["deposit_outcome"]["fetch_receipt"]])
     for record in checks:
         if sha256_file(output / record["path"]) != record["sha256"]:
             raise ValueError(f"Acquired input changed: {record['path']}")
@@ -1082,7 +1263,11 @@ def lane_open16(vintage: Vintage, commit: str, comparison_python: str) -> Path:
                 or legs_receipt.get("sample") != {"start": vintage.sample_start, "end": vintage.sample_end, "n": vintage.observations}
                 or legs_receipt.get("output", {}).get("sha256") != sha256_file(legs_dir / "tdc_regression_legs_v1.csv")):
             raise ValueError("Treatment-leg receipt does not bind the vintage legs")
-        with open16_sample(vintage) as binding:
+        treatment = declared_treatment(vintage)
+        if treatment is not None and (legs_receipt.get("treatment", {}).get("C") != treatment["source_series"]
+                                      or legs_receipt["treatment"].get("name") != treatment["tdcest_treatment"]):
+            raise ValueError("Treatment-leg receipt was made for another treatment than the declared one")
+        with open16_sample(vintage) as binding, open16_disclosures(vintage) as disclosures:
             rows = open16.join_legs(panel, legs)
             beta = _fit_projection(rows, treatment_id=CANONICAL_TREATMENT_ID, outcome_id=CANONICAL_OUTCOME_ID,
                                    control_ids=CANONICAL_CONTROL_IDS).beta
@@ -1109,7 +1294,7 @@ def lane_open16(vintage: Vintage, commit: str, comparison_python: str) -> Path:
                               "authority": _record(ROOT, ROOT / "config/open16_reproduction_authority.json")},
                    "validation_gates": gates, "runtimes": runtimes, "headline_beta": beta,
                    "calendar_covariance": calendar, "leg_estimates_computed": False,
-                   "leg_preflight_reason_codes": preflight["reason_codes"], "outputs": outputs, **open16.DISCLOSURES}
+                   "leg_preflight_reason_codes": preflight["reason_codes"], "outputs": outputs, **disclosures}
         _write_json(stage / "receipt.json", receipt)
         _verify_clean_commit(ROOT, commit)
         os.replace(stage, target)
@@ -1173,6 +1358,8 @@ def lane_seal(vintage: Vintage, commit: str) -> Path:
                                       for k, v in acquisition["factor_seed"]["files"].items() if v["status"] == "refreshed"},
             "carried_bundles": acquisition["carried_bundles"],
             "reused_acquisition": acquisition.get("reused_acquisition"),
+            "deposit_outcome": acquisition.get("deposit_outcome"),
+            "treatment": acquisition.get("treatment"),
             "tdcpass_retired_series_carried": materialized["tdcpass_retired_series_carried"],
             "observation_cutoff": materialized["observation_cutoff"],
         },
@@ -1205,8 +1392,8 @@ def lane_seal(vintage: Vintage, commit: str) -> Path:
 
 def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("lane", choices=("snapshot", "acquire", "materialize", "open01", "export-panel",
-                                         "open16", "open16-worker", "seal"))
+    parser.add_argument("lane", choices=("fetch-deposit-outcome", "snapshot", "acquire", "materialize", "open01",
+                                         "export-panel", "open16", "open16-worker", "seal"))
     parser.add_argument("--vintage", default=None)
     parser.add_argument("--producer-commit")
     parser.add_argument("--run-id")
@@ -1227,7 +1414,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     vintage = load_vintage(ROOT, locator)
     if not args.producer_commit:
         parser.error("--producer-commit is required")
-    if args.lane == "snapshot":
+    if args.lane == "fetch-deposit-outcome":
+        result = lane_fetch_deposit_outcome(vintage, args.producer_commit)
+    elif args.lane == "snapshot":
         result = lane_snapshot(vintage, args.producer_commit)
     elif args.lane == "acquire":
         result = lane_acquire(vintage, args.producer_commit)

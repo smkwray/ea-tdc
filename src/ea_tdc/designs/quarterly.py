@@ -19,6 +19,7 @@ from ea_tdc.open_contract import (
 )
 from ea_tdc.paths import ProjectPaths
 from ea_tdc.utils import utc_now_iso, write_json
+from ea_tdc.vintage import active_vintage, deposit_outcome, deposit_outcome_terms, treatment_series_overrides
 
 
 BASELINE_SERIES_MAP = {
@@ -1367,6 +1368,29 @@ def _compute_qoq_level_changes(levels_by_quarter: dict[str, str]) -> dict[str, s
     return output
 
 
+def _summed_levels(fred_quarterly: dict[str, dict[str, str]], terms: list[tuple[str, int]]) -> dict[str, str]:
+    """Quarterly signed sum of several level series, defined only where every series reports.
+
+    A quarter where some but not all series report raises: a partial sum would be a
+    level break, not a missing observation.
+    """
+    series_ids = [series_id for series_id, _ in terms]
+    components = [fred_quarterly.get(series_id, {}) for series_id in series_ids]
+    absent = [series_id for series_id, levels in zip(series_ids, components, strict=True) if not levels]
+    if absent:
+        raise ValueError(f"Declared deposit-outcome series have no observations: {absent}")
+    summed: dict[str, str] = {}
+    for quarter in sorted(set().union(*components), key=_quarter_sort_key):
+        values = [_coerce_float(levels.get(quarter, "")) for levels in components]
+        if all(value is None for value in values):
+            continue
+        if any(value is None for value in values):
+            missing = [s for s, v in zip(series_ids, values, strict=True) if v is None]
+            raise ValueError(f"Declared deposit-outcome series do not all report {quarter}: {missing}")
+        summed[quarter] = str(float(sum(sign * value for (_, sign), value in zip(terms, values, strict=True))))
+    return summed
+
+
 def _compute_qoq_logdiff_annualized(levels_by_quarter: dict[str, str]) -> dict[str, str]:
     sorted_quarters = sorted(levels_by_quarter.keys(), key=_quarter_sort_key)
     output: dict[str, str] = {}
@@ -1783,6 +1807,11 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
         output_name: _compute_qoq_level_changes(fred_quarterly.get(series_id, {}))
         for output_name, series_id in RAW_FRED_LEVEL_CHANGE_SERIES.items()
     }
+    declared_outcome = deposit_outcome(active_vintage(paths.root))
+    if declared_outcome is not None:
+        derived_fred_qoq[declared_outcome["outcome_id"]] = _compute_qoq_level_changes(
+            _summed_levels(fred_quarterly, deposit_outcome_terms(declared_outcome))
+        )
     for output_name, fallback_name in RAW_FRED_QOQ_FALLBACK_SERIES.items():
         derived_fred_qoq[output_name] = _overlay_missing_quarters(
             derived_fred_qoq.get(output_name, {}),
@@ -1883,12 +1912,15 @@ def build_quarterly_design(paths: ProjectPaths, *, job_id: str) -> DesignBuildRe
             if value:
                 requested_series.add(value)
 
+    # A vintage may declare another TDCest column behind the canonical treatment.
+    series_map = {**BASELINE_SERIES_MAP, **{series_id: ("tdcest", column) for series_id, column
+                                            in treatment_series_overrides(active_vintage(paths.root)).items()}}
     bundle_rows: list[dict[str, str]] = []
     for quarter in sorted(quarter_pool):
         row: dict[str, str] = {"quarter": quarter}
         earliest_cutoff: datetime | None = None
 
-        for output_name, (source_repo, series_id) in BASELINE_SERIES_MAP.items():
+        for output_name, (source_repo, series_id) in series_map.items():
             standardized = by_series_quarter.get((series_id, quarter))
             if standardized:
                 value = standardized.get("value", "")

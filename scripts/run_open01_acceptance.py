@@ -32,7 +32,7 @@ from ea_tdc.open_contract import (  # noqa: E402
     OPEN01_DESIGN_JOB_IDS,
 )
 from ea_tdc.paths import project_paths  # noqa: E402
-from ea_tdc.vintage import active_vintage, open01_tier_counts  # noqa: E402
+from ea_tdc.vintage import active_vintage, open01_tier_counts, open01_treatment  # noqa: E402
 from run_pinned_factor_residual_bridge import MERGE_JOBS  # noqa: E402
 from run_submission_appendix_diagnostics import _build_inputs  # noqa: E402
 
@@ -75,10 +75,11 @@ def run(*, tdcest_bundle: Path = DEFAULT_TDCEST_BUNDLE) -> dict[str, Any]:
     vintage = active_vintage(ROOT)
     if vintage is None:
         return _run(tdcest_bundle=tdcest_bundle, vintage_record=None)
-    with open01_tier_counts(vintage) as tier_counts:
+    with open01_tier_counts(vintage) as tier_counts, open01_treatment(vintage) as treatment_source:
         return _run(
             tdcest_bundle=tdcest_bundle,
-            vintage_record={**vintage.record(), "rebound_tier_counts": tier_counts},
+            vintage_record={**vintage.record(), "rebound_tier_counts": tier_counts,
+                            "treatment_source_series": treatment_source},
         )
 
 

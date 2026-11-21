@@ -10,6 +10,8 @@ from typing import Any
 
 import pytest
 
+from ea_tdc.open_contract import CANONICAL_TREATMENT_SOURCE_SERIES
+
 
 def _load_runner():
     path = (
@@ -83,12 +85,12 @@ def _fixture_materializer(runner, root: Path, bundle_path: Path):
             runner.STANDARDIZED_LOCATOR,
             [
                 {
-                    "series_id": runner.CANONICAL_TREATMENT_SOURCE_SERIES,
+                    "series_id": CANONICAL_TREATMENT_SOURCE_SERIES,
                     "period_end": "2002-03-31",
                     "value": "1.0",
                 },
                 {
-                    "series_id": runner.CANONICAL_TREATMENT_SOURCE_SERIES,
+                    "series_id": CANONICAL_TREATMENT_SOURCE_SERIES,
                     "period_end": "2025-12-31",
                     "value": "2.0",
                 },
