@@ -30,12 +30,12 @@ from ea_tdc.open_contract import (  # noqa: E402
     CANONICAL_OUTCOME_ID,
     CANONICAL_RESIDUAL_ID,
     CANONICAL_TREATMENT_ID,
-    CANONICAL_TREATMENT_SOURCE_SERIES,
     CREDIT_SCREEN_OUTCOME_IDS,
     OPEN01_DESIGN_JOB_IDS,
     OPEN_CONTRACT,
     ROLLING_WINDOW_QUARTERS,
 )
+from ea_tdc.vintage import active_vintage, treatment_source_series  # noqa: E402
 from ea_tdc.open01 import (  # noqa: E402
     CREDIT_ADJUSTMENTS,
     CREDIT_CALIBRATION_METHODS,
@@ -1248,6 +1248,7 @@ def _source_evidence(
         raise ValueError("TDCest seed_bundle input hash does not match --tdcest-bundle")
 
     standardized_record = _file_record(root, STANDARDIZED_LOCATOR)
+    source_series = treatment_source_series(active_vintage(root))
     sample_periods: list[str] = []
     canonical_rows = 0
     with _project_path(root, STANDARDIZED_LOCATOR).open(
@@ -1256,7 +1257,7 @@ def _source_evidence(
         newline="",
     ) as handle:
         for row in csv.DictReader(handle):
-            if row.get("series_id") != CANONICAL_TREATMENT_SOURCE_SERIES:
+            if row.get("series_id") != source_series:
                 continue
             value = str(row.get("value", "")).strip()
             period_end = str(row.get("period_end", "")).strip()
@@ -1282,7 +1283,7 @@ def _source_evidence(
         "standardized": standardized_record,
     }
     sample = {
-        "canonical_treatment_source_series": CANONICAL_TREATMENT_SOURCE_SERIES,
+        "canonical_treatment_source_series": source_series,
         "canonical_observations": canonical_rows,
         "canonical_sample_start": min(sample_periods),
         "canonical_sample_end": max(sample_periods),

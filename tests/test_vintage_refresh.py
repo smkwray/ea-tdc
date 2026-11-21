@@ -25,6 +25,7 @@ from ea_tdc.open_contract import (
     CANONICAL_CONTROL_IDS,
     CANONICAL_OUTCOME_ID,
     CANONICAL_TREATMENT_ID,
+    CANONICAL_TREATMENT_SOURCE_SERIES,
     EXPECTED_METHOD_TIER_COUNTS,
     OPEN02_CONTRACT,
 )
@@ -34,9 +35,13 @@ from ea_tdc.robustness import _extract_factor_controls, _merge_control_rows
 from ea_tdc.designs.quarterly import RAW_FRED_LEVEL_CHANGE_SERIES
 from ea_tdc.vintage import (
     VINTAGE_ENV,
+    declared_treatment,
     deposit_outcome,
+    deposit_outcome_fetch,
+    deposit_outcome_terms,
     load_vintage,
     open01_tier_counts,
+    open01_treatment,
     open16_disclosures,
     open16_sample,
     pinned_factor_features,
@@ -714,7 +719,8 @@ def test_a_deposit_outcome_declaration_that_drifts_from_the_canonical_outcome_is
         deposit_outcome(load_vintage(tmp_path, "vintage.json"))
 
 
-def _design_project(tmp_path: Path, levels: dict[str, list[tuple[str, str]]]) -> Path:
+def _design_project(tmp_path: Path, levels: dict[str, list[tuple[str, str]]], config: str = ALIGNED,
+                    tdcest_rows: tuple[str, ...] = ()) -> Path:
     from test_design_builder import _write_text
 
     _write_text(tmp_path / "config/dass_job_blueprint.yaml",
@@ -724,10 +730,13 @@ def _design_project(tmp_path: Path, levels: dict[str, list[tuple[str, str]]]) ->
     _write_text(tmp_path / "data/bundles/tdcest/standardized_series.csv", "\n".join([
         header,
         "tdc_base_bank_only_ru_flow,t,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,p,"
-        "usd_millions,100,none,unknown,false,canonical_headline,treatment,primary_treatment"]))
+        "usd_millions,100,none,unknown,false,canonical_headline,treatment,primary_treatment",
+        *(f"{series_id},t,repo_processed_csv,tdcest,tier2_regression_series,quarterly,2024-03-31,2024-06-29,"
+          f"2024-06-29,p,usd_millions,{value},none,unknown,false,g,treatment,n"
+          for series_id, value in (row.split("=") for row in tdcest_rows))]))
     for series_id, rows in levels.items():
         _write_text(tmp_path / f"data/raw/fred/{series_id}.csv", "\n".join(["date,value", *(f"{d},{v}" for d, v in rows)]))
-    _write_text(tmp_path / ALIGNED, (ROOT / ALIGNED).read_text())
+    _write_text(tmp_path / config, (ROOT / config).read_text())
     return tmp_path
 
 
@@ -771,6 +780,97 @@ def test_a_quarter_missing_one_bank_group_raises_instead_of_breaking_the_level(t
     monkeypatch.setenv(VINTAGE_ENV, ALIGNED)
     with pytest.raises(ValueError, match="do not all report 2024Q1"):
         build_quarterly_design(paths, job_id="baseline_tdc_lp_deposits")
+
+
+CANONICAL = "config/vintage_2026q2_canonical.json"
+CU_TREATMENT = "tdc_tier2_regression_mmf_rrp_prop_depository_institution_np_corp_cu_ru_flow"
+CANONICAL_TERMS = [("BOGZ1FL703127005Q", 1), ("BOGZ1FL703130005Q", 1), ("BOGZ1FL763123005Q", -1),
+                   ("BOGZ1FL313030003Q", -1)]
+
+
+def test_canonical_vintage_changes_only_the_outcome_and_the_treatment_column_of_the_corrected_vintage():
+    corrected = load_vintage(ROOT, "config/vintage_2026q2_tfx.json").payload
+    canonical = load_vintage(ROOT, CANONICAL)
+    payload = canonical.payload
+    differs = {k for k in set(corrected) | set(payload) if corrected.get(k) != payload.get(k)}
+    assert differs == {"authority", "output_root", "deposit_outcome", "treatment", "tdcest"}
+    # Same frozen design: controls, factors, sample, tiers and the reused acquisition are untouched.
+    for key in ("sample", "method_tier_counts", "factor_features", "fred", "z1_release", "reuse_acquisition"):
+        assert payload[key] == corrected[key], key
+    declared = deposit_outcome(canonical)
+    assert deposit_outcome_terms(declared) == CANONICAL_TERMS
+    # The admitted outcome series is fetched only to prove the release, never summed.
+    assert deposit_outcome_fetch(declared) == [*(s for s, _ in CANONICAL_TERMS), "BOGZ1FL764100005Q"]
+    treatment = declared_treatment(canonical)
+    assert treatment["source_series"] == CU_TREATMENT and treatment["tdcest_treatment"] == "depository_cu"
+    assert treatment["treatment_id"] == CANONICAL_TREATMENT_ID
+    # Only the TDCest root, its receipt and the three re-exported objects change.
+    before, after = corrected["tdcest"], payload["tdcest"]
+    assert {k for k in set(before) | set(after) if before.get(k) != after.get(k)} == {
+        "root", "receipt_sha256", "files", "receipt_addendum"}
+    assert {k for k in before["files"] if before["files"][k] != after["files"][k]} == {
+        "data/processed/tdc_tier2_regression_series.csv", "data/processed/tdc_regression_legs_v1.csv",
+        "data/processed/tdc_regression_legs_v1_receipt.json"}
+
+
+@pytest.mark.parametrize("change, value", [
+    ("treatment_id", "tdc_bank_only_qoq"),
+    ("admitted_source_series", CU_TREATMENT),
+    ("source_series", CANONICAL_TREATMENT_SOURCE_SERIES),
+    ("source_series", "BOGZ1FL703127005Q"),
+    ("tdcest_treatment", ""),
+    ("perimeter", " "),
+])
+def test_a_treatment_declaration_that_drifts_from_the_canonical_treatment_is_refused(tmp_path, change, value):
+    payload = json.loads((ROOT / CANONICAL).read_text())
+    payload["treatment"][change] = value
+    (tmp_path / "vintage.json").write_text(json.dumps(payload))
+    with pytest.raises(ValueError, match="Declared treatment"):
+        declared_treatment(load_vintage(tmp_path, "vintage.json"))
+
+
+@pytest.mark.parametrize("signs", [[1, 1, -1], [1, 1, -1, 0], [1, 1, -1, True]])
+def test_deposit_outcome_signs_must_pair_each_series_with_plus_or_minus_one(tmp_path, signs):
+    payload = json.loads((ROOT / CANONICAL).read_text())
+    payload["deposit_outcome"]["signs"] = signs
+    (tmp_path / "vintage.json").write_text(json.dumps(payload))
+    with pytest.raises(ValueError, match="Declared deposit outcome"):
+        deposit_outcome(load_vintage(tmp_path, "vintage.json"))
+
+
+def test_canonical_outcome_nets_federal_government_deposits_and_uses_the_credit_union_treatment(tmp_path, monkeypatch):
+    # Treasury's own deposits are not deposit users' deposits: a rise in them lowers the outcome.
+    # The canonical treatment id keeps its name but reads the declared credit-union column.
+    from ea_tdc.designs.quarterly import build_quarterly_design
+    from ea_tdc.paths import ensure_repo_dirs
+
+    root = _design_project(tmp_path, {
+        "BOGZ1FL764100005Q": [("2023-10-01", "900"), ("2024-01-01", "1030")],
+        "BOGZ1FL703127005Q": [("2023-10-01", "1000"), ("2024-01-01", "1100")],
+        "BOGZ1FL703130005Q": [("2023-10-01", "2000"), ("2024-01-01", "2300")],
+        "BOGZ1FL763123005Q": [("2023-10-01", "5"), ("2024-01-01", "25")],
+        "BOGZ1FL313030003Q": [("2023-10-01", "2"), ("2024-01-01", "3")],
+    }, config=CANONICAL, tdcest_rows=(f"{CANONICAL_TREATMENT_SOURCE_SERIES}=60", f"{CU_TREATMENT}=61.5"))
+    paths = project_paths(root)
+    ensure_repo_dirs(paths)
+    admitted = {r["quarter"]: r for r in csv.DictReader(build_quarterly_design(paths, job_id="baseline_tdc_lp_deposits")
+                                                         .bundle_path.open())}
+    assert admitted["2024Q1"]["matched_total_deposits"] == "130.0"
+    assert admitted["2024Q1"][CANONICAL_TREATMENT_ID] == "60"
+    monkeypatch.setenv(VINTAGE_ENV, CANONICAL)
+    canonical = {r["quarter"]: r for r in csv.DictReader(build_quarterly_design(paths, job_id="baseline_tdc_lp_deposits")
+                                                          .bundle_path.open())}
+    assert canonical["2024Q1"]["matched_total_deposits"] == "379.0"  # (100 + 300) less Treasury's +20 and +1
+    assert canonical["2024Q1"][CANONICAL_TREATMENT_ID] == "61.5"
+    assert canonical["2024Q1"]["tdc_bank_only_qoq"] == admitted["2024Q1"]["tdc_bank_only_qoq"] == "100"
+
+
+def test_open01_records_the_declared_treatment_column_only_inside_the_canonical_run():
+    with open01_treatment(load_vintage(ROOT, CANONICAL)) as source:
+        assert open01.CANONICAL_TREATMENT_SOURCE_SERIES == source == CU_TREATMENT
+    assert open01.CANONICAL_TREATMENT_SOURCE_SERIES == CANONICAL_TREATMENT_SOURCE_SERIES
+    with open01_treatment(load_vintage(ROOT, ALIGNED)) as source:
+        assert source == CANONICAL_TREATMENT_SOURCE_SERIES
 
 
 def test_open16_outputs_state_the_declared_perimeter_only_inside_the_aligned_run():

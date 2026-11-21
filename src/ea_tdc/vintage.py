@@ -194,28 +194,95 @@ def pinned_factor_features(vintage: Vintage, root: Path) -> list[str]:
 def deposit_outcome(vintage: Vintage | None) -> Mapping[str, Any] | None:
     """The vintage's declared deposit outcome, or None for the admitted one.
 
-    A declared outcome replaces the admitted single-series deposit level with the
-    sum of named Financial Accounts levels. It must keep the canonical outcome id,
-    include the admitted series, name each series once, and state its perimeter.
+    A declared outcome replaces the admitted single-series deposit level with a signed
+    sum of named Financial Accounts levels (``signs`` defaults to all +1). It must keep
+    the canonical outcome id, name each series once and state its perimeter. The
+    admitted series (one of the terms, or else the admitted outcome series) is always
+    fetched, to prove the fetch shares the acquired release, and is summed only when it
+    is one of the terms.
     """
     if vintage is None or "deposit_outcome" not in vintage.payload:
         return None
     declared = vintage.payload["deposit_outcome"]
+    from ea_tdc.designs.quarterly import RAW_FRED_LEVEL_CHANGE_SERIES
     from ea_tdc.open_contract import CANONICAL_OUTCOME_ID
 
     series = declared.get("series") if isinstance(declared, Mapping) else None
+    signs = declared.get("signs", [1] * len(series or [])) if isinstance(declared, Mapping) else None
     if (
         declared.get("outcome_id") != CANONICAL_OUTCOME_ID
         or not isinstance(series, list)
         or len(series) < 2
         or len(set(series)) != len(series)
         or not all(isinstance(item, str) and re.fullmatch(r"[A-Z0-9]+", item) for item in series)
-        or declared.get("admitted_series") not in series
+        or not isinstance(signs, list) or len(signs) != len(series)
+        or any(sign not in (1, -1) or isinstance(sign, bool) for sign in signs)
+        or declared.get("admitted_series") not in {*series, RAW_FRED_LEVEL_CHANGE_SERIES[CANONICAL_OUTCOME_ID]}
         or not str(declared.get("perimeter", "")).strip()
     ):
-        raise ValueError("Declared deposit outcome must keep the canonical id, include the admitted series once, "
-                         "name at least two series and state its perimeter")
+        raise ValueError("Declared deposit outcome must keep the canonical id, name at least two distinct series "
+                         "with signs of +1 or -1, name the admitted outcome series and state its perimeter")
     return declared
+
+
+def deposit_outcome_terms(declared: Mapping[str, Any]) -> list[tuple[str, int]]:
+    """(series, sign) pairs of a declared deposit outcome."""
+    series = list(declared["series"])
+    return list(zip(series, declared.get("signs", [1] * len(series)), strict=True))
+
+
+def deposit_outcome_fetch(declared: Mapping[str, Any]) -> list[str]:
+    """Every series the outcome fetches: its terms, then the admitted series if it is not one."""
+    series = list(declared["series"])
+    return series if declared["admitted_series"] in series else [*series, declared["admitted_series"]]
+
+
+def declared_treatment(vintage: Vintage | None) -> Mapping[str, Any] | None:
+    """The vintage's declared treatment source, or None for the admitted one.
+
+    A declared treatment keeps the canonical treatment id and replaces only the TDCest
+    regression-series column behind it; it names the admitted column it replaces and the
+    TDCest treatment whose legs and receipts produced the new one.
+    """
+    if vintage is None or "treatment" not in vintage.payload:
+        return None
+    declared = vintage.payload["treatment"]
+    from ea_tdc.open_contract import CANONICAL_TREATMENT_ID, CANONICAL_TREATMENT_SOURCE_SERIES
+
+    source = declared.get("source_series") if isinstance(declared, Mapping) else None
+    if (
+        declared.get("treatment_id") != CANONICAL_TREATMENT_ID
+        or declared.get("admitted_source_series") != CANONICAL_TREATMENT_SOURCE_SERIES
+        or not isinstance(source, str) or not re.fullmatch(r"tdc_[a-z0-9_]+", source)
+        or source == CANONICAL_TREATMENT_SOURCE_SERIES
+        or not re.fullmatch(r"[a-z0-9_]+", str(declared.get("tdcest_treatment", "")))
+        or not str(declared.get("perimeter", "")).strip()
+    ):
+        raise ValueError("Declared treatment must keep the canonical id, name the admitted source column it "
+                         "replaces, a different tdc_ source column, its TDCest treatment and its perimeter")
+    return declared
+
+
+def treatment_source_series(vintage: Vintage | None) -> str:
+    """The TDCest column behind the canonical treatment under this vintage."""
+    from ea_tdc.open_contract import CANONICAL_TREATMENT_SOURCE_SERIES
+
+    declared = declared_treatment(vintage)
+    return CANONICAL_TREATMENT_SOURCE_SERIES if declared is None else str(declared["source_series"])
+
+
+@contextlib.contextmanager
+def open01_treatment(vintage: Vintage | None) -> Iterator[str]:
+    """Record a declared treatment's source column in the OPEN-01 outputs; estimator code is unchanged."""
+    from ea_tdc import open01
+    from ea_tdc.open_contract import CANONICAL_TREATMENT_SOURCE_SERIES
+
+    source = treatment_source_series(vintage)
+    if source == CANONICAL_TREATMENT_SOURCE_SERIES:
+        yield source
+        return
+    with _rebound(open01, "CANONICAL_TREATMENT_SOURCE_SERIES", CANONICAL_TREATMENT_SOURCE_SERIES, source):
+        yield source
 
 
 @contextlib.contextmanager

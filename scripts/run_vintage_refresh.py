@@ -57,7 +57,10 @@ for _path in (ROOT / "src", ROOT / "scripts"):
 from ea_tdc.vintage import (  # noqa: E402
     VINTAGE_ENV,
     Vintage,
+    declared_treatment,
     deposit_outcome,
+    deposit_outcome_fetch,
+    deposit_outcome_terms,
     load_vintage,
     open16_disclosures,
     quarter_label,
@@ -91,8 +94,10 @@ OPEN02_AVAILABILITY = "inputs/open02_source_availability.json"
 DEPOSIT_OUTCOME_RECEIPT = "fetch_receipt.json"
 # A reused acquisition stands in for a live one only under the configuration that made it;
 # a correction may differ from that configuration in these fields alone.
-REUSE_ALLOWED_DIFFERENCES = ("output_root", "authority", "tdcest", "reuse_acquisition", "deposit_outcome")
+REUSE_ALLOWED_DIFFERENCES = ("output_root", "authority", "tdcest", "reuse_acquisition", "deposit_outcome", "treatment")
 REUSE_ALLOWED_TDCEST_DIFFERENCES = ("files", "receipt_addendum", "generated_at")
+# A declared treatment is produced in its own TDCest root under its own receipt.
+TREATMENT_ALLOWED_TDCEST_DIFFERENCES = ("root", "receipt_sha256")
 # Locators inside a producer root: relative POSIX segments only, no drive, no parent step.
 PLAIN_LOCATOR = re.compile(r"[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*")
 
@@ -478,8 +483,10 @@ def load_reused_acquisition(vintage: Vintage) -> tuple[Path, dict[str, Any], dic
     differs = [k for k in sorted(set(earlier) | set(current))
                if k not in REUSE_ALLOWED_DIFFERENCES and earlier.get(k) != current.get(k)]
     before, after = earlier.get("tdcest", {}), current.get("tdcest", {})
+    allowed = (*REUSE_ALLOWED_TDCEST_DIFFERENCES,
+               *(TREATMENT_ALLOWED_TDCEST_DIFFERENCES if declared_treatment(vintage) is not None else ()))
     differs += [f"tdcest.{k}" for k in sorted(set(before) | set(after))
-                if k not in REUSE_ALLOWED_TDCEST_DIFFERENCES and before.get(k) != after.get(k)]
+                if k not in allowed and before.get(k) != after.get(k)]
     if differs:
         raise ValueError(f"Configuration differs from the reused acquisition's beyond the correction: {differs}")
     return root, receipt, {"root": declared["root"], "receipt_sha256": digest,
@@ -590,7 +597,7 @@ def lane_fetch_deposit_outcome(vintage: Vintage, commit: str) -> Path:
     stage = Path(tempfile.mkdtemp(prefix=".deposit-outcome-", dir=target.parent))
     try:
         records = {}
-        for series_id in declared["series"]:
+        for series_id in deposit_outcome_fetch(declared):
             rows, record = _fred_series(series_id, key, vintage.payload["fred"]["raw_observation_start"])
             path = stage / "fred" / f"{series_id}.csv"
             _write_series_csv(path, rows, missing=".")
@@ -622,20 +629,23 @@ def acquire_deposit_outcome(vintage: Vintage, stage: Path, admitted_fred: Mappin
     _copy_verified(root / DEPOSIT_OUTCOME_RECEIPT, stage / "inputs/deposit_outcome" / DEPOSIT_OUTCOME_RECEIPT,
                    source["receipt_sha256"])
     fetched = _read_json(stage / "inputs/deposit_outcome" / DEPOSIT_OUTCOME_RECEIPT)
-    if set(source["files"]) != set(declared["series"]) or set(fetched["series"]) != set(declared["series"]):
+    fetch = deposit_outcome_fetch(declared)
+    if set(source["files"]) != set(fetch) or set(fetched["series"]) != set(fetch):
         raise ValueError("Deposit-outcome pins differ from the declared series")
     admitted = declared["admitted_series"]
     if admitted not in admitted_fred:
         raise ValueError("The admitted deposit series is not among the acquired FRED inputs")
     records = {}
-    for series_id in declared["series"]:
+    for series_id in fetch:
         digest = source["files"][series_id]
         if fetched["series"][series_id]["sha256"] != digest:
             raise ValueError(f"Deposit-outcome fetch receipt and pin disagree: {series_id}")
         locator = (f"inputs/deposit_outcome/fred/{series_id}.csv" if series_id == admitted
                    else f"inputs/fred/{series_id}.csv")
         _copy_verified(root / "fred" / f"{series_id}.csv", stage / locator, digest)
-        records[series_id] = {**_record(stage, stage / locator), "role": "refetch_of_admitted" if series_id == admitted else "added",
+        role = ("refetch_of_admitted" if series_id == admitted and series_id in declared["series"] else
+                "release_anchor" if series_id == admitted else "added")
+        records[series_id] = {**_record(stage, stage / locator), "role": role,
                               **{k: fetched["series"][series_id][k] for k in ("last_updated", "realtime_start", "observation_end",
                                                                               "z1_release_comparison")}}
     quarters = _used_quarters(vintage)
@@ -643,7 +653,8 @@ def acquire_deposit_outcome(vintage: Vintage, stage: Path, admitted_fred: Mappin
                                   _quarterly_levels(_read_csv(stage / records[admitted]["path"])), quarters)
     if consistency["missing"] or consistency["identical"] != len(quarters):
         raise ValueError(f"Refetched {admitted} differs from the acquired series: {consistency}")
-    return {"series": list(declared["series"]), "admitted_series": admitted,
+    return {"series": list(declared["series"]), "terms": [[s, sign] for s, sign in deposit_outcome_terms(declared)],
+            "admitted_series": admitted,
             "fetch_receipt": {**_record(stage, stage / "inputs/deposit_outcome" / DEPOSIT_OUTCOME_RECEIPT),
                               "producer_commit": fetched["producer_commit"]},
             "files": records, "admitted_refetch_consistency": consistency}
@@ -1227,6 +1238,10 @@ def lane_open16(vintage: Vintage, commit: str, comparison_python: str) -> Path:
                 or legs_receipt.get("sample") != {"start": vintage.sample_start, "end": vintage.sample_end, "n": vintage.observations}
                 or legs_receipt.get("output", {}).get("sha256") != sha256_file(legs_dir / "tdc_regression_legs_v1.csv")):
             raise ValueError("Treatment-leg receipt does not bind the vintage legs")
+        treatment = declared_treatment(vintage)
+        if treatment is not None and (legs_receipt.get("treatment", {}).get("C") != treatment["source_series"]
+                                      or legs_receipt["treatment"].get("name") != treatment["tdcest_treatment"]):
+            raise ValueError("Treatment-leg receipt was made for another treatment than the declared one")
         with open16_sample(vintage) as binding, open16_disclosures(vintage) as disclosures:
             rows = open16.join_legs(panel, legs)
             beta = _fit_projection(rows, treatment_id=CANONICAL_TREATMENT_ID, outcome_id=CANONICAL_OUTCOME_ID,
