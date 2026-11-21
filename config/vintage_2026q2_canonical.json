@@ -28,7 +28,15 @@
     ],
     "perimeter": "The outcome is checkable plus time and savings deposits, including large time deposits, at US-chartered depository institutions, foreign banking offices in the US, banks in US-affiliated areas and credit unions, less the federal-government deposits the Financial Accounts identify; foreign official deposits and some affiliated-area interbank balances are not separable. The measured residual is not exact same-perimeter N.",
     "source": {
-      "root": "data/bundles/deposit_outcome_2026q2_canonical"
+      "root": "data/bundles/deposit_outcome_2026q2_canonical",
+      "receipt_sha256": "d1a560f68d7efc40101318bde11558eb4147c97b194399ea85a1cfc2f08c4862",
+      "files": {
+        "BOGZ1FL313030003Q": "d2b67764544c139dc7ea2b74bc01423d32f75a80cdf9cc07c68a60253919b0e5",
+        "BOGZ1FL703127005Q": "6bc189791dca06b3ae82410149041171a3b014fbd1a5a48e63436ba09c67ac97",
+        "BOGZ1FL703130005Q": "dcb2025f0ab611c3aaf5e6f223ec35d1dfbdf043bb3b2a10ee1f25abd4cbf2a4",
+        "BOGZ1FL763123005Q": "925c1e7591d6975877d4a6e519a822d758bd40d4e36cb00cb39f0693288ce9c8",
+        "BOGZ1FL764100005Q": "06cc75ff19d049e5c71d71b0e307a2731c5f00e1622a8c3e6e2daf50a6c02dad"
+      }
     }
   },
   "treatment": {
