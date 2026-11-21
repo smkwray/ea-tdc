@@ -3,9 +3,9 @@
   "vintage": "2026q2",
   "authority": {
     "date": "2026-11-21",
-    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings; specifications otherwise unchanged"
+    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; bank FRNs inside the FFIEC level); specifications otherwise unchanged"
   },
-  "output_root": "output/refresh_2026q2_canonical_v2",
+  "output_root": "output/refresh_2026q2_canonical_v3",
   "reuse_acquisition": {
     "root": "output/refresh_2026q2",
     "receipt_sha256": "3c4c9e904294b2dbb736a580409304818f1205d05da9cb3c0d2ae29720fff1ea",
@@ -96,19 +96,19 @@
     "raw_seed_dir": "data/seed/interpol/raw"
   },
   "tdcest": {
-    "root": "../tdcest/data/refresh_2026q2_cu_v2",
-    "receipt_sha256": "e853ced4addd5228bcc81ea6f023b385fd9d5f4d1a58d4268c6a4764c4a7a648",
-    "generated_at": "2026-11-21T15:51:50Z",
+    "root": "../tdcest/data/refresh_2026q2_cu_v3",
+    "receipt_sha256": "ae3c996f680224702c7dfc5535e4626c47f794c1357532639931d91d67673807",
+    "generated_at": "2026-11-21T16:06:15Z",
     "files": {
-      "data/processed/tdc_tier2_regression_series.csv": "056ce0826c67190876660ff780c0d5984432b602f37e58f93782fe9f3ce0f79d",
-      "data/processed/tdc_estimates.csv": "b301388bd6e256f65a364ef777cbff395c662d10100085b186ce507fd77c0ff8",
-      "data/processed/tdc_components.csv": "dd41a9e41a980fdbe25f77b4e0237e9634d1274d802b6cd3d8623da83fc683de",
-      "data/processed/tdc_corrections.csv": "1607e955f9471b1804db2060e71597778a8e3c914e8413413c1cb2e81d0044d1",
-      "data/processed/quarterly_inputs.csv": "71ca49466cc8b1460b334b3218e68358ec2fe750ef126e157540b31167e095ac",
-      "data/processed/tier2_regression_interest_backcast.csv": "128117cf8790f710c866b02611303ff8d98a24d5e0a1a16eb8b8d1523b3a226b",
-      "data/processed/tdc_regression_legs_v1.csv": "d4123978b8cdd4c4cdf6aa7f2213694cfb5c20c70c4d6c16a1aebd44ff5ed2fe",
-      "data/processed/tdc_regression_legs_v1_receipt.json": "256c10be5e218f4c520bb515c940f5593acf891f9912566800910f6234098ecd",
-      "data/processed/tdc_downstream_handoff_bundle.json": "3f7fa39985d85be07122e441214cb73ff9bcb73be0fbee177421a7341cadd229"
+      "data/processed/tdc_tier2_regression_series.csv": "e9fbd786f87fba1009f2ff30fcef21a87125447b3edc04cffae8e9348e518bd9",
+      "data/processed/tdc_estimates.csv": "db67a24d769890f29916f7955f4ef5929984b2ea473cf37e51b1e0c83ebe243b",
+      "data/processed/tdc_components.csv": "a1d44fef5a4d3d09d8931ef499d8f482b9a6b64fa612b47420880eac0359c6da",
+      "data/processed/tdc_corrections.csv": "aa698b8efdbda9a591de89ff0d7eea124334c4baf9b02206c2f44b994e26a5c1",
+      "data/processed/quarterly_inputs.csv": "18bc9f104d6993221e980f2273ca9228d4df4cf114d0f929cbe3a60772d3b56a",
+      "data/processed/tier2_regression_interest_backcast.csv": "c671c472403cefc754a7a0eebc0a9d1da5950c92c61d1516cf25447d17e3385d",
+      "data/processed/tdc_regression_legs_v1.csv": "0ca33a9545956ca48668bf52b04bdba4f1569eacb9d22869e7ce00a3cb417488",
+      "data/processed/tdc_regression_legs_v1_receipt.json": "445a02ed617d4c6e008e6134da17aa51fb685f4acd86c88e0e737620cddbb0fb",
+      "data/processed/tdc_downstream_handoff_bundle.json": "6918c7026a4402c04b2bd90642acb71701a20763576c0b3aaa2fccd4985cea1d"
     }
   },
   "tdcpass": {
