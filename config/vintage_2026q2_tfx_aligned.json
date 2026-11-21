@@ -21,7 +21,13 @@
     ],
     "perimeter": "The outcome is total currency and deposits to all holders at US-chartered depository institutions, foreign banking offices in the US and banks in US-affiliated areas, the treatment's bank group; credit unions are excluded. The measured residual is not exact same-perimeter N.",
     "source": {
-      "root": "data/bundles/deposit_outcome_2026q2"
+      "root": "data/bundles/deposit_outcome_2026q2",
+      "receipt_sha256": "aa4c616afaf87eb12c1e2264ab1c267f7471fea3ce3cc86e1339db436f754bc1",
+      "files": {
+        "BOGZ1FL764100005Q": "06cc75ff19d049e5c71d71b0e307a2731c5f00e1622a8c3e6e2daf50a6c02dad",
+        "BOGZ1FL754100005Q": "9045deb89437afa23fa91e336f4fad6019fc5054301c0ab38c5806dca3be3968",
+        "BOGZ1FL744100005Q": "683770798b676180e2d6f2def1e0b0651e0e91a72e74ed45a07d0514fc361524"
+      }
     }
   },
   "admitted_sample": {
