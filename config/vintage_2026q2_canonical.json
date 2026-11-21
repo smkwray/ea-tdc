@@ -3,9 +3,9 @@
   "vintage": "2026q2",
   "authority": {
     "date": "2026-11-21",
-    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; observed money-fund and foreign FRN and bill holdings; remaining FRNs shared by other holders; Fed FRN interest estimated where unobserved); specifications otherwise unchanged"
+    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; observed money-fund and foreign FRN and bill holdings; remaining FRNs shared by other holders; Fed FRN interest exact only for CUSIP-days with a published accrual and estimated otherwise; one money-fund instrument classification for holdings and the ON RRP funding calculation; SHL June 2014 foreign FRN benchmark); specifications otherwise unchanged"
   },
-  "output_root": "output/refresh_2026q2_canonical_v5",
+  "output_root": "output/refresh_2026q2_canonical_v6",
   "reuse_acquisition": {
     "root": "output/refresh_2026q2",
     "receipt_sha256": "3c4c9e904294b2dbb736a580409304818f1205d05da9cb3c0d2ae29720fff1ea",
@@ -96,19 +96,19 @@
     "raw_seed_dir": "data/seed/interpol/raw"
   },
   "tdcest": {
-    "root": "../tdcest/data/refresh_2026q2_cu_v5",
-    "receipt_sha256": "0879c7f3fb0014dd998009221d3bb32cf56064f1ca21eb04da65c60f3127c2dd",
-    "generated_at": "2026-11-21T16:56:49Z",
+    "root": "../tdcest/data/refresh_2026q2_cu_v6",
+    "receipt_sha256": "2a1ecbcb4136162b61b0f64e31e70093bd82804c77c07734352982dd8b77ba11",
+    "generated_at": "2026-11-21T17:36:50Z",
     "files": {
-      "data/processed/tdc_tier2_regression_series.csv": "848a1b7d9e84a4ec318281f50988e911cbebe71d367d5dd9b84289ca9bd70d53",
-      "data/processed/tdc_estimates.csv": "759588e6789e6628b94a3c492188352d39043ff53c5511c21014432c78801a3a",
-      "data/processed/tdc_components.csv": "3109abc9a30520a3a937b3ac8dbd9368a4d802d2a01d0246eb858244d6b5897b",
-      "data/processed/tdc_corrections.csv": "48bc2c64fbde8fada10d666d2093e6751d03594f361a66c72be5bb07666c7bb5",
-      "data/processed/quarterly_inputs.csv": "a4e44baa23a4a00c04e40a74d17c8fc9ccfb895b153194dbb1988ad89521d144",
-      "data/processed/tier2_regression_interest_backcast.csv": "0ecd41feff183131b534e25cfe215fb79aa4f8bfaef05a51f88b232756dc1f58",
-      "data/processed/tdc_regression_legs_v1.csv": "92afeabdd3853577f8dc721f28f7d0a29542d4ba6a5d73332d794c5eeaecd7c5",
-      "data/processed/tdc_regression_legs_v1_receipt.json": "a8f63d514ca97570c790b12f113fe2b4072f0dc325ea50465260ee4777d44c82",
-      "data/processed/tdc_downstream_handoff_bundle.json": "d16efc90bac4a9c72a272888ea9bca8ddbda4146f9bd3ef2c7ed14a49172f8da"
+      "data/processed/tdc_tier2_regression_series.csv": "907c566abd9037f467e6b031f0d170977fa61a6aa20d162bccfa12d11948f5a8",
+      "data/processed/tdc_estimates.csv": "1147d77f013b7521f285296bba0b3274f63746923996e61d22bcddc87c52a77b",
+      "data/processed/tdc_components.csv": "00a260220894a187ed3170891cb53bd2e67b7dfd5052efdd93751d02852260f7",
+      "data/processed/tdc_corrections.csv": "fcd063a84f171886108e272a59368134fef2fcc0091ace380901afb3ee18ad42",
+      "data/processed/quarterly_inputs.csv": "caee01bb36a7a31e63e5620c7c79581f8c74e7f1fc26c5860252ec3874165466",
+      "data/processed/tier2_regression_interest_backcast.csv": "8ef00912e8a6bd4c6277751975de784dcc4f160c7044d33abd94f719eb657dc4",
+      "data/processed/tdc_regression_legs_v1.csv": "eb6075d6ee013c5890518a34f0e076256987eefd4c207337faec123aea3ba068",
+      "data/processed/tdc_regression_legs_v1_receipt.json": "3dfe7e283c54f1000c9d34f6e50f8bebd3febe44ee6be20a0524fef707af8d85",
+      "data/processed/tdc_downstream_handoff_bundle.json": "ece3112194ed0512d2b13c21a77717ae06ebae98a74610da1d59cd4130faee8b"
     }
   },
   "tdcpass": {
