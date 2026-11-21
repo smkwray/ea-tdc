@@ -55,7 +55,7 @@ Generated CSV tables, manifests, and provenance receipts are written to ignored 
 
 ## Limits
 
-- Quarterly deposit and reserve estimates are conditional projections on public-data proxies. The Treasury-flow proxy and US-chartered depository institution deposits cover different balance-sheet scopes, so a slope below one reflects both behavioral offsets and scope differences.
+- Quarterly deposit and reserve estimates are conditional projections on public-data proxies. In the canonical 2026q2 configuration (`config/vintage_2026q2_canonical.json`), the deposit outcome is a four-series Financial Accounts measure: checkable plus time and savings deposits at US-chartered depository institutions, foreign banking offices in the US, banks in US-affiliated areas and credit unions (FL703127005 + FL703130005), less identified federal-government deposits (FL763123005, FL313030003). Historical and default configurations use deposits of US-chartered depository institutions (FL764100005). A deposit coefficient below one is a conditional projection; the regression does not split its distance from one into behavioral offsets, scope differences and measurement error.
 - Factor controls were selected on the full panel, and rolling or kernel-weighted paths share overlapping quarters; read interval coverage labels in the output tables alongside point estimates.
 - Simulation calibration runs take substantially longer than the test suite or `smoke` check.
 

@@ -254,7 +254,7 @@ treatments:
     cutoff_rule: same_quarter_conditional_projection
     instrument_ok: false
     direct_effect_risk: medium
-    notes: Published export of the frozen OPEN-01 long-history bank-deposit-scope treatment. It keeps lower, proportional, and upper MMF/RRP constructions separate and uses 33 pre-component H15, 47 component-pool/WAMEST, and 16 constrained-component quarters. Runtime authority remains src/ea_tdc/open_contract.py.
+    notes: Compatibility identifier for the frozen OPEN-01 long-history treatment. Historical and default configurations read the named bank-only tdcest row. The canonical 2026q2 vintage (config/vintage_2026q2_canonical.json) keeps this identifier but overrides its source with tdc_tier2_regression_mmf_rrp_prop_depository_institution_np_corp_cu_ru_flow (and the matching lower and upper money-fund route rows), which adds natural-person and corporate credit-union Treasury purchases net of the interest allocated on their holdings to the three bank groups. Lower, proportional, and upper MMF/RRP constructions stay separate. On the 2026Q2 vintage the method tiers are 33 pre-component H15, 47 component-pool/WAMEST, and 18 constrained-component quarters. Runtime authority remains src/ea_tdc/open_contract.py.
 
   - treatment_id: tdc_tier2_regression_di_np_cu_qoq
     family: measurement_variant
