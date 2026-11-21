@@ -58,3 +58,29 @@ def test_conditioning_audit_reports_factor_and_bandwidth_changes_against_the_hea
     assert [(r["variant"], r["newey_west_lag"]) for r in audit] == [
         ("k100_factors_4", "1"), ("k0_no_factors", "1"), ("k100_factors_4", "4"), ("k100_factors_4", "6"), ("k100_factors_4", "8")]
     assert [r["absolute_beta_change_from_k100_lag1"] for r in audit] == ["0.0", "0.25", "0.0", "0.0", "0.0"]
+
+
+def test_a_seal_may_bind_an_earlier_configuration_that_lacked_only_the_reuse_pin(compare, monkeypatch):
+    # The corrected vintage was sealed before its configuration gained the reuse pin; any other
+    # difference would mean the baseline outputs came from a different specification.
+    import hashlib
+    import json
+    import types
+
+    from ea_tdc.vintage import load_vintage
+
+    vintage = load_vintage(ROOT, "config/vintage_2026q2_tfx.json")
+
+    def seal(**changes):
+        earlier = {k: v for k, v in vintage.payload.items() if k != "reuse_acquisition"} | changes
+        shown = json.dumps(earlier).encode()
+        monkeypatch.setattr(compare.subprocess, "run", lambda *a, **k: types.SimpleNamespace(stdout=shown))
+        return {"producer_commit": "a" * 40, "vintage": {**vintage.record(), "sha256": hashlib.sha256(shown).hexdigest()}}
+
+    compare.sealed_configuration(vintage, seal())
+    with pytest.raises(ValueError, match="sealed under another configuration"):
+        compare.sealed_configuration(vintage, seal(observation_cutoff="2026-03-31"))
+    tampered = seal()
+    tampered["vintage"]["sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="sealed under another configuration"):
+        compare.sealed_configuration(vintage, tampered)

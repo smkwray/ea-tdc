@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -99,6 +101,22 @@ def identical_design(baseline: Path, variant: Path) -> dict[str, Any]:
             "full_factor_scores_identical": True}
 
 
+def sealed_configuration(vintage: Vintage, sealed: Mapping[str, Any]) -> None:
+    """A seal may bind an earlier commit's configuration that lacked only ``reuse_acquisition``.
+
+    The configuration bytes at the seal's producer commit must hash to the sealed record,
+    and equal the current configuration in every other field.
+    """
+    shown = subprocess.run(["git", "-C", str(ROOT), "show", f"{sealed['producer_commit']}:{vintage.locator}"],
+                           check=True, capture_output=True).stdout
+    earlier, current = json.loads(shown), dict(vintage.payload)
+    differs = {k for k in set(earlier) | set(current) if earlier.get(k) != current.get(k)}
+    expected = {k: v for k, v in vintage.record().items() if k != "sha256"}
+    if (hashlib.sha256(shown).hexdigest() != sealed["vintage"]["sha256"] or differs - {"reuse_acquisition"}
+            or {k: v for k, v in sealed["vintage"].items() if k != "sha256"} != expected):
+        raise ValueError(f"{vintage.locator} was sealed under another configuration")
+
+
 def summarize(vintage: Vintage) -> dict[str, Any]:
     output = ROOT / vintage.payload["output_root"]
     run_root = output / "run"
@@ -107,7 +125,7 @@ def summarize(vintage: Vintage) -> dict[str, Any]:
         raise ValueError(f"{vintage.locator} is not sealed")
     sealed = json.loads(seal.read_text(encoding="utf-8"))
     if sealed["vintage"] != vintage.record():
-        raise ValueError(f"{vintage.locator} was sealed under another configuration")
+        sealed_configuration(vintage, sealed)
     headline = _one([r for r in _rows(run_root / HEADLINE)
                      if r["outcome_id"] == CANONICAL_OUTCOME_ID and r["treatment_id"] == CANONICAL_TREATMENT_ID], "headline")
     acceptance = json.loads((run_root / PRODUCER_RECEIPT).read_text(encoding="utf-8"))["acceptance"]
