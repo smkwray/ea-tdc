@@ -31,10 +31,13 @@ from ea_tdc.open_contract import (
 from ea_tdc.paths import project_paths
 from ea_tdc.residualized_shock import _load_factor_branch
 from ea_tdc.robustness import _extract_factor_controls, _merge_control_rows
+from ea_tdc.designs.quarterly import RAW_FRED_LEVEL_CHANGE_SERIES
 from ea_tdc.vintage import (
     VINTAGE_ENV,
+    deposit_outcome,
     load_vintage,
     open01_tier_counts,
+    open16_disclosures,
     open16_sample,
     pinned_factor_features,
     quarter_range,
@@ -667,3 +670,233 @@ def test_corrected_vintage_changes_only_tdcest_objects_and_can_reuse_the_acquisi
     assert (tdcest["root"], tdcest["receipt_sha256"]) == (old["tdcest"]["root"], old["tdcest"]["receipt_sha256"])
     assert set(tdcest["files"]) == set(old["tdcest"]["files"]) and tdcest["files"] != old["tdcest"]["files"]
     assert Path(tdcest["receipt_addendum"]["path"]).name == tdcest["receipt_addendum"]["path"]
+
+
+# ------------------------------------------------- deposit outcome aligned with the treatment's bank group
+
+ALIGNED = "config/vintage_2026q2_tfx_aligned.json"
+TREATMENT_BANK_GROUP = ("BOGZ1FL764100005Q", "BOGZ1FL754100005Q", "BOGZ1FL744100005Q")
+CREDIT_UNIONS = "BOGZ1FL474100005Q"
+
+
+def test_aligned_vintage_changes_only_the_deposit_outcome_of_the_corrected_vintage(refresh):
+    # The aligned rerun is the corrected vintage with one change: the outcome sums deposits over
+    # the bank group the treatment treats as paying with reserves. Credit unions are not in that group.
+    corrected = load_vintage(ROOT, "config/vintage_2026q2_tfx.json").payload
+    aligned = load_vintage(ROOT, ALIGNED)
+    differs = {k for k in set(corrected) | set(aligned.payload) if corrected.get(k) != aligned.payload.get(k)}
+    assert differs == {"authority", "output_root", "deposit_outcome"}
+    assert "deposit_outcome" in refresh.REUSE_ALLOWED_DIFFERENCES
+    declared = deposit_outcome(aligned)
+    assert tuple(declared["series"]) == TREATMENT_BANK_GROUP and CREDIT_UNIONS not in declared["series"]
+    assert declared["admitted_series"] == RAW_FRED_LEVEL_CHANGE_SERIES[CANONICAL_OUTCOME_ID]
+    assert declared["outcome_id"] == CANONICAL_OUTCOME_ID
+    assert deposit_outcome(load_vintage(ROOT, "config/vintage_2026q2_tfx.json")) is None
+    source = declared["source"]
+    assert set(source) <= {"root", "receipt_sha256", "files"}
+    if "files" in source:
+        assert set(source["files"]) == set(TREATMENT_BANK_GROUP) and len(source["receipt_sha256"]) == 64
+
+
+@pytest.mark.parametrize("change, value", [
+    ("outcome_id", "domestic_nonbank_deposits_qoq"),
+    ("admitted_series", "BOGZ1FL474100005Q"),
+    ("series", ["BOGZ1FL764100005Q", "BOGZ1FL764100005Q"]),
+    ("series", ["BOGZ1FL764100005Q"]),
+    ("perimeter", " "),
+])
+def test_a_deposit_outcome_declaration_that_drifts_from_the_canonical_outcome_is_refused(tmp_path, change, value):
+    payload = json.loads((ROOT / ALIGNED).read_text())
+    payload["deposit_outcome"][change] = value
+    path = tmp_path / "vintage.json"
+    path.write_text(json.dumps(payload))
+    with pytest.raises(ValueError, match="Declared deposit outcome"):
+        deposit_outcome(load_vintage(tmp_path, "vintage.json"))
+
+
+def _design_project(tmp_path: Path, levels: dict[str, list[tuple[str, str]]]) -> Path:
+    from test_design_builder import _write_text
+
+    _write_text(tmp_path / "config/dass_job_blueprint.yaml",
+                "jobs:\n  - job_id: baseline_tdc_lp_deposits\n    estimator: lp\n    horizons: [0]\n")
+    header = ("series_id,series_label,source_family,source_repo,source_table,freq,period_end,release_date,available_at,"
+              "vintage_policy,units,value,transform_default,seasonal_adjustment_flag,interpolated_flag,component_group,role,notes")
+    _write_text(tmp_path / "data/bundles/tdcest/standardized_series.csv", "\n".join([
+        header,
+        "tdc_base_bank_only_ru_flow,t,repo_seed_bundle,tdcest,estimates,quarterly,2024-03-31,2024-06-29,2024-06-29,p,"
+        "usd_millions,100,none,unknown,false,canonical_headline,treatment,primary_treatment"]))
+    for series_id, rows in levels.items():
+        _write_text(tmp_path / f"data/raw/fred/{series_id}.csv", "\n".join(["date,value", *(f"{d},{v}" for d, v in rows)]))
+    _write_text(tmp_path / ALIGNED, (ROOT / ALIGNED).read_text())
+    return tmp_path
+
+
+def test_aligned_outcome_is_the_quarterly_change_of_the_summed_deposit_levels(tmp_path, monkeypatch):
+    # Summing levels before differencing keeps the outcome a change in one balance sheet aggregate,
+    # and the residual outcome follows it, so the treatment is unchanged and only the outcome widens.
+    from ea_tdc.designs.quarterly import build_quarterly_design
+    from ea_tdc.paths import ensure_repo_dirs
+
+    root = _design_project(tmp_path, {
+        "BOGZ1FL764100005Q": [("2023-10-01", "900"), ("2024-01-01", "1030")],
+        "BOGZ1FL754100005Q": [("2023-10-01", "100"), ("2024-01-01", "150")],
+        "BOGZ1FL744100005Q": [("2023-10-01", "10"), ("2024-01-01", "12")],
+        CREDIT_UNIONS: [("2023-10-01", "500"), ("2024-01-01", "900")],
+    })
+    paths = project_paths(root)
+    ensure_repo_dirs(paths)
+    monkeypatch.delenv(VINTAGE_ENV, raising=False)
+    admitted = {r["quarter"]: r for r in csv.DictReader(build_quarterly_design(paths, job_id="baseline_tdc_lp_deposits")
+                                                         .bundle_path.open())}
+    assert admitted["2024Q1"]["matched_total_deposits"] == "130.0"
+    monkeypatch.setenv(VINTAGE_ENV, ALIGNED)
+    aligned = {r["quarter"]: r for r in csv.DictReader(build_quarterly_design(paths, job_id="baseline_tdc_lp_deposits")
+                                                        .bundle_path.open())}
+    assert aligned["2024Q1"]["matched_total_deposits"] == "182.0"  # (1030+150+12) - (900+100+10); credit unions out
+    assert aligned["2024Q1"]["other_component_qoq"] == "82.0"
+    assert aligned["2024Q1"]["tdc_bank_only_qoq"] == admitted["2024Q1"]["tdc_bank_only_qoq"] == "100"
+
+
+def test_a_quarter_missing_one_bank_group_raises_instead_of_breaking_the_level(tmp_path, monkeypatch):
+    from ea_tdc.designs.quarterly import build_quarterly_design
+    from ea_tdc.paths import ensure_repo_dirs
+
+    root = _design_project(tmp_path, {
+        "BOGZ1FL764100005Q": [("2023-10-01", "900"), ("2024-01-01", "1030")],
+        "BOGZ1FL754100005Q": [("2023-10-01", "100"), ("2024-01-01", "150")],
+        "BOGZ1FL744100005Q": [("2023-10-01", "10"), ("2024-01-01", ".")],
+    })
+    paths = project_paths(root)
+    ensure_repo_dirs(paths)
+    monkeypatch.setenv(VINTAGE_ENV, ALIGNED)
+    with pytest.raises(ValueError, match="do not all report 2024Q1"):
+        build_quarterly_design(paths, job_id="baseline_tdc_lp_deposits")
+
+
+def test_open16_outputs_state_the_declared_perimeter_only_inside_the_aligned_run():
+    aligned = load_vintage(ROOT, ALIGNED)
+    admitted = dict(open16.DISCLOSURES)
+    with open16_disclosures(aligned) as disclosures:
+        assert open16.DISCLOSURES["perimeter"] == disclosures["perimeter"] == aligned.payload["deposit_outcome"]["perimeter"]
+        assert {k: v for k, v in disclosures.items() if k != "perimeter"} == {k: v for k, v in admitted.items() if k != "perimeter"}
+    assert open16.DISCLOSURES == admitted
+    with open16_disclosures(load_vintage(ROOT, "config/vintage_2026q2_tfx.json")) as disclosures:
+        assert disclosures == admitted
+
+
+def _z1_deposit_archive(tables: dict[str, str]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as handle:
+        for name, text in tables.items():
+            handle.writestr(name, text)
+    return buffer.getvalue()
+
+
+def test_financial_accounts_levels_are_read_by_board_column_and_must_agree_across_tables(refresh):
+    archive = _z1_deposit_archive({"csv/F2_s.csv": "date,FL754100005.Q\n2026:Q1,5\n2026:Q2,ND\n",
+                                   "csv/L111.csv": "date,FL754100005.Q\n2026:Q1,5\n"})
+    assert refresh.z1_levels(archive, "BOGZ1FL754100005Q") == {"2026Q1": 5.0}
+    conflicting = _z1_deposit_archive({"csv/A.csv": "date,FL754100005.Q\n2026:Q1,5\n",
+                                       "csv/B.csv": "date,FL754100005.Q\n2026:Q1,6\n"})
+    with pytest.raises(ValueError, match="disagree"):
+        refresh.z1_levels(conflicting, "BOGZ1FL754100005Q")
+    with pytest.raises(ValueError, match="not in the Financial Accounts archive"):
+        refresh.z1_levels(archive, "BOGZ1FL744100005Q")
+
+
+DEPOSIT_LEVELS = {"BOGZ1FL764100005Q": ("19114679", "19188648"), "BOGZ1FL754100005Q": ("3108237", "3159915"),
+                  "BOGZ1FL744100005Q": ("88486", "92227")}
+
+
+def _fetch_setup(refresh, tmp_path, monkeypatch, z1_744_q2="92227"):
+    columns = list(DEPOSIT_LEVELS)
+    values = {s: list(v) for s, v in DEPOSIT_LEVELS.items()}
+    values["BOGZ1FL744100005Q"][1] = z1_744_q2
+    header = "date," + ",".join(f"{s.removeprefix('BOGZ1').removesuffix('Q')}.Q" for s in columns)
+    archive = _z1_deposit_archive({"csv/F2_s.csv": "\n".join(
+        [header, "2026:Q1," + ",".join(values[s][0] for s in columns), "2026:Q2," + ",".join(values[s][1] for s in columns)])})
+    payload = json.loads((ROOT / ALIGNED).read_text())
+    payload["z1_release"]["archive_sha256"] = hashlib.sha256(archive).hexdigest()
+    _put(tmp_path, ALIGNED, json.dumps(payload))
+    monkeypatch.setattr(refresh, "ROOT", tmp_path)
+    monkeypatch.setattr(refresh, "_verify_clean_commit", lambda root, commit: commit)
+    monkeypatch.setattr(refresh, "_used_quarters", lambda vintage: ["2026Q1", "2026Q2"])
+    monkeypatch.setattr(refresh.urllib.request, "urlopen", lambda request, timeout=None: contextlib.nullcontext(io.BytesIO(archive)))
+    monkeypatch.setattr(refresh, "_fred_series", lambda series_id, key, start: (
+        [{"date": "2026-01-01", "value": DEPOSIT_LEVELS[series_id][0]}, {"date": "2026-04-01", "value": DEPOSIT_LEVELS[series_id][1]}],
+        {"series_id": series_id, "last_updated": "2026-09-11 11:53:04-05", "realtime_start": "2026-11-21",
+         "observation_end": "2026-04-01"}))
+    monkeypatch.setenv("FRED_API_KEY", "test-key")
+    return lambda: refresh.main(["fetch-deposit-outcome", "--vintage", ALIGNED, "--producer-commit", COMMIT])
+
+
+def test_fetched_deposit_series_must_equal_the_pinned_financial_accounts_release(refresh, tmp_path, monkeypatch):
+    _fetch_setup(refresh, tmp_path, monkeypatch)()
+    target = tmp_path / "data/bundles/deposit_outcome_2026q2"
+    receipt = json.loads((target / "fetch_receipt.json").read_text())
+    assert set(receipt["series"]) == set(TREATMENT_BANK_GROUP)
+    for series_id, record in receipt["series"].items():
+        assert record["z1_release_comparison"]["identical"] == 2
+        assert sha256_file(target / "fred" / f"{series_id}.csv") == record["sha256"]
+    with pytest.raises(ValueError, match="no overwrite"):
+        _fetch_setup(refresh, tmp_path, monkeypatch)()
+
+
+def test_a_fetched_series_from_another_release_is_refused_and_nothing_is_installed(refresh, tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match="BOGZ1FL744100005Q differs from the pinned Financial Accounts release"):
+        _fetch_setup(refresh, tmp_path, monkeypatch, z1_744_q2="92228")()
+    assert not (tmp_path / "data/bundles/deposit_outcome_2026q2").exists()
+
+
+def _deposit_source(tree, rows: dict[str, list[tuple[str, str]]]) -> dict:
+    files, series = {}, {}
+    for series_id, values in rows.items():
+        files[series_id] = _put(tree.root, f"data/bundles/deposits/fred/{series_id}.csv",
+                                "date,value\n" + "".join(f"{d},{v}\n" for d, v in values))
+        series[series_id] = {"sha256": files[series_id], "last_updated": "2026-09-11 11:53:04-05",
+                             "realtime_start": "2026-11-21", "observation_end": "2026-06-01",
+                             "z1_release_comparison": {"identical": 2}}
+    receipt = _put(tree.root, "data/bundles/deposits/fetch_receipt.json", json.dumps({"producer_commit": COMMIT, "series": series}))
+    return {"outcome_id": CANONICAL_OUTCOME_ID, "admitted_series": "AAA", "series": list(rows), "perimeter": "treatment bank group",
+            "source": {"root": "data/bundles/deposits", "receipt_sha256": receipt, "files": files}}
+
+
+def _acquire_aligned(tree, declared: dict) -> Path:
+    reuse = {"root": "output/refresh_old", "receipt_sha256": tree.old_receipt_sha256, "vintage_config": "config/vintage_old.json"}
+    return tree.main("config/vintage_new.json", "output/refresh_new", tree.corrected_pins(),
+                     reuse_acquisition=reuse, deposit_outcome=declared)
+
+
+def test_added_deposit_series_join_the_reused_fred_inputs_and_are_verified(tree, monkeypatch):
+    monkeypatch.setattr(tree.refresh, "_used_quarters", lambda vintage: ["2026Q1", "2026Q2"])
+    tree.forbid_network()
+    declared = _deposit_source(tree, {"AAA": [("2026-01-01", "1.0"), ("2026-04-01", "2.0")],
+                                      "BBB": [("2026-01-01", "7.0"), ("2026-04-01", "8.0")]})
+    receipt = json.loads(_acquire_aligned(tree, declared).read_text())
+    inputs = tree.root / "output/refresh_new/inputs"
+    # The admitted series keeps the reused bytes; its refetch is evidence only.
+    assert sha256_file(inputs / "fred/AAA.csv") == receipt["fred_raw"]["AAA"]["sha256"]
+    assert sha256_file(inputs / "fred/BBB.csv") == declared["source"]["files"]["BBB"]
+    assert sha256_file(inputs / "deposit_outcome/fred/AAA.csv") == declared["source"]["files"]["AAA"]
+    assert receipt["deposit_outcome"]["admitted_refetch_consistency"]["identical"] == 2
+    vintage = load_vintage(tree.root, "config/vintage_new.json")
+    tree.refresh._verify_acquisition(vintage)
+    (inputs / "fred/BBB.csv").write_text("date,value\n2026-01-01,7.5\n")
+    with pytest.raises(ValueError, match="Acquired input changed: inputs/fred/BBB.csv"):
+        tree.refresh._verify_acquisition(vintage)
+
+
+@pytest.mark.parametrize("case", ["revised_admitted", "repinned_file"])
+def test_deposit_series_from_another_release_or_an_unpinned_file_are_refused(tree, monkeypatch, case):
+    monkeypatch.setattr(tree.refresh, "_used_quarters", lambda vintage: ["2026Q1", "2026Q2"])
+    admitted_q2 = "2.5" if case == "revised_admitted" else "2.0"
+    declared = _deposit_source(tree, {"AAA": [("2026-01-01", "1.0"), ("2026-04-01", admitted_q2)],
+                                      "BBB": [("2026-01-01", "7.0"), ("2026-04-01", "8.0")]})
+    if case == "repinned_file":
+        declared["source"]["files"]["BBB"] = _put(tree.root, "data/bundles/deposits/fred/BBB.csv", "date,value\n2026-01-01,9\n")
+        message = "fetch receipt and pin disagree: BBB"
+    else:
+        message = "Refetched AAA differs from the acquired series"
+    with pytest.raises(ValueError, match=message):
+        _acquire_aligned(tree, declared)
+    assert not (tree.root / "output/refresh_new/inputs").exists()

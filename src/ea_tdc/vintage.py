@@ -191,6 +191,48 @@ def pinned_factor_features(vintage: Vintage, root: Path) -> list[str]:
     return list(features)
 
 
+def deposit_outcome(vintage: Vintage | None) -> Mapping[str, Any] | None:
+    """The vintage's declared deposit outcome, or None for the admitted one.
+
+    A declared outcome replaces the admitted single-series deposit level with the
+    sum of named Financial Accounts levels. It must keep the canonical outcome id,
+    include the admitted series, name each series once, and state its perimeter.
+    """
+    if vintage is None or "deposit_outcome" not in vintage.payload:
+        return None
+    declared = vintage.payload["deposit_outcome"]
+    from ea_tdc.open_contract import CANONICAL_OUTCOME_ID
+
+    series = declared.get("series") if isinstance(declared, Mapping) else None
+    if (
+        declared.get("outcome_id") != CANONICAL_OUTCOME_ID
+        or not isinstance(series, list)
+        or len(series) < 2
+        or len(set(series)) != len(series)
+        or not all(isinstance(item, str) and re.fullmatch(r"[A-Z0-9]+", item) for item in series)
+        or declared.get("admitted_series") not in series
+        or not str(declared.get("perimeter", "")).strip()
+    ):
+        raise ValueError("Declared deposit outcome must keep the canonical id, include the admitted series once, "
+                         "name at least two series and state its perimeter")
+    return declared
+
+
+@contextlib.contextmanager
+def open16_disclosures(vintage: Vintage) -> Iterator[dict[str, str]]:
+    """State a declared deposit outcome's perimeter in the OPEN-16 output disclosures."""
+    from ea_tdc import open16
+
+    declared = deposit_outcome(vintage)
+    admitted = dict(open16.DISCLOSURES)
+    if declared is None:
+        yield admitted
+        return
+    disclosures = {**admitted, "perimeter": str(declared["perimeter"])}
+    with _rebound(open16, "DISCLOSURES", admitted, disclosures):
+        yield disclosures
+
+
 @contextlib.contextmanager
 def _rebound(module: Any, name: str, expected: Any, value: Any) -> Iterator[None]:
     current = getattr(module, name)
