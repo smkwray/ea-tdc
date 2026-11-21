@@ -32,7 +32,7 @@ def test_tdcest_adapter_writes_standardized_bundle_and_manifest(tmp_path: Path) 
                 "  default_start_date: 1980-01-01",
                 "  allow_graph_csv_fallback: true",
                 "remote:",
-                "  ssh_host: shanewray@100.71.19.72",
+                "  ssh_host: owner@203.0.113.10",
                 "  run_heavy_jobs_remotely: true",
                 "  path_parity_note: mirrored",
             ]
@@ -110,7 +110,7 @@ def test_tdcest_adapter_supplements_processed_estimates(tmp_path: Path) -> None:
                 "  default_start_date: 1980-01-01",
                 "  allow_graph_csv_fallback: true",
                 "remote:",
-                "  ssh_host: shanewray@100.71.19.72",
+                "  ssh_host: owner@203.0.113.10",
                 "  run_heavy_jobs_remotely: true",
                 "  path_parity_note: mirrored",
             ]
@@ -183,7 +183,7 @@ def test_tdcest_adapter_supplements_regression_mmf_rrp_rows_and_tier_indicators(
                 "  default_start_date: 1980-01-01",
                 "  allow_graph_csv_fallback: true",
                 "remote:",
-                "  ssh_host: shanewray@100.71.19.72",
+                "  ssh_host: owner@203.0.113.10",
                 "  run_heavy_jobs_remotely: true",
                 "  path_parity_note: mirrored",
             ]

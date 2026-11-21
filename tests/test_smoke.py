@@ -30,7 +30,7 @@ def test_smoke_writes_bootstrap_manifest(tmp_path: Path) -> None:
                 "  default_end_date:",
                 "  allow_graph_csv_fallback: true",
                 "remote:",
-                "  ssh_host: shanewray@100.71.19.72",
+                "  ssh_host: owner@203.0.113.10",
                 "  run_heavy_jobs_remotely: true",
                 "  path_parity_note: mirrored",
             ]
