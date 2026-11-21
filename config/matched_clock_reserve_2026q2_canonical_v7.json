@@ -38,7 +38,7 @@
     "definitions": {
       "path": "data/bundles/reserve_refresh_2026q2_canonical_v7/weekly_trc.md",
       "upstream_path": "docs/weekly_trc.md",
-      "upstream_commit": "994f46b936e379ca87b9775cce98a8c4abb9c46e",
+      "upstream_commit": "388ed952c0550422c5cb0859f77a01c0372725b8",
       "sha256": "301f6ed8cace257189adc2b3031e3c207bd079d579b60093b9cf40c1e7c9bc4e",
       "bytes": 20226
     },
