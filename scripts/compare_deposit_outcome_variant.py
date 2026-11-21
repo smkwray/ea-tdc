@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Compare a sealed deposit-outcome variant with the sealed vintage it varies.
 
-Both vintages must be sealed and differ only in their declared deposit outcome.
-The comparison first proves the two projection panels share the treatment, every
-control and the factor scores, then reports the retained OPEN-01 and OPEN-16
+Both vintages must be sealed and differ only in their declared deposit outcome and,
+when the variant declares one, its treatment source column (and the TDCest root that
+produced it). The comparison first proves the two projection panels share every
+control and the factor scores, and the treatment unless one is declared, then reports the retained OPEN-01 and OPEN-16
 results of each side by side, the five-row conditioning and HAC audit of each,
 and the cumulative treatment and outcome over the sample. Nothing is refit.
 """
@@ -32,7 +33,15 @@ from run_vintage_refresh import (  # noqa: E402
 )
 
 from ea_tdc.open_contract import CANONICAL_CONTROL_IDS, CANONICAL_OUTCOME_ID, CANONICAL_TREATMENT_ID  # noqa: E402
-from ea_tdc.vintage import Vintage, deposit_outcome, load_vintage, sha256_file  # noqa: E402
+from ea_tdc.vintage import (  # noqa: E402
+    Vintage,
+    declared_treatment,
+    deposit_outcome,
+    deposit_outcome_terms,
+    load_vintage,
+    sha256_file,
+    treatment_source_series,
+)
 
 HEADLINE = "outputs/tables/tdc_same_quarter_headline.csv"
 PRODUCER_RECEIPT = "output/manifests/open01_producer_run_receipt.json"
@@ -85,20 +94,21 @@ def write_audit(path: Path, rows: Sequence[Mapping[str, str]]) -> None:
         writer.writerows(rows)
 
 
-def identical_design(baseline: Path, variant: Path) -> dict[str, Any]:
-    """The panels may differ in the outcome only; treatment, controls and factor scores must match exactly."""
+def identical_design(baseline: Path, variant: Path, treatment_declared: bool = False) -> dict[str, Any]:
+    """The panels may differ in the outcome (and a declared treatment) only; controls and factor scores match exactly."""
     left, right = _rows(baseline / PANEL_LOCATOR), _rows(variant / PANEL_LOCATOR)
     if [r["quarter"] for r in left] != [r["quarter"] for r in right] or set(left[0]) != set(right[0]):
         raise ValueError("Projection panels differ in quarters or columns")
-    shared = [CANONICAL_TREATMENT_ID, *CANONICAL_CONTROL_IDS]
+    shared = [*([] if treatment_declared else [CANONICAL_TREATMENT_ID]), *CANONICAL_CONTROL_IDS]
+    allowed = {CANONICAL_OUTCOME_ID, *([CANONICAL_TREATMENT_ID] if treatment_declared else [])}
     differing = sorted({k for a, b in zip(left, right, strict=True) for k in a if a[k] != b[k]})
-    if set(differing) & set(shared) or set(differing) - {CANONICAL_OUTCOME_ID}:
+    if set(differing) & set(shared) or set(differing) - allowed:
         raise ValueError(f"Variant changes more than the deposit outcome: {differing}")
     scores_identical = sha256_file(baseline / FACTOR_SCORES_LOCATOR) == sha256_file(variant / FACTOR_SCORES_LOCATOR)
     if not scores_identical:
         raise ValueError("Factor scores differ; the frozen factors were not reused")
-    return {"quarters": len(left), "columns_differing": differing, "treatment_and_controls_identical": True,
-            "full_factor_scores_identical": True}
+    return {"quarters": len(left), "columns_differing": differing, "controls_identical": True,
+            "treatment_identical": CANONICAL_TREATMENT_ID not in differing, "full_factor_scores_identical": True}
 
 
 def sealed_configuration(vintage: Vintage, sealed: Mapping[str, Any]) -> None:
@@ -146,7 +156,9 @@ def summarize(vintage: Vintage) -> dict[str, Any]:
         "vintage": vintage.record(),
         "sealed_receipt": {"path": seal.relative_to(ROOT).as_posix(), "sha256": sha256_file(seal),
                            "producer_commit": sealed["producer_commit"], "run_id": sealed["open01"]["run_id"]},
-        "deposit_outcome_series": list((deposit_outcome(vintage) or {}).get("series", [])) or ["BOGZ1FL764100005Q"],
+        "deposit_outcome_terms": (deposit_outcome_terms(deposit_outcome(vintage)) if deposit_outcome(vintage)
+                                  else [("BOGZ1FL764100005Q", 1)]),
+        "treatment_source_series": treatment_source_series(vintage),
         "headline": {k: float(headline[k]) for k in ("beta", "se", "lower95", "upper95", "p_value_raw", "p_value_holm")}
         | {"n": int(headline["n"])},
         "acceptance": {"checks_passed": sum(bool(v["passed"]) for v in checks.values()), "checks": len(checks),
@@ -181,13 +193,15 @@ def main(argv: Sequence[str] | None = None) -> Path:
     if deposit_outcome(baseline) is not None or deposit_outcome(variant) is None:
         raise ValueError("Compare an admitted-outcome vintage with a declared deposit-outcome variant")
     differs = {k for k in set(baseline.payload) | set(variant.payload) if baseline.payload.get(k) != variant.payload.get(k)}
-    if differs != {"authority", "output_root", "deposit_outcome"}:
+    treatment_declared = declared_treatment(baseline) is None and declared_treatment(variant) is not None
+    expected = {"authority", "output_root", "deposit_outcome", *(("treatment", "tdcest") if treatment_declared else ())}
+    if differs != expected:
         raise ValueError(f"Variant differs from its baseline beyond the deposit outcome: {sorted(differs)}")
     target = ROOT / _plain(args.output, "Comparison output")
     if target.exists():
         raise ValueError("Comparison output already exists; no overwrite")
     roots = {name: ROOT / v.payload["output_root"] / "run" for name, v in (("baseline", baseline), ("variant", variant))}
-    design = identical_design(roots["baseline"], roots["variant"])
+    design = identical_design(roots["baseline"], roots["variant"], treatment_declared)
     summaries = {"baseline": summarize(baseline), "variant": summarize(variant)}
     changed = {k: [summaries["baseline"]["credit_screen_admission"][k], v]
                for k, v in summaries["variant"]["credit_screen_admission"].items()

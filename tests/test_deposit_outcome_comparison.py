@@ -29,8 +29,8 @@ def _write(path: Path, rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
-def _run(base: Path, compare, outcome: float, control: float = 1.0, score: float = 0.5) -> Path:
-    columns = {CANONICAL_TREATMENT_ID: 10.0, CANONICAL_OUTCOME_ID: outcome, **{c: control for c in CANONICAL_CONTROL_IDS}}
+def _run(base: Path, compare, outcome: float, control: float = 1.0, score: float = 0.5, treatment: float = 10.0) -> Path:
+    columns = {CANONICAL_TREATMENT_ID: treatment, CANONICAL_OUTCOME_ID: outcome, **{c: control for c in CANONICAL_CONTROL_IDS}}
     _write(base / compare.PANEL_LOCATOR, [{"quarter": q, **columns} for q in ("2026Q1", "2026Q2")])
     _write(base / compare.FACTOR_SCORES_LOCATOR, [{"quarter": "2026Q1", "dflmx_k100_f1": score}])
     return base
@@ -43,6 +43,23 @@ def test_only_the_deposit_outcome_may_differ_between_the_compared_runs(compare, 
         compare.identical_design(baseline, _run(tmp_path / "c", compare, outcome=7.0, control=2.0))
     with pytest.raises(ValueError, match="frozen factors were not reused"):
         compare.identical_design(baseline, _run(tmp_path / "d", compare, outcome=7.0, score=0.6))
+
+
+def test_the_treatment_may_differ_only_when_the_variant_declares_one(compare, tmp_path):
+    baseline = _run(tmp_path / "a", compare, outcome=5.0)
+    moved = _run(tmp_path / "b", compare, outcome=7.0, treatment=10.5)
+    with pytest.raises(ValueError, match="more than the deposit outcome"):
+        compare.identical_design(baseline, moved)
+    design = compare.identical_design(baseline, moved, treatment_declared=True)
+    assert design["columns_differing"] == sorted([CANONICAL_OUTCOME_ID, CANONICAL_TREATMENT_ID])
+    assert design["controls_identical"] and not design["treatment_identical"]
+    # A declared treatment never licenses a change in the frozen controls or factors.
+    with pytest.raises(ValueError, match="more than the deposit outcome"):
+        compare.identical_design(baseline, _run(tmp_path / "c", compare, outcome=7.0, control=2.0, treatment=10.5),
+                                 treatment_declared=True)
+    with pytest.raises(ValueError, match="frozen factors were not reused"):
+        compare.identical_design(baseline, _run(tmp_path / "d", compare, outcome=7.0, score=0.6, treatment=10.5),
+                                 treatment_declared=True)
 
 
 def test_conditioning_audit_reports_factor_and_bandwidth_changes_against_the_headline_fit(compare, tmp_path):
