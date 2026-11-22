@@ -339,7 +339,7 @@ def test_pinned_reserve_outputs_may_live_in_a_vintage_directory(tmp_path):
 
 
 @pytest.mark.parametrize("locator", ["config/matched_clock_reserve_2026q2.json", "config/matched_clock_reserve_2026q2_tfx.json",
-                                     "config/matched_clock_reserve_2026q2_canonical_v7.json"])
+                                     "config/matched_clock_reserve_2026q2_canonical.json"])
 def test_refresh_changes_only_vintage_bound_fields(locator):
     # Same comparisons on a later vintage: only the sample end, the last era end, pins and
     # variant wording may change; components, controls, influence quarters and inference may not.
