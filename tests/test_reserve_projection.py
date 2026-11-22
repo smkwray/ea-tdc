@@ -1193,11 +1193,11 @@ def test_rolling_path_refits_the_pooled_primary_cell_on_consecutive_sample_windo
         runner.run(args)
 
 
-def test_canonical_v7_refresh_changes_only_its_inputs():
-    # The v7 TDCest variant differs from the corrected vintage only in the money-fund route term, so the design
-    # (specifications, eras, seeds, groups) must stay that of the corrected refresh; only pins and scope move.
+def test_canonical_refresh_changes_only_its_inputs():
+    # The canonical TDCest measurement changes the money-fund route term and the Federal Reserve Treasury term, not the
+    # design: specifications, eras, seeds and groups must stay those of the corrected refresh; only pins and scope move.
     corrected = json.loads((ROOT / "config/reserve_projection_2026q2_tfx.json").read_text())
-    v7 = json.loads((ROOT / "config/reserve_projection_2026q2_canonical_v7.json").read_text())
+    v7 = json.loads((ROOT / "config/reserve_projection_2026q2_canonical.json").read_text())
     assert set(v7) == set(corrected)
     assert {k for k in corrected if corrected[k] != v7[k]} == {"refresh_scope", "output_dir", "upstream", "inputs"}
     assert {k: v for k, v in v7["upstream"].items() if k != "producer_commit"} == \

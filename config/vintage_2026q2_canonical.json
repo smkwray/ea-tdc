@@ -3,9 +3,9 @@
   "vintage": "2026q2",
   "authority": {
     "date": "2026-11-21",
-    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; observed money-fund and foreign FRN and bill holdings; remaining FRNs shared by other holders; Fed FRN interest exact only for CUSIP-days with a published accrual and estimated otherwise; one money-fund instrument classification for holdings and the ON RRP funding calculation, with N-MFP schedules filed under NT types and fund-month changes only between consecutive months; Fed FRN positions from weekly SOMA holdings; SHL June 2014 foreign FRN benchmark); specifications otherwise unchanged"
+    "proposal": "Rerun the corrected 2026q2 quarterly chains with the canonical deposit outcome (checkable plus time and savings deposits at the four depository groups less identified federal-government deposits) and the treatment that adds natural-person and corporate credit unions' Treasury purchases net of interest allocated on both groups' holdings, with interest weights that follow the instruments outstanding (no FRN weight before 2014Q1; observed money-fund and foreign FRN and bill holdings; remaining FRNs shared by other holders; Fed FRN interest exact only for CUSIP-days with a published accrual and estimated otherwise; one money-fund instrument classification for holdings and the ON RRP funding calculation, with N-MFP schedules filed under NT types and fund-month changes only between consecutive months; Fed FRN positions from weekly SOMA holdings; SHL June 2014 foreign FRN benchmark; the household residual kept in each interest denominator as an unresolved-holder reserve; each bank group at its own Financial Accounts level; the Federal Reserve's Treasury transactions and interest on a cash basis from a CUSIP-level SOMA ledger, subtracted once in TDC, the legs and TRC); specifications otherwise unchanged"
   },
-  "output_root": "output/refresh_2026q2_canonical_v7",
+  "output_root": "output/refresh_2026q2_canonical_v12",
   "reuse_acquisition": {
     "root": "output/refresh_2026q2",
     "receipt_sha256": "3c4c9e904294b2dbb736a580409304818f1205d05da9cb3c0d2ae29720fff1ea",
@@ -96,19 +96,19 @@
     "raw_seed_dir": "data/seed/interpol/raw"
   },
   "tdcest": {
-    "root": "../tdcest/data/refresh_2026q2_cu_v7",
-    "receipt_sha256": "18505655b4bc2d50aa1cc9eaedeca5469a5a39e40bb6aff0424b82b5f70735e3",
-    "generated_at": "2026-11-21T18:16:46Z",
+    "root": "../tdcest/data/refresh_2026q2_v12",
+    "receipt_sha256": "2f1315a034a37647a34ef89a577739c79bffb57843fb78702ffd50232429544f",
+    "generated_at": "2026-11-22T02:56:43Z",
     "files": {
-      "data/processed/tdc_tier2_regression_series.csv": "394fa76a78138cb92973bd8a4269deb89c0311b1ec5a385acd821de4b836ec06",
-      "data/processed/tdc_estimates.csv": "ae2141ec8ecbc2d4108daba46af6bffbd6341728b9c33280105531c1a1d51382",
-      "data/processed/tdc_components.csv": "e63ad6968de395250d7efe79316ab7988f8c05cbb5c88446a103938dac7762f3",
-      "data/processed/tdc_corrections.csv": "96a7bcfbfc48fbd98daf69b8a4c6db8ab79bb92d4669e3b77cc467c82cb6ea89",
-      "data/processed/quarterly_inputs.csv": "2ce9b3369c61082b784f13702a8f816d6e49a4367cb6c993991ffd565085f037",
-      "data/processed/tier2_regression_interest_backcast.csv": "88406c5213dca0282ee540ba439d46d0489ad386136cc53c3925667f1c8650b6",
-      "data/processed/tdc_regression_legs_v1.csv": "fa2ebf8c14293b31eec8af656a48c8b660799c3bb79d7e348b06d4246de6d3dd",
-      "data/processed/tdc_regression_legs_v1_receipt.json": "bd5390312eb86c19611d03ad94a5ae40ac1a7110c9529e31eff01aab9ab07958",
-      "data/processed/tdc_downstream_handoff_bundle.json": "eb0d32779c4b2bc9ef326ac9f5dcad888aecc121d7ddbfa74b8c4cdfa6c64c7e"
+      "data/processed/tdc_tier2_regression_series.csv": "2b1e1bcc53a833915235ea69f942072d0e7bb5c5dd1de05e71928d7c471c7466",
+      "data/processed/tdc_estimates.csv": "7858899c145b4f964db5ad1c022e7ecca327478590bf8fba9827d08f560fae80",
+      "data/processed/tdc_components.csv": "f25243ee727be6b29908261e1c8abaa3bc86ecd5040f6a3972bd796f5a6baba4",
+      "data/processed/tdc_corrections.csv": "908dc93f0e42c84382a2d14d81838161e222186f8ed48eda1499b3861f023e00",
+      "data/processed/quarterly_inputs.csv": "6c4e7bdf612f764bed44c5b64ac1a203ddf2c9cf7c70dc48cfc80396165f3f32",
+      "data/processed/tier2_regression_interest_backcast.csv": "f70f8762755b61603668313fb0df367f9f88ade12829a6ce3a3e97494615ca17",
+      "data/processed/tdc_regression_legs_v1.csv": "06386762da2238c016eff7ad6d304af8cd6d3f4f6191a199a40950d67fec4cd2",
+      "data/processed/tdc_regression_legs_v1_receipt.json": "522e9b942d5169d7de2a063e944c263083ebe850fcb158839dcbc7895b06c96b",
+      "data/processed/tdc_downstream_handoff_bundle.json": "311113d241530b7a5082a7e18170906c4310c1d10629832ab09cc22fdf1bc51f"
     }
   },
   "tdcpass": {
