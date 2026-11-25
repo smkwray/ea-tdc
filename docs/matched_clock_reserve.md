@@ -61,7 +61,7 @@ Inference is descriptive only. No era tests, bootstrap, intervals or stars are
 produced. Eras were declared after the pilot. The admitted HAC era tests
 over-reject, unrestricted bands undercover, and the conservative restricted
 test reports p=0.18; it establishes neither equality nor inference validity for
-this exposure. The admitted table and warning remain intact.
+this exposure.
 
 ## Reproduction and retained artifacts
 
